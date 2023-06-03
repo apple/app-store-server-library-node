@@ -1,0 +1,15 @@
+node_modules
+bower_components
+docs
+.vscode
+tsconfig.tsbuildinfo
+.idea
+*.iml
+
+.DS_Store
+Thumbs.db
+
+dist/**/*
+
+api-client/**/*
+docs/**/*
