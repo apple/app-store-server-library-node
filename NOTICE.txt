@@ -358,7 +358,7 @@ Apache License
 
  OpenJS Foundation and other contributors (typedoc)
 
- typescript contirbutors (typescript)
+ typescript contributors (typescript)
 
  Apache License
 
