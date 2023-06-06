@@ -22,7 +22,7 @@ export enum SendAttemptResult {
 }
 
 export class SendAttemptResultValidator implements Validator<SendAttemptResult> {
-   validate(obj: any): boolean {
+   validate(obj: any): obj is SendAttemptResult {
         return Object.values(SendAttemptResult).includes(obj)
     }
 }

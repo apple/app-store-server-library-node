@@ -13,7 +13,7 @@ export enum InAppOwnershipType {
 }
 
 export class InAppOwnershipTypeValidator implements Validator<InAppOwnershipType> {
-   validate(obj: any): boolean {
+   validate(obj: any): obj is InAppOwnershipType {
         return Object.values(InAppOwnershipType).includes(obj)
     }
 }

@@ -28,7 +28,7 @@ export enum NotificationTypeV2 {
 }
 
 export class NotificationTypeV2Validator implements Validator<NotificationTypeV2> {
-    validate(obj: any): boolean {
+    validate(obj: any): obj is NotificationTypeV2 {
          return Object.values(NotificationTypeV2).includes(obj)
      }
  }

@@ -27,7 +27,7 @@ export interface SendAttemptItem {
 
 export class SendAttemptItemValidator implements Validator<SendAttemptItem> {
     static readonly sendAttemptResultValidator = new SendAttemptResultValidator()
-    validate(obj: any): boolean {
+    validate(obj: any): obj is SendAttemptItem {
         if ((typeof obj['attemptDate'] !== 'undefined') && !(typeof obj['attemptDate'] === "number")) {
             return false
         }

@@ -145,7 +145,7 @@ export class SignedDataVerifier {
         throw new VerificationException(VerificationStatus.INVALID_CERTIFICATE)
       }
       try {
-        const decodedJWT = jsonwebtoken.decode(jwt) as T
+        const decodedJWT = jsonwebtoken.decode(jwt)
         if (!validator.validate(decodedJWT)) {
           throw new VerificationException(VerificationStatus.FAILURE)
         }

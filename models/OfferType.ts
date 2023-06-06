@@ -14,7 +14,7 @@ export enum OfferType {
 }
 
 export class OfferTypeValidator implements Validator<OfferType> {
-   validate(obj: any): boolean {
+   validate(obj: any): obj is OfferType {
         return Object.values(OfferType).includes(obj)
     }
 }

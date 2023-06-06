@@ -14,7 +14,7 @@ export enum Platform {
 }
 
 export class PlatformValidator implements Validator<Platform> {
-   validate(obj: any): boolean {
+   validate(obj: any): obj is Platform {
         return Object.values(Platform).includes(obj)
     }
 }

@@ -15,7 +15,7 @@ export enum ConsumptionStatus {
 }
 
 export class ConsumptionStatusValidator implements Validator<ConsumptionStatus> {
-   validate(obj: any): boolean {
+   validate(obj: any): obj is ConsumptionStatus {
         return Object.values(ConsumptionStatus).includes(obj)
     }
 }

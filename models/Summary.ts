@@ -69,7 +69,7 @@ export interface Summary {
 
 export class SummaryValidator implements Validator<Summary> {
     static readonly environmentValidator = new EnvironmentValidator()
-    validate(obj: any): boolean {
+    validate(obj: any): obj is Summary {
         if ((typeof obj['environment'] !== 'undefined') && !(SummaryValidator.environmentValidator.validate(obj['environment']))) {
             return false
         }

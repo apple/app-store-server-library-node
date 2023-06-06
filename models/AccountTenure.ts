@@ -19,7 +19,7 @@ export enum AccountTenure {
 }
 
 export class AccountTenureValidator implements Validator<AccountTenure> {
-   validate(obj: any): boolean {
+   validate(obj: any): obj is AccountTenure {
         return Object.values(AccountTenure).includes(obj)
     }
 }

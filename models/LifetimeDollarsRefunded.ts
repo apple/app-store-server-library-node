@@ -19,7 +19,7 @@ export enum LifetimeDollarsRefunded {
 }
 
 export class LifetimeDollarsRefundedValidator implements Validator<LifetimeDollarsRefunded> {
-   validate(obj: any): boolean {
+   validate(obj: any): obj is LifetimeDollarsRefunded {
         return Object.values(LifetimeDollarsRefunded).includes(obj)
     }
 }

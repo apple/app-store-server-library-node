@@ -13,7 +13,7 @@ export enum OrderLookupStatus {
 }
 
 export class OrderLookupStatusValidator implements Validator<OrderLookupStatus> {
-   validate(obj: any): boolean {
+   validate(obj: any): obj is OrderLookupStatus {
         return Object.values(OrderLookupStatus).includes(obj)
     }
 }

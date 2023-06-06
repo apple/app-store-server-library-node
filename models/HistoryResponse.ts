@@ -55,7 +55,7 @@ export interface HistoryResponse {
 
 export class HistoryResponseValidator implements Validator<HistoryResponse> {
     static readonly environmentValidator = new EnvironmentValidator()
-    validate(obj: any): boolean {
+    validate(obj: any): obj is HistoryResponse {
         if ((typeof obj['revision'] !== 'undefined') && !(typeof obj['revision'] === "string" || obj['revision'] instanceof String)) {
             return false
         }

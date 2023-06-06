@@ -19,7 +19,7 @@ export interface MassExtendRenewalDateResponse {
 
 
 export class MassExtendRenewalDateResponseValidator implements Validator<MassExtendRenewalDateResponse> {
-    validate(obj: any): boolean {
+    validate(obj: any): obj is MassExtendRenewalDateResponse {
         if ((typeof obj['requestIdentifier'] !== 'undefined') && !(typeof obj['requestIdentifier'] === "string" || obj['requestIdentifier'] instanceof String)) {
             return false
         }

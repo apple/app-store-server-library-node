@@ -19,7 +19,7 @@ export enum PlayTime {
 }
 
 export class PlayTimeValidator implements Validator<PlayTime> {
-   validate(obj: any): boolean {
+   validate(obj: any): obj is PlayTime {
         return Object.values(PlayTime).includes(obj)
     }
 }

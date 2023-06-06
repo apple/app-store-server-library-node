@@ -15,7 +15,7 @@ export enum ExtendReasonCode {
 }
 
 export class ExtendReasonCodeValidator implements Validator<ExtendReasonCode> {
-   validate(obj: any): boolean {
+   validate(obj: any): obj is ExtendReasonCode {
         return Object.values(ExtendReasonCode).includes(obj)
     }
 }

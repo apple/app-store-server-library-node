@@ -128,7 +128,7 @@ export class AppStoreServerAPIClient {
                     if (!validator.validate(responseBody)) {
                         throw new Error("Unexpected response body format")
                     }
-                    return responseBody as T
+                    return responseBody
                 });
             } else {
                 return r.json().then(responseBody => {

@@ -42,7 +42,7 @@ export interface LastTransactionsItem {
 
 export class LastTransactionsItemValidator implements Validator<LastTransactionsItem> {
     static readonly statusValidator = new StatusValidator()
-    validate(obj: any): boolean {
+    validate(obj: any): obj is LastTransactionsItem {
         if ((typeof obj['status'] !== 'undefined') && !(LastTransactionsItemValidator.statusValidator.validate(obj['status']))) {
             return false
         }

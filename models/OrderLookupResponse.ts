@@ -26,7 +26,7 @@ export interface OrderLookupResponse {
 
 export class OrderLookupResponseValidator implements Validator<OrderLookupResponse> {
     static readonly statusValidator = new OrderLookupStatusValidator()
-    validate(obj: any): boolean {
+    validate(obj: any): obj is OrderLookupResponse {
         if ((typeof obj['status'] !== 'undefined') && !(OrderLookupResponseValidator.statusValidator.validate(obj['status']))) {
             return false
         }
