@@ -14,6 +14,7 @@ jobs:
           always-auth: true
           registry-url: 'https://registry.npmjs.org'
       - run: yarn install --frozen-lockfile
+      - run: yarn build
       - run: yarn publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
