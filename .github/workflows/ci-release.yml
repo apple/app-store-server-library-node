@@ -10,6 +10,8 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: '18.x'
+          scope: '@apple'
+          always-auth: true
           registry-url: 'https://registry.npmjs.org'
       - run: yarn install --frozen-lockfile
       - run: yarn publish --access public
