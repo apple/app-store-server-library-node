@@ -1,7 +1,7 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
 import { NotificationTypeV2 } from "./NotificationTypeV2";
-import { Subtype, SubtypeValidator } from "./Subtype";
+import { Subtype } from "./Subtype";
 
 /**
  * The request body for notification history.

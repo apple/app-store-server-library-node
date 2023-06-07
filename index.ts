@@ -74,6 +74,8 @@ export { DecodedSignedData } from './models/DecodedSignedData'
 export { AppTransaction } from './models/AppTransaction'
 
 import jsonwebtoken = require('jsonwebtoken');
+import { NotificationHistoryRequest } from './models/NotificationHistoryRequest';
+import { NotificationHistoryResponse, NotificationHistoryResponseValidator } from './models/NotificationHistoryResponse';
 
 export class AppStoreServerAPIClient {
     private static PRODUCTION_URL = "https://api.storekit.itunes.apple.com";
@@ -232,6 +234,23 @@ export class AppStoreServerAPIClient {
      */
     public async getTestNotificationStatus(testNotificationToken: string): Promise<CheckTestNotificationResponse> {
         return await this.makeRequest("/inApps/v1/notifications/test/" + testNotificationToken, "GET", {}, null, new CheckTestNotificationResponseValidator());
+    }
+
+    /**
+     * Get a list of notifications that the App Store server attempted to send to your server.
+     *
+     * @param paginationToken An optional token you use to get the next set of up to 20 notification history records. All responses that have more records available include a paginationToken. Omit this parameter the first time you call this endpoint.
+     * @param notificationHistoryRequest The request body that includes the start and end dates, and optional query constraints.
+     * @return A response that contains the App Store Server Notifications history for your app.
+     * @throws APIException If a response was returned indicating the request could not be processed
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/get_notification_histor Get Notification History}
+     */
+    public async getNotificationHistory(paginationToken: string | null, notificationHistoryRequest: NotificationHistoryRequest): Promise<NotificationHistoryResponse> {
+        const queryParameters: { [key: string]: [string]} = {}
+        if (paginationToken != null) {
+            queryParameters["paginationToken"] = [paginationToken];
+        }
+        return await this.makeRequest("/inApps/v1/notifications/history", "POST", queryParameters, notificationHistoryRequest, new NotificationHistoryResponseValidator());
     }
 
     /**
