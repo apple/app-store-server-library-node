@@ -19,7 +19,7 @@ export interface ResponseBodyV2 {
 
 
 export class ResponseBodyV2Validator implements Validator<ResponseBodyV2> {
-    validate(obj: any): boolean {
+    validate(obj: any): obj is ResponseBodyV2 {
         if ((typeof obj['signedPayload'] !== 'undefined') && !(typeof obj['signedPayload'] === "string" || obj['signedPayload'] instanceof String)) {
             return false
         }

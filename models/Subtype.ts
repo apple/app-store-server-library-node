@@ -27,7 +27,7 @@ export enum Subtype {
 }
 
 export class SubtypeValidator implements Validator<Subtype> {
-   validate(obj: any): boolean {
+   validate(obj: any): obj is Subtype {
         return Object.values(Subtype).includes(obj)
     }
 }

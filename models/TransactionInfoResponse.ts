@@ -19,7 +19,7 @@ export interface TransactionInfoResponse {
 
 
 export class TransactionInfoResponseValidator implements Validator<TransactionInfoResponse> {
-    validate(obj: any): boolean {
+    validate(obj: any): obj is TransactionInfoResponse {
         if ((typeof obj['signedTransactionInfo'] !== 'undefined') && !(typeof obj['signedTransactionInfo'] === "string" || obj['signedTransactionInfo'] instanceof String)) {
             return false
         }

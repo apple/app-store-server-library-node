@@ -13,7 +13,7 @@ export enum Environment {
 }
 
 export class EnvironmentValidator implements Validator<Environment> {
-   validate(obj: any): boolean {
+   validate(obj: any): obj is Environment {
         return Object.values(Environment).includes(obj)
     }
 }

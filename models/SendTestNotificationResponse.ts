@@ -19,7 +19,7 @@ export interface SendTestNotificationResponse {
 
 
 export class SendTestNotificationResponseValidator implements Validator<SendTestNotificationResponse> {
-    validate(obj: any): boolean {
+    validate(obj: any): obj is SendTestNotificationResponse {
         if ((typeof obj['testNotificationToken'] !== 'undefined') && !(typeof obj['testNotificationToken'] === "string" || obj['testNotificationToken'] instanceof String)) {
             return false
         }

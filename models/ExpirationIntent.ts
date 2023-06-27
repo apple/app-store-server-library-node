@@ -16,7 +16,7 @@ export enum ExpirationIntent {
 }
 
 export class ExpirationIntentValidator implements Validator<ExpirationIntent> {
-   validate(obj: any): boolean {
+   validate(obj: any): obj is ExpirationIntent {
         return Object.values(ExpirationIntent).includes(obj)
     }
 }

@@ -27,7 +27,7 @@ export interface NotificationHistoryResponseItem {
 
 export class NotificationHistoryResponseItemValidator implements Validator<NotificationHistoryResponseItem> {
     static readonly sendAttemptItemValidator = new SendAttemptItemValidator()
-    validate(obj: any): boolean {
+    validate(obj: any): obj is NotificationHistoryResponseItem {
         if ((typeof obj['signedPayload'] !== 'undefined') && !(typeof obj['signedPayload'] === "string" || obj['signedPayload'] instanceof String)) {
             return false
         }

@@ -41,7 +41,7 @@ export interface StatusResponse {
 
 export class StatusResponseValidator implements Validator<StatusResponse> {
     static readonly environmentValidator = new EnvironmentValidator()
-    validate(obj: any): boolean {
+    validate(obj: any): obj is StatusResponse {
         if ((typeof obj['environment'] !== 'undefined') && !(StatusResponseValidator.environmentValidator.validate(obj['environment']))) {
             return false
         }

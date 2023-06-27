@@ -34,7 +34,7 @@ export interface NotificationHistoryResponse {
 
 export class NotificationHistoryResponseValidator implements Validator<NotificationHistoryResponse> {
     static readonly notificationHistoryResponseItemValidator = new NotificationHistoryResponseValidator()
-    validate(obj: any): boolean {
+    validate(obj: any): obj is NotificationHistoryResponse {
         if ((typeof obj['paginationToken'] !== 'undefined') && !(typeof obj['paginationToken'] === "string" || obj['paginationToken'] instanceof String)) {
             return false
         }

@@ -13,7 +13,7 @@ export enum TransactionReason {
 }
 
 export class TransactionReasonValidator implements Validator<TransactionReason> {
-   validate(obj: any): boolean {
+   validate(obj: any): obj is TransactionReason {
         return Object.values(TransactionReason).includes(obj)
     }
 }

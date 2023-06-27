@@ -13,7 +13,7 @@ export enum AutoRenewStatus {
 }
 
 export class AutoRenewStatusValidator implements Validator<AutoRenewStatus> {
-   validate(obj: any): boolean {
+   validate(obj: any): obj is AutoRenewStatus {
         return Object.values(AutoRenewStatus).includes(obj)
     }
 }

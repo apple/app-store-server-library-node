@@ -16,7 +16,7 @@ export enum Status {
 }
 
 export class StatusValidator implements Validator<Status> {
-   validate(obj: any): boolean {
+   validate(obj: any): obj is Status {
         return Object.values(Status).includes(obj)
     }
 }

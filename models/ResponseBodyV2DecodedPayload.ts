@@ -72,7 +72,7 @@ export class ResponseBodyV2DecodedPayloadValidator implements Validator<Response
     static readonly subtypeValidator = new SubtypeValidator()
     static readonly dataValidator = new DataValidator()
     static readonly summaryValidator = new SummaryValidator()
-    validate(obj: any): boolean {
+    validate(obj: any): obj is ResponseBodyV2DecodedPayload {
         if ((typeof obj['notificationType'] !== 'undefined') && !(ResponseBodyV2DecodedPayloadValidator.notificationTypeValidator.validate(obj['notificationType']))) {
             return false
         }

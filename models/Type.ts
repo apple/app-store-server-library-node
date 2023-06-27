@@ -15,7 +15,7 @@ export enum Type {
 }
 
 export class TypeValidator implements Validator<Type> {
-   validate(obj: any): boolean {
+   validate(obj: any): obj is Type {
         return Object.values(Type).includes(obj)
     }
 }

@@ -90,7 +90,7 @@ export interface AppTransaction {
 
 export class AppTransactionValidator implements Validator<AppTransaction> {
     static readonly environmentValidator = new EnvironmentValidator()
-    validate(obj: any): boolean {
+    validate(obj: any): obj is AppTransaction {
         if ((typeof obj['appAppleId'] !== 'undefined') && !(typeof obj['appAppleId'] === "number")) {
             return false
         }

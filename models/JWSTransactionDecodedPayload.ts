@@ -186,7 +186,7 @@ export class JWSTransactionDecodedPayloadValidator implements Validator<JWSTrans
     static readonly inAppOwnershipTypeValidator = new InAppOwnershipTypeValidator()
     static readonly typeValidator = new TypeValidator()
     static readonly transactionReasonValidator = new TransactionReasonValidator()
-    validate(obj: any): boolean {
+    validate(obj: any): obj is JWSTransactionDecodedPayload {
         if ((typeof obj['originalTransactionId'] !== 'undefined') && !(typeof obj['originalTransactionId'] === "string" || obj['originalTransactionId'] instanceof String)) {
             return false
         }

@@ -32,7 +32,7 @@ export interface RefundHistoryResponse {
 
 
 export class RefundHistoryResponseValidator implements Validator<RefundHistoryResponse> {
-    validate(obj: any): boolean {
+    validate(obj: any): obj is RefundHistoryResponse {
         if (typeof obj['signedTransactions'] !== 'undefined') {
             if (!Array.isArray(obj['signedTransactions'])) {
                 return false

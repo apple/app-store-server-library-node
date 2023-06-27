@@ -27,7 +27,7 @@ export interface CheckTestNotificationResponse {
 
 export class CheckTestNotificationResponseValidator implements Validator<CheckTestNotificationResponse> {
     static readonly sendAttemptItemValidator = new SendAttemptItemValidator()
-    validate(obj: any): boolean {
+    validate(obj: any): obj is CheckTestNotificationResponse {
         if ((typeof obj['signedPayload'] !== 'undefined') && !(typeof obj['signedPayload'] === "string" || obj['signedPayload'] instanceof String)) {
             return false
         }

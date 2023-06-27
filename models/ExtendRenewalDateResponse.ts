@@ -40,7 +40,7 @@ export interface ExtendRenewalDateResponse {
 
 
 export class ExtendRenewalDateResponseValidator implements Validator<ExtendRenewalDateResponse> {
-    validate(obj: any): boolean {
+    validate(obj: any): obj is ExtendRenewalDateResponse {
         if ((typeof obj['originalTransactionId'] !== 'undefined') && !(typeof obj['originalTransactionId'] === "string" || obj['originalTransactionId'] instanceof String)) {
             return false
         }

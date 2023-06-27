@@ -13,7 +13,7 @@ export enum PriceIncreaseStatus {
 }
 
 export class PriceIncreaseStatusValidator implements Validator<PriceIncreaseStatus> {
-   validate(obj: any): boolean {
+   validate(obj: any): obj is PriceIncreaseStatus {
         return Object.values(PriceIncreaseStatus).includes(obj)
     }
 }

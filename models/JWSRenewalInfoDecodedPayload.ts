@@ -121,7 +121,7 @@ export class JWSRenewalInfoDecodedPayloadValidator implements Validator<JWSRenew
     static readonly priceIncreaseStatusValidator = new PriceIncreaseStatusValidator()
     static readonly autoRenewStatusValidator = new AutoRenewStatusValidator()
     static readonly expirationIntentValidator = new ExpirationIntentValidator()
-    validate(obj: any): boolean {
+    validate(obj: any): obj is JWSRenewalInfoDecodedPayload {
         if ((typeof obj['expirationIntent'] !== 'undefined') && !(JWSRenewalInfoDecodedPayloadValidator.expirationIntentValidator.validate(obj['expirationIntent']))) {
             return false
         }

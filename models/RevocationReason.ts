@@ -13,7 +13,7 @@ export enum RevocationReason {
 }
 
 export class RevocationReasonValidator implements Validator<RevocationReason> {
-   validate(obj: any): boolean {
+   validate(obj: any): obj is RevocationReason {
         return Object.values(RevocationReason).includes(obj)
     }
 }

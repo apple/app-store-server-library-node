@@ -25,7 +25,7 @@ export interface SubscriptionGroupIdentifierItem {
 
 
 export class SubscriptionGroupIdentifierItemValidator implements Validator<SubscriptionGroupIdentifierItem> {
-    validate(obj: any): boolean {
+    validate(obj: any): obj is SubscriptionGroupIdentifierItem {
         if ((typeof obj['subscriptionGroupIdentifier'] !== 'undefined') && !(typeof obj['subscriptionGroupIdentifier'] === "string" || obj['subscriptionGroupIdentifier'] instanceof String)) {
             return false
         }

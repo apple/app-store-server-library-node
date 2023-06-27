@@ -56,7 +56,7 @@ export interface Data {
 
 export class DataValidator implements Validator<Data> {
     static readonly environmentValidator = new EnvironmentValidator()
-    validate(obj: any): boolean {
+    validate(obj: any): obj is Data {
         if ((typeof obj['environment'] !== 'undefined') && !(DataValidator.environmentValidator.validate(obj['environment']))) {
             return false
         }
