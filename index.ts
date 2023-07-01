@@ -116,38 +116,44 @@ export class AppStoreServerAPIClient {
             stringBody = JSON.stringify(body)
             headers['Content-Type'] = 'application/json'
         }
-        return fetch(this.urlBase + path + '?' + parsedQueryParameters, {
+
+        const response = await fetch(this.urlBase + path + '?' + parsedQueryParameters, {
             method: method,
             body: stringBody,
             headers: headers
-        }).then(r => {
-            if(r.status >= 200 && r.status < 300) {
-                // Success
-                if (validator == null) {
-                    return null
-                }
-                return r.json().then(responseBody => {
-                    if (!validator.validate(responseBody)) {
-                        throw new Error("Unexpected response body format")
-                    }
-                    return responseBody
-                });
-            } else {
-                return r.json().then(responseBody => {
-                    const errorCode = responseBody['errorCode']
-                    if (Object.values(APIError).includes(errorCode)) {
-                        throw new APIException(r.status, errorCode as APIError)
-                    } else {
-                        throw new APIException(r.status)
-                    }
-                }).catch(e => {
-                    if (e instanceof APIException) {
-                        throw e
-                    }
-                    throw new APIException(r.status)
-                });
+        })
+
+        if(response.ok) {
+            // Success
+            if (validator == null) {
+                return null as T
             }
-        }) as T
+
+            const responseBody = await response.json()
+
+            if (!validator.validate(responseBody)) {
+                throw new Error("Unexpected response body format")
+            }
+
+            return responseBody
+        }
+
+        try {
+            const responseBody = await response.json()
+            const errorCode = responseBody['errorCode']
+
+            if (Object.values(APIError).includes(errorCode)) {
+                throw new APIException(response.status, errorCode as APIError)
+            }
+
+            throw new APIException(response.status)
+        } catch (e) {
+            if (e instanceof APIException) {
+                throw e
+            }
+
+            throw new APIException(response.status)
+        }
     }
 
     /**

@@ -205,89 +205,90 @@ export class SignedDataVerifier {
       const request = new KJUR.asn1.ocsp.OCSPRequest({reqList: [{issuerCert: issuer.toString(), subjectCert: cert.toString() , alg: "sha256"}]})
       const headers = new Headers()
       headers.append('Content-Type', 'application/ocsp-request')
-      return fetch(matchResult[1], {
+      
+      const response = await fetch(matchResult[1], {
         headers: headers,
         method: 'POST',
         body: Buffer.from(request.getEncodedHex(), 'hex')
-      }).then(r => r.buffer())
-        .then(resp => {
-          const parsedResponse = new (KJUR.asn1.ocsp as any).OCSPParser().getOCSPResponse(resp.toString('hex'))
-          // The issuer could also be the signer
-          const jsrassignX509Issuer = new X509()
-          jsrassignX509Issuer.readCertHex(issuer.raw.toString('hex'))
-          const allCerts: X509[] = [jsrassignX509Issuer]
-          for (const certHex of parsedResponse.certs) {
-            const cert = new X509()
-            cert.readCertHex(certHex)
-            allCerts.push(cert)
+      })
+      
+      const responseBuffer = await response.buffer()
+      const parsedResponse = new (KJUR.asn1.ocsp as any).OCSPParser().getOCSPResponse(responseBuffer.toString('hex'))
+      // The issuer could also be the signer
+      const jsrassignX509Issuer = new X509()
+      jsrassignX509Issuer.readCertHex(issuer.raw.toString('hex'))
+      const allCerts: X509[] = [jsrassignX509Issuer]
+      for (const certHex of parsedResponse.certs) {
+        const cert = new X509()
+        cert.readCertHex(certHex)
+        allCerts.push(cert)
+      }
+      let signingCert: X509Certificate | null = null
+      if (parsedResponse.respid.key) {
+        for (const cert of allCerts) {
+          const shasum = createHash('sha1')
+          shasum.update(Buffer.from(cert.getSPKIValue(), 'hex'))
+          const spkiHash = shasum.digest('hex')
+          if (spkiHash === parsedResponse.respid.key) {
+            signingCert = new X509Certificate(Buffer.from(cert.hex, 'hex'))
           }
-          let signingCert: X509Certificate | null = null
-          if (parsedResponse.respid.key) {
-            for (const cert of allCerts) {
-              const shasum = createHash('sha1')
-              shasum.update(Buffer.from(cert.getSPKIValue(), 'hex'))
-              const spkiHash = shasum.digest('hex')
-              if (spkiHash === parsedResponse.respid.key) {
-                signingCert = new X509Certificate(Buffer.from(cert.hex, 'hex'))
-              }
-            }
-          } else if (parsedResponse.respid.name) {
-            for (const cert of allCerts) {
-              if (cert.getSubject().str === parsedResponse.respid.name.str) {
-                signingCert = new X509Certificate(Buffer.from(cert.hex, 'hex'))
-              }
-            }
+        }
+      } else if (parsedResponse.respid.name) {
+        for (const cert of allCerts) {
+          if (cert.getSubject().str === parsedResponse.respid.name.str) {
+            signingCert = new X509Certificate(Buffer.from(cert.hex, 'hex'))
           }
-          if (signingCert == null) {
-            throw new VerificationException(VerificationStatus.FAILURE)
-          }
-          // Verify Signing Cert is issued by issuer
-          if (signingCert.publicKey === issuer.publicKey && signingCert.subject === issuer.subject) {
-            // This is directly signed by the issuer
-          } else if (signingCert.verify(issuer.publicKey)) {
-            // This is issued by the issuer, let's check the dates and purpose
-            const signingCertAsign = new X509()
-            signingCertAsign.readCertPEM(signingCert.toString())
-            if (!signingCertAsign.getExtExtKeyUsage().array.includes("ocspSigning")) {
-              throw new VerificationException(VerificationStatus.INVALID_CERTIFICATE)
-            }
-            this.checkDates(signingCert, new Date())
-          } else {
-            throw new VerificationException(VerificationStatus.INVALID_CERTIFICATE)
-          }
-        
-          // Extract raw responseData
-          const responseData = ASN1HEX.getTLVbyList(resp.toString('hex'), 0, [1, 0, 1, 0, 0]) as string
-          // Verify Payload signed by cert
-          const shortAlg = parsedResponse.alg.substring(0, 6).toUpperCase()
-          if (shortAlg !== "SHA256" && shortAlg !== "SHA384" && shortAlg !== "SHA512") {
-            throw new VerificationException(VerificationStatus.FAILURE)
-          }
+        }
+      }
+      if (signingCert == null) {
+        throw new VerificationException(VerificationStatus.FAILURE)
+      }
+      // Verify Signing Cert is issued by issuer
+      if (signingCert.publicKey === issuer.publicKey && signingCert.subject === issuer.subject) {
+        // This is directly signed by the issuer
+      } else if (signingCert.verify(issuer.publicKey)) {
+        // This is issued by the issuer, let's check the dates and purpose
+        const signingCertAsign = new X509()
+        signingCertAsign.readCertPEM(signingCert.toString())
+        if (!signingCertAsign.getExtExtKeyUsage().array.includes("ocspSigning")) {
+          throw new VerificationException(VerificationStatus.INVALID_CERTIFICATE)
+        }
+        this.checkDates(signingCert, new Date())
+      } else {
+        throw new VerificationException(VerificationStatus.INVALID_CERTIFICATE)
+      }
+    
+      // Extract raw responseData
+      const responseData = ASN1HEX.getTLVbyList(responseBuffer.toString('hex'), 0, [1, 0, 1, 0, 0]) as string
+      // Verify Payload signed by cert
+      const shortAlg = parsedResponse.alg.substring(0, 6).toUpperCase()
+      if (shortAlg !== "SHA256" && shortAlg !== "SHA384" && shortAlg !== "SHA512") {
+        throw new VerificationException(VerificationStatus.FAILURE)
+      }
 
-          if (!verify(shortAlg, Buffer.from(responseData, 'hex'), signingCert.publicKey, Buffer.from(parsedResponse.sighex, 'hex'))) {
-            throw new VerificationException(VerificationStatus.FAILURE)
-          }
-          
-          for (const singleResponse of parsedResponse.array) {
-            // Confirm entry is for this cert
-            const certIdBuilder = new KJUR.asn1.ocsp.CertID() as any
-            const currentCertCertId = certIdBuilder.getParamByCerts(issuer.toString(), cert.toString(), 'sha256')
-            if (!(currentCertCertId.alg === singleResponse.certid.alg && currentCertCertId.issname === singleResponse.certid.issname &&
-                  currentCertCertId.isskey === singleResponse.certid.isskey && currentCertCertId.sbjsn === singleResponse.certid.sbjsn)) {
-              continue
-            }
-            // Validate contents
-            const issueDate = this.parseX509Date(singleResponse.thisupdate)
-            const nextDate = this.parseX509Date(singleResponse.nextupdate)
-            
-            if (singleResponse.status.status !== 'good' || new Date().getTime() - MAX_SKEW < issueDate.getTime() || nextDate.getTime() < new Date().getTime() + MAX_SKEW) {
-              throw new VerificationException(VerificationStatus.FAILURE)
-            }
-            // Success
-            return
-          }
+      if (!verify(shortAlg, Buffer.from(responseData, 'hex'), signingCert.publicKey, Buffer.from(parsedResponse.sighex, 'hex'))) {
+        throw new VerificationException(VerificationStatus.FAILURE)
+      }
+      
+      for (const singleResponse of parsedResponse.array) {
+        // Confirm entry is for this cert
+        const certIdBuilder = new KJUR.asn1.ocsp.CertID() as any
+        const currentCertCertId = certIdBuilder.getParamByCerts(issuer.toString(), cert.toString(), 'sha256')
+        if (!(currentCertCertId.alg === singleResponse.certid.alg && currentCertCertId.issname === singleResponse.certid.issname &&
+              currentCertCertId.isskey === singleResponse.certid.isskey && currentCertCertId.sbjsn === singleResponse.certid.sbjsn)) {
+          continue
+        }
+        // Validate contents
+        const issueDate = this.parseX509Date(singleResponse.thisupdate)
+        const nextDate = this.parseX509Date(singleResponse.nextupdate)
+        
+        if (singleResponse.status.status !== 'good' || new Date().getTime() - MAX_SKEW < issueDate.getTime() || nextDate.getTime() < new Date().getTime() + MAX_SKEW) {
           throw new VerificationException(VerificationStatus.FAILURE)
-        });
+        }
+        // Success
+        return
+      }
+      throw new VerificationException(VerificationStatus.FAILURE)
     }
 
     private checkDates(cert: X509Certificate, effectiveDate: Date) {
