@@ -18,7 +18,7 @@ This software is currently in Beta testing. Therefore, it should only be used fo
 
 - Node 16+
 
-### Gradle
+### NPM/Yarn
 ```bash
 # With NPM
 npm install @apple/app-store-server-library --save
