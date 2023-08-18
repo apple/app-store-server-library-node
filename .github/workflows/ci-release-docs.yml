@@ -1,0 +1,38 @@
+name: Doc Builder
+on:
+  release:
+    types: [published]
+permissions:
+  pages: write
+  id-token: write
+jobs:
+  build:
+    name: Doc Builder
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node ${{ matrix.node }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Install Node dependencies
+        run: yarn --frozen-lockfile
+      - name: Build
+        run: yarn build
+      - name: Build docs
+        run: yarn build-docs
+      - name: Upload docs
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: docs
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    runs-on: ubuntu-latest
+    name: Deploy docs
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v2
