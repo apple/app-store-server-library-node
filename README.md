@@ -28,7 +28,7 @@ yarn add @apple/app-store-server-library
 
 ## Documentation
 
-[Documentation](TODO)
+[Documentation](https://apple.github.io/app-store-server-library-node/)
 
 [WWDC Video](https://developer.apple.com/videos/play/wwdc2023/10143/)
 ## Usage
