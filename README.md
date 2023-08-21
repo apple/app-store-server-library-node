@@ -1,5 +1,5 @@
 # Apple App Store Server Node.js Library
-The Node.js server library for the [App Store Server API](https://developer.apple.com/documentation/appstoreserverapi) and [App Store Server Notifications](https://developer.apple.com/documentation/appstoreservernotifications)
+The Node.js server library for the [App Store Server API](https://developer.apple.com/documentation/appstoreserverapi) and [App Store Server Notifications](https://developer.apple.com/documentation/appstoreservernotifications). Also available in [Swift](https://github.com/apple/app-store-server-library-swift), [Python](https://github.com/apple/app-store-server-library-python), and [Java](https://github.com/apple/app-store-server-library-java).
 
 ## Table of Contents
 1. [Beta](#-beta-)
