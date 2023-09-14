@@ -1,6 +1,7 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
 import { Environment, EnvironmentValidator } from "./Environment"
+import { Status, StatusValidator } from "./Status"
 import { Validator } from "./Validator"
 
 /**
@@ -51,11 +52,19 @@ export interface Data {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/jwsrenewalinfo JWSRenewalInfo}
      **/
     signedRenewalInfo?: string
+
+    /**
+     * The status of an auto-renewable subscription as of the signedDate in the responseBodyV2DecodedPayload.
+     *
+     * {@link https://developer.apple.com/documentation/appstoreservernotifications/status status}
+     **/
+    status?: Status
 }
 
 
 export class DataValidator implements Validator<Data> {
     static readonly environmentValidator = new EnvironmentValidator()
+    static readonly statusValidator = new StatusValidator()
     validate(obj: any): obj is Data {
         if ((typeof obj['environment'] !== 'undefined') && !(DataValidator.environmentValidator.validate(obj['environment']))) {
             return false
@@ -73,6 +82,9 @@ export class DataValidator implements Validator<Data> {
             return false
         }
         if ((typeof obj['signedRenewalInfo'] !== 'undefined') && !(typeof obj['signedRenewalInfo'] === "string" || obj['signedRenewalInfo'] instanceof String)) {
+            return false
+        }
+        if ((typeof obj['status'] !== 'undefined') && !(DataValidator.statusValidator.validate(obj['status']))) {
             return false
         }
         return true
