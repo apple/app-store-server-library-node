@@ -141,9 +141,10 @@ export class AppStoreServerAPIClient {
         try {
             const responseBody = await response.json()
             const errorCode = responseBody['errorCode']
+            const errorMessage = responseBody['errorMessage'] as string | undefined
 
             if (Object.values(APIError).includes(errorCode)) {
-                throw new APIException(response.status, errorCode as APIError)
+                throw new APIException(response.status, errorCode as APIError, errorMessage)
             }
 
             throw new APIException(response.status)
@@ -359,11 +360,13 @@ export class AppStoreServerAPIClient {
 export class APIException extends Error {
     public httpStatusCode: number
     public apiError: APIError | null
+    public errorMessage: string | null
 
-    constructor(httpStatusCode: number, apiError: APIError | null = null) {
+    constructor(httpStatusCode: number, apiError: APIError | null = null, errorMessage: string | null = null) {
         super()
         this.httpStatusCode = httpStatusCode
         this.apiError = apiError
+        this.errorMessage = errorMessage
     }
 }
 
