@@ -563,17 +563,89 @@ export enum APIError {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/invalidstatuserror InvalidStatusError}
      */
     INVALID_STATUS = 4000031,
+
+    /**
+     * An error that indicates the value of the account tenure field is invalid.
+     * 
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/invalidaccounttenureerror InvalidAccountTenureError}
+     */
     INVALID_ACCOUNT_TENURE = 4000032,
+
+    /**
+     * An error that indicates the value of the app account token field is invalid.
+     * 
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/invalidappaccounttokenerror InvalidAppAccountTokenError}
+     */
     INVALID_APP_ACCOUNT_TOKEN = 4000033,
+
+    /**
+     * An error that indicates the value of the consumption status field is invalid.
+     * 
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/invalidconsumptionstatuserror InvalidConsumptionStatusError}
+     */
     INVALID_CONSUMPTION_STATUS = 4000034,
+
+    /**
+     * An error that indicates the customer consented field is invalid or doesn’t indicate that the customer consented.
+     * 
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/invalidcustomerconsentederror InvalidCustomerConsentedError}
+     */
     INVALID_CUSTOMER_CONSENTED = 4000035,
+
+    /**
+     * An error that indicates the value in the delivery status field is invalid.
+     * 
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/invaliddeliverystatuserror InvalidDeliveryStatusError}
+     */
     INVALID_DELIVERY_STATUS = 4000036,
+
+    /**
+     * An error that indicates the value in the lifetime dollars purchased field is invalid.
+     * 
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/invalidlifetimedollarspurchasederror InvalidLifetimeDollarsPurchasedError}
+     */
     INVALID_LIFETIME_DOLLARS_PURCHASED = 4000037,
+
+    /**
+     * An error that indicates the value in the lifetime dollars refunded field is invalid.
+     * 
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/invalidlifetimedollarsrefundederror InvalidLifetimeDollarsRefundedError}
+     */
     INVALID_LIFETIME_DOLLARS_REFUNDED = 4000038,
+
+    /**
+     * An error that indicates the value in the platform field is invalid.
+     * 
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/invalidplatformerror InvalidPlatformError}
+     */
     INVALID_PLATFORM = 4000039,
+
+    /**
+     * An error that indicates the value in the playtime field is invalid.
+     * 
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/invalidplaytimeerror InvalidPlayTimeError}
+     */
     INVALID_PLAY_TIME = 4000040,
+
+    /**
+     * An error that indicates the value in the sample content provided field is invalid.
+     * 
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/invalidsamplecontentprovidederror InvalidSampleContentProvidedError}
+     */
     INVALID_SAMPLE_CONTENT_PROVIDED = 4000041,
+
+    /**
+     * An error that indicates the value in the user status field is invalid.
+     * 
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/invaliduserstatuserror InvalidUserStatusError}
+     */
     INVALID_USER_STATUS = 4000042,
+
+    /**
+     * An error that indicates the transaction identifier doesn’t represent a consumable in-app purchase.
+     * 
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/invalidtransactionnotconsumableerror InvalidTransactionNotConsumableError}
+     */
     INVALID_TRANSACTION_NOT_CONSUMABLE = 4000043,
 
     /**
