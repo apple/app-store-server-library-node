@@ -370,7 +370,7 @@ export class APIException extends Error {
 /**
  * Error codes that App Store Server API responses return.
  * 
- * {@link https://developer.apple.com/documentation/appstoreserverapi/error_codes Error Codes}
+ * {@link https://developer.apple.com/documentation/appstoreserverapi/error_codes Error codes}
  */
 export enum APIError {
     /**
