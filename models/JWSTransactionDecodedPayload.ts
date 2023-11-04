@@ -3,6 +3,7 @@
 import { DecodedSignedData } from "./DecodedSignedData"
 import { Environment, EnvironmentValidator } from "./Environment"
 import { InAppOwnershipType, InAppOwnershipTypeValidator } from "./InAppOwnershipType"
+import { OfferDiscountType, OfferDiscountTypeValidator } from "./OfferDiscountType"
 import { OfferType, OfferTypeValidator } from "./OfferType"
 import { RevocationReason, RevocationReasonValidator } from "./RevocationReason"
 import { TransactionReason, TransactionReasonValidator } from "./TransactionReason"
@@ -176,6 +177,27 @@ export interface JWSTransactionDecodedPayload extends DecodedSignedData {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/transactionreason transactionReason}
      **/
     transactionReason?: TransactionReason
+
+    /**
+     * The three-letter ISO 4217 currency code for the price of the product.
+     *
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/currency currency}
+     **/
+    currency?: string
+
+    /**
+     * The price of the in-app purchase or subscription offer that you configured in App Store Connect, as an integer.
+     *
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/price price}
+     **/
+    price?: number
+
+    /**
+     * The payment mode you configure for an introductory offer, promotional offer, or offer code on an auto-renewable subscription.
+     *
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/offerdiscounttype offerDiscountType}
+     **/
+    offerDiscountType?: OfferDiscountType
 }
 
 
@@ -186,6 +208,7 @@ export class JWSTransactionDecodedPayloadValidator implements Validator<JWSTrans
     static readonly inAppOwnershipTypeValidator = new InAppOwnershipTypeValidator()
     static readonly typeValidator = new TypeValidator()
     static readonly transactionReasonValidator = new TransactionReasonValidator()
+    static readonly offerDiscountTypeValidator = new OfferDiscountTypeValidator()
     validate(obj: any): obj is JWSTransactionDecodedPayload {
         if ((typeof obj['originalTransactionId'] !== 'undefined') && !(typeof obj['originalTransactionId'] === "string" || obj['originalTransactionId'] instanceof String)) {
             return false
@@ -254,6 +277,15 @@ export class JWSTransactionDecodedPayloadValidator implements Validator<JWSTrans
             return false
         }
         if ((typeof obj['transactionReason'] !== 'undefined') && !(JWSTransactionDecodedPayloadValidator.transactionReasonValidator.validate(obj['transactionReason']))) {
+            return false
+        }
+        if ((typeof obj['currency'] !== 'undefined') && !(typeof obj['currency'] === "string" || obj['currency'] instanceof String)) {
+            return false
+        }
+        if ((typeof obj['price'] !== 'undefined') && !(typeof obj['price'] === "number")) {
+            return false
+        }
+        if ((typeof obj['offerDiscountType'] !== 'undefined') && !(JWSTransactionDecodedPayloadValidator.offerDiscountTypeValidator.validate(obj['offerDiscountType']))) {
             return false
         }
         return true
