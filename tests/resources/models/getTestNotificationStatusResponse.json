@@ -1,0 +1,12 @@
+{
+  "signedPayload": "signed_payload",
+  "sendAttempts": [
+    {
+      "attemptDate": 1698148900000,
+      "sendAttemptResult": "NO_RESPONSE"
+    }, {
+      "attemptDate": 1698148950000,
+      "sendAttemptResult": "SUCCESS"
+    }
+  ]
+}

@@ -10,6 +10,8 @@ import { Validator } from "./Validator";
 export enum Environment {
     SANDBOX = "Sandbox",
     PRODUCTION = "Production",
+    XCODE = "Xcode",
+    LOCAL_TESTING = "LocalTesting",
 }
 
 export class EnvironmentValidator implements Validator<Environment> {

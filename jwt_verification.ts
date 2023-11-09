@@ -85,7 +85,12 @@ export class SignedDataVerifier {
      * @throws VerificationException Thrown if the data could not be verified
      */
     async verifyAndDecodeRenewalInfo(signedRenewalInfo: string): Promise<JWSRenewalInfoDecodedPayload> {
-      return this.verifyJWT(signedRenewalInfo, this.JWSRenewalInfoDecodedPayloadValidator, this.extractSignedDate);
+      const decodedRenewalInfo: JWSRenewalInfoDecodedPayload = await this.verifyJWT(signedRenewalInfo, this.JWSRenewalInfoDecodedPayloadValidator, this.extractSignedDate);
+      const environment = decodedRenewalInfo.environment
+      if (this.environment !== environment) {
+        throw new VerificationException(VerificationStatus.INVALID_ENVIRONMENT)
+      }
+      return decodedRenewalInfo
     }
 
     /**
@@ -100,7 +105,7 @@ export class SignedDataVerifier {
       const appAppleId = decodedJWT.data ? decodedJWT.data.appAppleId : (decodedJWT.summary ? decodedJWT.summary.appAppleId : null)
       const bundleId = decodedJWT.data ? decodedJWT.data.bundleId : (decodedJWT.summary ? decodedJWT.summary.bundleId : null)
       const environment = decodedJWT.data ? decodedJWT.data.environment : (decodedJWT.summary ? decodedJWT.summary.environment : null)
-      if (this.bundleId !== bundleId || (this.environment === "Production" && this.appAppleId !== appAppleId)) {
+      if (this.bundleId !== bundleId || (this.environment === Environment.PRODUCTION && this.appAppleId !== appAppleId)) {
         throw new VerificationException(VerificationStatus.INVALID_APP_IDENTIFIER)
       }
       if (this.environment !== environment) {
@@ -118,7 +123,7 @@ export class SignedDataVerifier {
     async verifyAndDecodeAppTransaction(signedAppTransaction: string): Promise<AppTransaction> {
       const decodedAppTransaction: AppTransaction = await this.verifyJWT(signedAppTransaction, this.appTransactionValidator, t => t.receiptCreationDate === undefined ? new Date() : new Date(t.receiptCreationDate));
       const environment = decodedAppTransaction.receiptType
-      if (this.bundleId !== decodedAppTransaction.bundleId || (this.environment === "Production" && this.appAppleId !== decodedAppTransaction.appAppleId)) {
+      if (this.bundleId !== decodedAppTransaction.bundleId || (this.environment === Environment.PRODUCTION && this.appAppleId !== decodedAppTransaction.appAppleId)) {
         throw new VerificationException(VerificationStatus.INVALID_APP_IDENTIFIER)
       }
       if (this.environment !== environment) {
@@ -129,27 +134,33 @@ export class SignedDataVerifier {
 
     protected async verifyJWT<T>(jwt: string, validator: Validator<T>, signedDateExtractor: (decodedJWT: T) => Date): Promise<T> {
       let certificateChain;
+      let decodedJWT
       try {
-        const header = jwt.split('.')[0]
-        const decodedHeader = base64url.decode(header)
-        const headerObj = JSON.parse(decodedHeader)
-        const chain: string[] = headerObj['x5c'] ?? []
-        if (chain.length != 3) {
-          throw new VerificationException(VerificationStatus.INVALID_CHAIN_LENGTH)
-        }
-        certificateChain = chain.slice(0, 2).map(cert => new X509Certificate(Buffer.from(cert, 'base64')))
-      } catch (error) {
-        if (error instanceof Error) {
-          throw new VerificationException(VerificationStatus.INVALID_CERTIFICATE, error)
-        }
-        throw new VerificationException(VerificationStatus.INVALID_CERTIFICATE)
-      }
-      try {
-        const decodedJWT = jsonwebtoken.decode(jwt)
+        decodedJWT = jsonwebtoken.decode(jwt)
         if (!validator.validate(decodedJWT)) {
           throw new VerificationException(VerificationStatus.FAILURE)
         }
-        const effectiveDate = this.enableOnlineChecks  ? new Date() : signedDateExtractor(decodedJWT)
+        if (this.environment === Environment.XCODE || this.environment === Environment.LOCAL_TESTING) {
+          // Data is not signed by the App Store, and verification should be skipped
+          // The environment MUST be checked in the public method calling this
+          return decodedJWT
+        }
+        try {
+          const header = jwt.split('.')[0]
+          const decodedHeader = base64url.decode(header)
+          const headerObj = JSON.parse(decodedHeader)
+          const chain: string[] = headerObj['x5c'] ?? []
+          if (chain.length != 3) {
+            throw new VerificationException(VerificationStatus.INVALID_CHAIN_LENGTH)
+          }
+          certificateChain = chain.slice(0, 2).map(cert => new X509Certificate(Buffer.from(cert, 'base64')))
+        } catch (error) {
+          if (error instanceof Error) {
+            throw new VerificationException(VerificationStatus.INVALID_CERTIFICATE, error)
+          }
+          throw new VerificationException(VerificationStatus.INVALID_CERTIFICATE)
+        }
+        const effectiveDate = this.enableOnlineChecks ? new Date() : signedDateExtractor(decodedJWT)
         const publicKey = await this.verifyCertificateChain(this.rootCertificates, certificateChain[0], certificateChain[1], effectiveDate);
         const encodedKey = publicKey.export({
           type: "spki",
