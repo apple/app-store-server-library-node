@@ -1,0 +1,27 @@
+{
+  "paginationToken": "57715481-805a-4283-8499-1c19b5d6b20a",
+  "hasMore": true,
+  "notificationHistory": [
+    {
+      "sendAttempts": [
+        {
+          "attemptDate": 1698148900000,
+          "sendAttemptResult": "NO_RESPONSE"
+        }, {
+          "attemptDate": 1698148950000,
+          "sendAttemptResult": "SUCCESS"
+        }
+      ],
+      "signedPayload": "signed_payload_one"
+    },
+    {
+      "sendAttempts": [
+        {
+          "attemptDate": 1698148800000,
+          "sendAttemptResult": "CIRCULAR_REDIRECT"
+        }
+      ],
+      "signedPayload": "signed_payload_two"
+    }
+  ]
+}

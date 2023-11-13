@@ -1,0 +1,35 @@
+{
+  "environment": "LocalTesting",
+  "bundleId": "com.example",
+  "appAppleId": 5454545,
+  "data": [
+    {
+      "subscriptionGroupIdentifier": "sub_group_one",
+      "lastTransactions": [
+        {
+          "status": 1,
+          "originalTransactionId": "3749183",
+          "signedTransactionInfo": "signed_transaction_one",
+          "signedRenewalInfo": "signed_renewal_one"
+        },
+        {
+          "status": 5,
+          "originalTransactionId": "5314314134",
+          "signedTransactionInfo": "signed_transaction_two",
+          "signedRenewalInfo": "signed_renewal_two"
+        }
+      ]
+    },
+    {
+      "subscriptionGroupIdentifier": "sub_group_two",
+      "lastTransactions": [
+        {
+          "status": 2,
+          "originalTransactionId": "3413453",
+          "signedTransactionInfo": "signed_transaction_three",
+          "signedRenewalInfo": "signed_renewal_three"
+        }
+      ]
+    }
+  ]
+}

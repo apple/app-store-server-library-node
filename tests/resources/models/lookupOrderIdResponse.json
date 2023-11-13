@@ -1,0 +1,7 @@
+{
+  "status": 1,
+  "signedTransactions": [
+    "signed_transaction_one",
+    "signed_transaction_two"
+  ]
+}

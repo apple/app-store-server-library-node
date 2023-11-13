@@ -1,0 +1,13 @@
+{
+  "receiptType": "LocalTesting",
+  "appAppleId": 531412,
+  "bundleId": "com.example",
+  "applicationVersion": "1.2.3",
+  "versionExternalIdentifier": 512,
+  "receiptCreationDate": 1698148900000,
+  "originalPurchaseDate": 1698148800000,
+  "originalApplicationVersion": "1.1.2",
+  "deviceVerification": "device_verification_value",
+  "deviceVerificationNonce": "48ccfa42-7431-4f22-9908-7e88983e105a",
+  "preorderDate": 1698148700000
+}
