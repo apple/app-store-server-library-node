@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import { Validator } from "./Validator";
+import { NumberValidator } from "./Validator";
 
 /**
  * A value that indicates the total amount, in USD, of in-app purchases the customer has made in your app, across all platforms.
@@ -18,8 +18,4 @@ export enum LifetimeDollarsPurchased {
     TWO_THOUSAND_DOLLARS_OR_GREATER = 7,
 }
 
-export class LifetimeDollarsPurchasedValidator implements Validator<LifetimeDollarsPurchased> {
-   validate(obj: any): obj is LifetimeDollarsPurchased {
-        return Object.values(LifetimeDollarsPurchased).includes(obj)
-    }
-}
+export class LifetimeDollarsPurchasedValidator extends NumberValidator {}

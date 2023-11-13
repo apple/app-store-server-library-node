@@ -19,14 +19,14 @@ export interface ResponseBodyV2DecodedPayload extends DecodedSignedData {
      *
      * {@link https://developer.apple.com/documentation/appstoreservernotifications/notificationtype notificationType}
      **/
-    notificationType?: NotificationTypeV2;
+    notificationType?: NotificationTypeV2 | string;
         
     /**
      * Additional information that identifies the notification event. The subtype field is present only for specific version 2 notifications.
      *
      * {@link https://developer.apple.com/documentation/appstoreservernotifications/subtype subtype}
      **/
-    subtype?: Subtype
+    subtype?: Subtype | string
         
     /**
      * A unique identifier for the notification.

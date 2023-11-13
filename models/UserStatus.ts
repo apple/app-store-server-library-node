@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import { Validator } from "./Validator";
+import { NumberValidator } from "./Validator";
 
 /**
  * The status of a customer’s account within your app.
@@ -15,8 +15,4 @@ export enum UserStatus {
     LIMITED_ACCESS = 4,
 }
 
-export class UserStatusValidator implements Validator<UserStatus> {
-   validate(obj: any): obj is UserStatus {
-        return Object.values(UserStatus).includes(obj)
-    }
-}
+export class UserStatusValidator extends NumberValidator {}

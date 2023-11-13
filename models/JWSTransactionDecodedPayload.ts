@@ -92,7 +92,7 @@ export interface JWSTransactionDecodedPayload extends DecodedSignedData {
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/type type}
      **/
-    type?: Type
+    type?: Type | string
         
     /**
      * The UUID that an app optionally generates to map a customer’s in-app purchase with its resulting App Store transaction.
@@ -106,7 +106,7 @@ export interface JWSTransactionDecodedPayload extends DecodedSignedData {
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/inappownershiptype inAppOwnershipType}
      **/
-    inAppOwnershipType?: InAppOwnershipType
+    inAppOwnershipType?: InAppOwnershipType | string
         
     /**
      * The UNIX time, in milliseconds, that the App Store signed the JSON Web Signature data.
@@ -120,7 +120,7 @@ export interface JWSTransactionDecodedPayload extends DecodedSignedData {
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/revocationreason revocationReason}
      **/
-    revocationReason?: RevocationReason
+    revocationReason?: RevocationReason | number
         
     /**
      * The UNIX time, in milliseconds, that Apple Support refunded a transaction.
@@ -141,7 +141,7 @@ export interface JWSTransactionDecodedPayload extends DecodedSignedData {
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/offertype offerType}
      **/
-    offerType?: OfferType
+    offerType?: OfferType | number
         
     /**
      * The identifier that contains the promo code or the promotional offer identifier.
@@ -155,7 +155,7 @@ export interface JWSTransactionDecodedPayload extends DecodedSignedData {
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/environment environment}
      **/
-    environment?: Environment
+    environment?: Environment | string
 
     /**
      * The three-letter code that represents the country or region associated with the App Store storefront for the purchase.
@@ -176,7 +176,7 @@ export interface JWSTransactionDecodedPayload extends DecodedSignedData {
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/transactionreason transactionReason}
      **/
-    transactionReason?: TransactionReason
+    transactionReason?: TransactionReason | string
 
     /**
      * The three-letter ISO 4217 currency code for the price of the product.
@@ -197,7 +197,7 @@ export interface JWSTransactionDecodedPayload extends DecodedSignedData {
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/offerdiscounttype offerDiscountType}
      **/
-    offerDiscountType?: OfferDiscountType
+    offerDiscountType?: OfferDiscountType | string
 }
 
 

@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import { Validator } from "./Validator";
+import { NumberValidator } from "./Validator";
 
 /**
  * The reason an auto-renewable subscription expired.
@@ -15,8 +15,4 @@ export enum ExpirationIntent {
     OTHER = 5,
 }
 
-export class ExpirationIntentValidator implements Validator<ExpirationIntent> {
-   validate(obj: any): obj is ExpirationIntent {
-        return Object.values(ExpirationIntent).includes(obj)
-    }
-}
+export class ExpirationIntentValidator extends NumberValidator {}

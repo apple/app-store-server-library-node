@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import { Validator } from "./Validator";
+import { NumberValidator } from "./Validator";
 
 /**
  * The age of the customer’s account.
@@ -18,8 +18,4 @@ export enum AccountTenure {
     GREATER_THAN_THREE_HUNDRED_SIXTY_FIVE_DAYS = 7,
 }
 
-export class AccountTenureValidator implements Validator<AccountTenure> {
-   validate(obj: any): obj is AccountTenure {
-        return Object.values(AccountTenure).includes(obj)
-    }
-}
+export class AccountTenureValidator extends NumberValidator {}

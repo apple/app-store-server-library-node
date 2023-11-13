@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import { Validator } from "./Validator";
+import { NumberValidator } from "./Validator";
 
 /**
  * The type of subscription offer.
@@ -13,8 +13,4 @@ export enum OfferType {
     SUBSCRIPTION_OFFER_CODE = 3,
 }
 
-export class OfferTypeValidator implements Validator<OfferType> {
-   validate(obj: any): obj is OfferType {
-        return Object.values(OfferType).includes(obj)
-    }
-}
+export class OfferTypeValidator extends NumberValidator {}

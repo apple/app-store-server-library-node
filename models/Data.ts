@@ -16,7 +16,7 @@ export interface Data {
      *
      * {@link https://developer.apple.com/documentation/appstoreservernotifications/environment environment}
      **/
-    environment?: Environment
+    environment?: Environment | string
         
     /**
      * The unique identifier of an app in the App Store.
@@ -58,7 +58,7 @@ export interface Data {
      *
      * {@link https://developer.apple.com/documentation/appstoreservernotifications/status status}
      **/
-    status?: Status
+    status?: Status | number
 }
 
 

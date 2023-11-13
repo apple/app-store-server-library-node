@@ -23,12 +23,12 @@ export interface TransactionHistoryRequest {
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/productid productId}
      */
-    productIds?: [string]
+    productIds?: string[]
 
     /**
      * An optional filter that indicates the product type to include in the transaction history. Your query may specify more than one productType.
      */
-    productTypes?: [ProductType]
+    productTypes?: ProductType[]
 
     /**
      * An optional sort order for the transaction history records. The response sorts the transaction records by their recently modified date. The default value is ASCENDING, so you receive the oldest records first.
@@ -40,7 +40,7 @@ export interface TransactionHistoryRequest {
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/subscriptiongroupidentifier subscriptionGroupIdentifier}
      */
-    subscriptionGroupIdentifiers?: [string]
+    subscriptionGroupIdentifiers?: string[]
 
     /**
      * An optional filter that limits the transaction history by the in-app ownership type.

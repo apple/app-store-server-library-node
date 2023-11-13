@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import { Validator } from "./Validator";
+import { NumberValidator } from "./Validator";
 
 /**
  * The reason for a refunded transaction.
@@ -12,8 +12,4 @@ export enum RevocationReason {
     REFUNDED_FOR_OTHER_REASON = 0,
 }
 
-export class RevocationReasonValidator implements Validator<RevocationReason> {
-   validate(obj: any): obj is RevocationReason {
-        return Object.values(RevocationReason).includes(obj)
-    }
-}
+export class RevocationReasonValidator extends NumberValidator {}

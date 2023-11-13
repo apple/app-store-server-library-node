@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import { Validator } from "./Validator";
+import { NumberValidator } from "./Validator";
 
 /**
  * The platform on which the customer consumed the in-app purchase.
@@ -13,8 +13,4 @@ export enum Platform {
     NON_APPLE = 2,
 }
 
-export class PlatformValidator implements Validator<Platform> {
-   validate(obj: any): obj is Platform {
-        return Object.values(Platform).includes(obj)
-    }
-}
+export class PlatformValidator extends NumberValidator {}

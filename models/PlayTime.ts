@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import { Validator } from "./Validator";
+import { NumberValidator } from "./Validator";
 
 /**
  * A value that indicates the amount of time that the customer used the app.
@@ -18,8 +18,4 @@ export enum PlayTime {
     OVER_SIXTEEN_DAYS = 7,
 }
 
-export class PlayTimeValidator implements Validator<PlayTime> {
-   validate(obj: any): obj is PlayTime {
-        return Object.values(PlayTime).includes(obj)
-    }
-}
+export class PlayTimeValidator extends NumberValidator {}

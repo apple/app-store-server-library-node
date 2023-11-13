@@ -14,7 +14,7 @@ export interface Summary {
      *
      * {@link https://developer.apple.com/documentation/appstoreservernotifications/environment environment}
      **/
-    environment?: Environment
+    environment?: Environment | string
         
     /**
      * The unique identifier of an app in the App Store.

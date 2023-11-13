@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import { Validator } from "./Validator";
+import { StringValidator } from "./Validator";
 
 /**
  * The payment mode you configure for an introductory offer, promotional offer, or offer code on an auto-renewable subscription.
@@ -13,8 +13,4 @@ export enum OfferDiscountType {
     PAY_UP_FRONT = "PAY_UP_FRONT"
 }
 
-export class OfferDiscountTypeValidator implements Validator<OfferDiscountType> {
-   validate(obj: any): obj is OfferDiscountType {
-        return Object.values(OfferDiscountType).includes(obj)
-    }
-}
+export class OfferDiscountTypeValidator extends StringValidator {}

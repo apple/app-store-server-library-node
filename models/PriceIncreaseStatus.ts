@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import { Validator } from "./Validator";
+import { NumberValidator } from "./Validator";
 
 /**
  * The status that indicates whether an auto-renewable subscription is subject to a price increase.
@@ -12,8 +12,4 @@ export enum PriceIncreaseStatus {
     CUSTOMER_CONSENTED_OR_WAS_NOTIFIED_WITHOUT_NEEDING_CONSENT = 1,
 }
 
-export class PriceIncreaseStatusValidator implements Validator<PriceIncreaseStatus> {
-   validate(obj: any): obj is PriceIncreaseStatus {
-        return Object.values(PriceIncreaseStatus).includes(obj)
-    }
-}
+export class PriceIncreaseStatusValidator extends NumberValidator {}

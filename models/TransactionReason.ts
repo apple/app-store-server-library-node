@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import { Validator } from "./Validator";
+import { StringValidator } from "./Validator";
 
 /**
  * The cause of a purchase transaction, which indicates whether it’s a customer’s purchase or a renewal for an auto-renewable subscription that the system initiates.
@@ -12,8 +12,4 @@ export enum TransactionReason {
     RENEWAL = "RENEWAL",
 }
 
-export class TransactionReasonValidator implements Validator<TransactionReason> {
-   validate(obj: any): obj is TransactionReason {
-        return Object.values(TransactionReason).includes(obj)
-    }
-}
+export class TransactionReasonValidator extends StringValidator {}

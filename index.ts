@@ -76,13 +76,14 @@ export { AppTransaction } from './models/AppTransaction'
 import jsonwebtoken = require('jsonwebtoken');
 import { NotificationHistoryRequest } from './models/NotificationHistoryRequest';
 import { NotificationHistoryResponse, NotificationHistoryResponseValidator } from './models/NotificationHistoryResponse';
+import { URLSearchParams } from 'url';
 
 export class AppStoreServerAPIClient {
     private static PRODUCTION_URL = "https://api.storekit.itunes.apple.com";
     private static SANDBOX_URL = "https://api.storekit-sandbox.itunes.apple.com";
     private static USER_AGENT = "app-store-server-library/node/0.1";
 
-    private issueId: string
+    private issuerId: string
     private keyId: string
     private signingKey: string
     private bundleId: string
@@ -97,31 +98,32 @@ export class AppStoreServerAPIClient {
      * @param environment The environment to target
      */
     public constructor(signingKey: string, keyId: string, issuerId: string, bundleId: string, environment: Environment) {
-        this.issueId = issuerId
+        this.issuerId = issuerId
         this.keyId = keyId
         this.bundleId = bundleId
         this.signingKey = signingKey
         this.urlBase = environment === "Sandbox" ? AppStoreServerAPIClient.SANDBOX_URL : AppStoreServerAPIClient.PRODUCTION_URL
     }
 
-    protected async makeRequest<T>(path: string, method: string, queryParameters: { [key: string]: [string]}, body: object | null, validator: Validator<T> | null): Promise<T> {
+    protected async makeRequest<T>(path: string, method: string, queryParameters: { [key: string]: string[]}, body: object | null, validator: Validator<T> | null): Promise<T> {
         const headers: { [key: string]: string } = {
             'User-Agent': AppStoreServerAPIClient.USER_AGENT,
             'Authorization': 'Bearer ' + this.createBearerToken(),
             'Accept': 'application/json',
         }
-        const parsedQueryParameters = new URLSearchParams(queryParameters)
+        const parsedQueryParameters = new URLSearchParams()
+        for (const queryParam in queryParameters) {
+            for (const queryVal of queryParameters[queryParam]) {
+                parsedQueryParameters.append(queryParam, queryVal)
+            }
+        }
         let stringBody = undefined
         if (body != null) {
             stringBody = JSON.stringify(body)
             headers['Content-Type'] = 'application/json'
         }
 
-        const response = await fetch(this.urlBase + path + '?' + parsedQueryParameters, {
-            method: method,
-            body: stringBody,
-            headers: headers
-        })
+        const response = await this.makeFetchRequest(path, parsedQueryParameters, method, stringBody, headers)
 
         if(response.ok) {
             // Success
@@ -142,8 +144,8 @@ export class AppStoreServerAPIClient {
             const responseBody = await response.json()
             const errorCode = responseBody['errorCode']
 
-            if (Object.values(APIError).includes(errorCode)) {
-                throw new APIException(response.status, errorCode as APIError)
+            if (errorCode) {
+                throw new APIException(response.status, errorCode)
             }
 
             throw new APIException(response.status)
@@ -156,6 +158,14 @@ export class AppStoreServerAPIClient {
         }
     }
 
+    protected async makeFetchRequest(path: string, parsedQueryParameters: URLSearchParams, method: string, stringBody: string | undefined, headers: { [key: string]: string; }) {
+        return await fetch(this.urlBase + path + '?' + parsedQueryParameters, {
+            method: method,
+            body: stringBody,
+            headers: headers
+        });
+    }
+
     /**
      * Uses a subscription’s product identifier to extend the renewal date for all of its eligible active subscribers.
      *
@@ -165,7 +175,7 @@ export class AppStoreServerAPIClient {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/extend_subscription_renewal_dates_for_all_active_subscribers Extend Subscription Renewal Dates for All Active Subscribers}
      */
     public async extendRenewalDateForAllActiveSubscribers(massExtendRenewalDateRequest: MassExtendRenewalDateRequest): Promise<MassExtendRenewalDateResponse> {
-        return await this.makeRequest("/inApps/v1/subscriptions/extend/mass/", "POST", {}, massExtendRenewalDateRequest, new MassExtendRenewalDateResponseValidator());
+        return await this.makeRequest("/inApps/v1/subscriptions/extend/mass", "POST", {}, massExtendRenewalDateRequest, new MassExtendRenewalDateResponseValidator());
     }
 
     /**
@@ -190,7 +200,7 @@ export class AppStoreServerAPIClient {
      * @throws APIException If a response was returned indicating the request could not be processed
      * {@link https://developer.apple.com/documentation/appstoreserverapi/get_all_subscription_statuses Get All Subscription Statuses}
      */
-    public async getAllSubscriptionStatuses(transactionId: string, status: [Status] | undefined = undefined): Promise<StatusResponse> {
+    public async getAllSubscriptionStatuses(transactionId: string, status: Status[] | undefined = undefined): Promise<StatusResponse> {
         const queryParameters: { [key: string]: [string]} = {}
         if (status != null) {
             queryParameters["status"] = status.map(s => s.toString()) as [string];
@@ -269,7 +279,7 @@ export class AppStoreServerAPIClient {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/get_transaction_history Get Transaction History}
      */
     public async getTransactionHistory(transactionId: string, revision: string | null, transactionHistoryRequest: TransactionHistoryRequest): Promise<HistoryResponse> {
-        const queryParameters: { [key: string]: [string]} = {}
+        const queryParameters: { [key: string]: string[]} = {}
         if (revision != null) {
             queryParameters["revision"] = [revision];
         }
@@ -294,7 +304,7 @@ export class AppStoreServerAPIClient {
         if (transactionHistoryRequest.inAppOwnershipType) {
             queryParameters["inAppOwnershipType"] = [transactionHistoryRequest.inAppOwnershipType];
         }
-        if (transactionHistoryRequest.revoked) {
+        if (transactionHistoryRequest.revoked !== undefined) {
             queryParameters["revoked"] = [transactionHistoryRequest.revoked.toString()];
         }
         return await this.makeRequest("/inApps/v1/history/" + transactionId, "GET", queryParameters, null, new HistoryResponseValidator());
@@ -351,16 +361,16 @@ export class AppStoreServerAPIClient {
         const payload = {
             bid: this.bundleId
         }
-        return jsonwebtoken.sign(payload, this.signingKey, { algorithm: 'ES256', keyid: this.keyId, issuer: this.issueId, audience: 'appstoreconnect-v1', expiresIn: '5m'});
+        return jsonwebtoken.sign(payload, this.signingKey, { algorithm: 'ES256', keyid: this.keyId, issuer: this.issuerId, audience: 'appstoreconnect-v1', expiresIn: '5m'});
     }
 }
 
 
 export class APIException extends Error {
     public httpStatusCode: number
-    public apiError: APIError | null
+    public apiError: number | APIError | null
 
-    constructor(httpStatusCode: number, apiError: APIError | null = null) {
+    constructor(httpStatusCode: number, apiError: number | null = null) {
         super()
         this.httpStatusCode = httpStatusCode
         this.apiError = apiError

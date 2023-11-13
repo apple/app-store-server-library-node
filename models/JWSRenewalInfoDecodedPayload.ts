@@ -20,7 +20,7 @@ export interface JWSRenewalInfoDecodedPayload extends DecodedSignedData {
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/expirationintent expirationIntent}
      **/
-    expirationIntent?: ExpirationIntent
+    expirationIntent?: ExpirationIntent | number
         
     /**
      * The original transaction identifier of a purchase.
@@ -48,7 +48,7 @@ export interface JWSRenewalInfoDecodedPayload extends DecodedSignedData {
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/autorenewstatus autoRenewStatus}
      **/
-    autoRenewStatus?: AutoRenewStatus
+    autoRenewStatus?: AutoRenewStatus | number
         
     /**
      * A Boolean value that indicates whether the App Store is attempting to automatically renew an expired subscription.
@@ -62,7 +62,7 @@ export interface JWSRenewalInfoDecodedPayload extends DecodedSignedData {
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/priceincreasestatus priceIncreaseStatus}
      **/
-    priceIncreaseStatus?: PriceIncreaseStatus
+    priceIncreaseStatus?: PriceIncreaseStatus | number
         
     /**
      * The time when the billing grace period for subscription renewals expires.
@@ -76,7 +76,7 @@ export interface JWSRenewalInfoDecodedPayload extends DecodedSignedData {
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/offertype offerType}
      **/
-    offerType?: OfferType
+    offerType?: OfferType | number
         
     /**
      * The identifier that contains the promo code or the promotional offer identifier.
@@ -97,7 +97,7 @@ export interface JWSRenewalInfoDecodedPayload extends DecodedSignedData {
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/environment environment}
      **/
-    environment?: Environment
+    environment?: Environment | string
         
     /**
      * The earliest start date of a subscription in a series of auto-renewable subscription purchases that ignores all lapses of paid service shorter than 60 days.

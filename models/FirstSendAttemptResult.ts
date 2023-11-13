@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import { Validator } from "./Validator";
+import { StringValidator, Validator } from "./Validator";
 
 /**
  * An error or result that the App Store server receives when attempting to send an App Store server notification to your server.
@@ -21,8 +21,4 @@ export enum FirstSendAttemptResult {
     OTHER = "OTHER",
 }
 
-export class FirstSendAttemptResultValidator implements Validator<FirstSendAttemptResult> {
-   validate(obj: any): obj is FirstSendAttemptResult {
-        return Object.values(FirstSendAttemptResult).includes(obj)
-    }
-}
+export class FirstSendAttemptResultValidator extends StringValidator {}

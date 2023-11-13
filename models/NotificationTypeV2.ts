@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import { Validator } from "./Validator";
+import { StringValidator, Validator } from "./Validator";
 
 /**
  * A notification type value that App Store Server Notifications V2 uses.
@@ -27,9 +27,4 @@ export enum NotificationTypeV2 {
     REFUND_REVERSED = "REFUND_REVERSED",
 }
 
-export class NotificationTypeV2Validator implements Validator<NotificationTypeV2> {
-    validate(obj: any): obj is NotificationTypeV2 {
-         return Object.values(NotificationTypeV2).includes(obj)
-     }
- }
- 
+export class NotificationTypeV2Validator extends StringValidator {}

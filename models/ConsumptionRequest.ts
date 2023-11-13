@@ -28,14 +28,14 @@ export interface ConsumptionRequest {
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/consumptionstatus consumptionStatus}
      **/
-    consumptionStatus?: ConsumptionStatus
+    consumptionStatus?: ConsumptionStatus | number
         
     /**
      * A value that indicates the platform on which the customer consumed the in-app purchase.
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/platform platform}
      **/
-    platform?: Platform
+    platform?: Platform | number
         
     /**
      * A Boolean value that indicates whether you provided, prior to its purchase, a free sample or trial of the content, or information about its functionality.
@@ -49,7 +49,7 @@ export interface ConsumptionRequest {
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/deliverystatus deliveryStatus}
      **/
-    deliveryStatus?: DeliveryStatus
+    deliveryStatus?: DeliveryStatus | number
         
     /**
      * The UUID that an app optionally generates to map a customer’s in-app purchase with its resulting App Store transaction.
@@ -63,33 +63,33 @@ export interface ConsumptionRequest {
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/accounttenure accountTenure}
      **/
-    accountTenure?: AccountTenure
+    accountTenure?: AccountTenure | number
         
     /**
      * A value that indicates the amount of time that the customer used the app.
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/consumptionrequest ConsumptionRequest}
      **/
-    playTime?: PlayTime
+    playTime?: PlayTime | number
         
     /**
      * A value that indicates the total amount, in USD, of refunds the customer has received, in your app, across all platforms.
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/lifetimedollarsrefunded lifetimeDollarsRefunded}
      **/
-    lifetimeDollarsRefunded?: LifetimeDollarsRefunded
+    lifetimeDollarsRefunded?: LifetimeDollarsRefunded | number
         
     /**
      * A value that indicates the total amount, in USD, of in-app purchases the customer has made in your app, across all platforms.
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/lifetimedollarspurchased lifetimeDollarsPurchased}
      **/
-    lifetimeDollarsPurchased?: LifetimeDollarsPurchased
+    lifetimeDollarsPurchased?: LifetimeDollarsPurchased | number
         
     /**
      * The status of the customer’s account.
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/userstatus userStatus}
      **/
-    userStatus?: UserStatus
+    userStatus?: UserStatus | number
 }
