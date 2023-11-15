@@ -42,7 +42,7 @@ export interface HistoryResponse {
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/environment environment}
      **/
-    environment?: Environment
+    environment?: Environment | string
 
     /**
      * An array of in-app purchase transactions for the customer, signed by Apple, in JSON Web Signature format.

@@ -15,7 +15,7 @@ export interface StatusResponse {
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/environment environment}
      **/
-    environment?: Environment
+    environment?: Environment | string
         
     /**
      * The bundle identifier of an app.

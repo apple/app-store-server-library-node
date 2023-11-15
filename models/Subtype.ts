@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import { Validator } from "./Validator";
+import { StringValidator } from "./Validator";
 
 /**
  * A notification subtype value that App Store Server Notifications 2 uses.
@@ -26,8 +26,4 @@ export enum Subtype {
     FAILURE = "FAILURE",
 }
 
-export class SubtypeValidator implements Validator<Subtype> {
-   validate(obj: any): obj is Subtype {
-        return Object.values(Subtype).includes(obj)
-    }
-}
+export class SubtypeValidator extends StringValidator {}

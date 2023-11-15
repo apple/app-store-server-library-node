@@ -22,7 +22,7 @@ export interface SendAttemptItem {
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/sendattemptresult sendAttemptResult}
      **/
-    sendAttemptResult?: SendAttemptResult
+    sendAttemptResult?: SendAttemptResult | string
 }
 
 export class SendAttemptItemValidator implements Validator<SendAttemptItem> {

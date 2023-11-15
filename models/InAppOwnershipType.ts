@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import { Validator } from "./Validator";
+import { StringValidator } from "./Validator";
 
 /**
  * The relationship of the user with the family-shared purchase to which they have access.
@@ -12,8 +12,4 @@ export enum InAppOwnershipType {
     PURCHASED = "PURCHASED",
 }
 
-export class InAppOwnershipTypeValidator implements Validator<InAppOwnershipType> {
-   validate(obj: any): obj is InAppOwnershipType {
-        return Object.values(InAppOwnershipType).includes(obj)
-    }
-}
+export class InAppOwnershipTypeValidator extends StringValidator {}

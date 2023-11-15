@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import { Validator } from "./Validator";
+import { NumberValidator } from "./Validator";
 
 /**
  * A value that indicates whether the app successfully delivered an in-app purchase that works properly.
@@ -16,8 +16,4 @@ export enum DeliveryStatus {
     DID_NOT_DELIVER_FOR_OTHER_REASON = 5,
 }
 
-export class DeliveryStatusValidator implements Validator<DeliveryStatus> {
-   validate(obj: any): obj is DeliveryStatus {
-        return Object.values(DeliveryStatus).includes(obj)
-    }
-}
+export class DeliveryStatusValidator extends NumberValidator {}

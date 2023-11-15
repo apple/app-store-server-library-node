@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import { Validator } from "./Validator";
+import { StringValidator } from "./Validator";
 
 /**
  * The type of in-app purchase products you can offer in your app.
@@ -14,8 +14,4 @@ export enum Type {
     NON_RENEWING_SUBSCRIPTION ="Non-Renewing Subscription",
 }
 
-export class TypeValidator implements Validator<Type> {
-   validate(obj: any): obj is Type {
-        return Object.values(Type).includes(obj)
-    }
-}
+export class TypeValidator extends StringValidator {}

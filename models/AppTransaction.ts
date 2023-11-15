@@ -15,7 +15,7 @@ export interface AppTransaction {
      *  
      * {@link https://developer.apple.com/documentation/storekit/apptransaction/3963901-environment environment}
      */
-    receiptType?: Environment
+    receiptType?: Environment | string
     
     /**
      * The unique identifier the App Store uses to identify the app.

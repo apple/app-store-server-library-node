@@ -15,7 +15,7 @@ export interface LastTransactionsItem {
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/status status}
      **/
-    status?: Status
+    status?: Status | number
         
     /**
      * The original transaction identifier of a purchase.

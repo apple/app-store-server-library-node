@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import { Validator } from "./Validator";
+import { NumberValidator } from "./Validator";
 
 /**
  * The renewal status for an auto-renewable subscription.
@@ -12,8 +12,4 @@ export enum AutoRenewStatus {
     ON = 1,
 }
 
-export class AutoRenewStatusValidator implements Validator<AutoRenewStatus> {
-   validate(obj: any): obj is AutoRenewStatus {
-        return Object.values(AutoRenewStatus).includes(obj)
-    }
-}
+export class AutoRenewStatusValidator extends NumberValidator {}

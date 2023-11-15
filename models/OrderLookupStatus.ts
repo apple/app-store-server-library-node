@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import { Validator } from "./Validator";
+import { NumberValidator } from "./Validator";
 
 /**
  * A value that indicates whether the order ID in the request is valid for your app.
@@ -12,8 +12,4 @@ export enum OrderLookupStatus {
     INVALID = 1,
 }
 
-export class OrderLookupStatusValidator implements Validator<OrderLookupStatus> {
-   validate(obj: any): obj is OrderLookupStatus {
-        return Object.values(OrderLookupStatus).includes(obj)
-    }
-}
+export class OrderLookupStatusValidator extends NumberValidator {}

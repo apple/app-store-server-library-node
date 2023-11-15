@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import { Validator } from "./Validator";
+import { StringValidator } from "./Validator";
 
 /**
  * The server environment, either sandbox or production.
@@ -14,8 +14,4 @@ export enum Environment {
     LOCAL_TESTING = "LocalTesting",
 }
 
-export class EnvironmentValidator implements Validator<Environment> {
-   validate(obj: any): obj is Environment {
-        return Object.values(Environment).includes(obj)
-    }
-}
+export class EnvironmentValidator extends StringValidator {}

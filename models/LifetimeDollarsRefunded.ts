@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import { Validator } from "./Validator";
+import { NumberValidator } from "./Validator";
 
 /**
  * A value that indicates the dollar amount of refunds the customer has received in your app, since purchasing the app, across all platforms.
@@ -18,8 +18,4 @@ export enum LifetimeDollarsRefunded {
     TWO_THOUSAND_DOLLARS_OR_GREATER = 7,
 }
 
-export class LifetimeDollarsRefundedValidator implements Validator<LifetimeDollarsRefunded> {
-   validate(obj: any): obj is LifetimeDollarsRefunded {
-        return Object.values(LifetimeDollarsRefunded).includes(obj)
-    }
-}
+export class LifetimeDollarsRefundedValidator extends NumberValidator {}

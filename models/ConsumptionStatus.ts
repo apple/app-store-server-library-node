@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import { Validator } from "./Validator";
+import { NumberValidator } from "./Validator";
 
 /**
  * A value that indicates the extent to which the customer consumed the in-app purchase.
@@ -14,8 +14,4 @@ export enum ConsumptionStatus {
     FULLY_CONSUMED = 3,
 }
 
-export class ConsumptionStatusValidator implements Validator<ConsumptionStatus> {
-   validate(obj: any): obj is ConsumptionStatus {
-        return Object.values(ConsumptionStatus).includes(obj)
-    }
-}
+export class ConsumptionStatusValidator extends NumberValidator {}

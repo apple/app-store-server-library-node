@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import { Validator } from "./Validator";
+import { NumberValidator } from "./Validator";
 
 /**
  * The code that represents the reason for the subscription-renewal-date extension.
@@ -14,8 +14,4 @@ export enum ExtendReasonCode {
     SERVICE_ISSUE_OR_OUTAGE = 3,
 }
 
-export class ExtendReasonCodeValidator implements Validator<ExtendReasonCode> {
-   validate(obj: any): obj is ExtendReasonCode {
-        return Object.values(ExtendReasonCode).includes(obj)
-    }
-}
+export class ExtendReasonCodeValidator extends NumberValidator {}
