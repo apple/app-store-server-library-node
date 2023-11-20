@@ -58,13 +58,13 @@ try {
 ### Verification Usage
 
 ```typescript
-import { SignedDataVerifier } from "@apple/app-store-server-library/dist/jwt_verification"
+import { SignedJWTVerifier } from "@apple/app-store-server-library"
 
 const bundleId = "com.example"
 const appleRootCAs: Buffer[] = loadRootCAs() // Specific implementation may vary
 const enableOnlineChecks = true
 const environment = Environment.SANDBOX
-const verifier = new SignedDataVerifier(appleRootCAs, enableOnlineChecks, environment, bundleId)
+const verifier = new SignedJWTVerifier(appleRootCAs, enableOnlineChecks, environment, bundleId)
 
 const notificationPayload = "ey..."
 const verifiedNotification = await verifier.verifyAndDecodeNotification()
