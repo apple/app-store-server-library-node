@@ -2,7 +2,7 @@
 
 import assert = require("assert");
 import { KeyObject, X509Certificate } from "crypto";
-import { SignedDataVerifier, VerificationException, VerificationStatus } from "../../jwt_verification";
+import { SignedDataVerifier, VerificationException, VerificationStatus } from "../../jws_verification";
 import { Environment } from "../../models/Environment";
 import { readFile, getSignedPayloadVerifierWithDefaultAppAppleId, getDefaultSignedPayloadVerifier } from "../util";
 

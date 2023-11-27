@@ -18,7 +18,7 @@ import { TransactionHistoryRequest } from './models/TransactionHistoryRequest';
 import { TransactionInfoResponse, TransactionInfoResponseValidator } from './models/TransactionInfoResponse';
 import { Validator } from './models/Validator';
 import { Status } from './models/Status';
-export { SignedDataVerifier as SignedJWTVerifier } from './jwt_verification'
+export { SignedDataVerifier } from './jws_verification'
 export { ReceiptUtility } from './receipt_utility'
 export { AccountTenure } from "./models/AccountTenure"
 export { AutoRenewStatus } from './models/AutoRenewStatus'

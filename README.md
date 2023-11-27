@@ -58,7 +58,7 @@ try {
 ### Verification Usage
 
 ```typescript
-import { SignedDataVerifier } from "@apple/app-store-server-library/dist/jwt_verification"
+import { SignedDataVerifier } from "@apple/app-store-server-library"
 
 const bundleId = "com.example"
 const appleRootCAs: Buffer[] = loadRootCAs() // Specific implementation may vary

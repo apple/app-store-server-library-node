@@ -2,7 +2,7 @@
 
 import * as fs from 'fs';
 import { Environment } from '../models/Environment';
-import { SignedDataVerifier } from '../jwt_verification';
+import { SignedDataVerifier } from '../jws_verification';
 import { ECKeyPairOptions, generateKeyPairSync } from 'crypto';
 import jsonwebtoken = require('jsonwebtoken');
 
