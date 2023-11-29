@@ -5,6 +5,7 @@ docs
 tsconfig.tsbuildinfo
 .idea
 *.iml
+.npmrc
 
 .DS_Store
 Thumbs.db
