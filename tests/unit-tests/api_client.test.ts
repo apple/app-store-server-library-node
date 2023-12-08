@@ -455,4 +455,46 @@ describe('The api client ', () => {
             expect(error.apiError).toBe(9990000)
          }
      })
+
+     it('calls getTransactionHistory but receives an unknown environment', async () => {
+        const client = getClientWithBody("tests/resources/models/transactionHistoryResponseWithMalformedEnvironment.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, stringBody: string | undefined, headers: { [key: string]: string; }) => {
+        });
+
+        const request: TransactionHistoryRequest = {
+            sort: Order.ASCENDING,
+            productTypes: [ProductType.CONSUMABLE, ProductType.AUTO_RENEWABLE],
+            endDate: 123456,
+            startDate: 123455,
+            revoked: false,
+            inAppOwnershipType: InAppOwnershipType.FAMILY_SHARED,
+            productIds: ["com.example.1", "com.example.2"],
+            subscriptionGroupIdentifiers: ["sub_group_id", "sub_group_id_2"]
+        }
+
+        const historyResponse = await client.getTransactionHistory("1234", "revision_input", request);
+        expect(historyResponse.environment).toBe("LocalTestingxxx")
+     })
+
+     it('calls getTransactionHistory but receives a malformed appAppleId', async () => {
+        const client = getClientWithBody("tests/resources/models/transactionHistoryResponseWithMalformedAppAppleId.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, stringBody: string | undefined, headers: { [key: string]: string; }) => {
+        });
+
+        const request: TransactionHistoryRequest = {
+            sort: Order.ASCENDING,
+            productTypes: [ProductType.CONSUMABLE, ProductType.AUTO_RENEWABLE],
+            endDate: 123456,
+            startDate: 123455,
+            revoked: false,
+            inAppOwnershipType: InAppOwnershipType.FAMILY_SHARED,
+            productIds: ["com.example.1", "com.example.2"],
+            subscriptionGroupIdentifiers: ["sub_group_id", "sub_group_id_2"]
+        }
+
+        try {
+            await client.getTransactionHistory("1234", "revision_input", request);
+            fail('this test call is expected to throw')
+        } catch (e) {
+            return;
+        }
+     })
 })
