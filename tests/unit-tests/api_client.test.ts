@@ -417,6 +417,7 @@ describe('The api client ', () => {
             let error = e as APIException
             expect(error.httpStatusCode).toBe(500)
             expect(error.apiError).toBe(APIError.GENERAL_INTERNAL)
+            expect(error.errorMessage).toBe("An unknown error occurred.")
          }
      })
 
@@ -435,6 +436,7 @@ describe('The api client ', () => {
             let error = e as APIException
             expect(error.httpStatusCode).toBe(429)
             expect(error.apiError).toBe(APIError.RATE_LIMIT_EXCEEDED)
+            expect(error.errorMessage).toBe("Rate limit exceeded.")
          }
      })
 
@@ -453,6 +455,7 @@ describe('The api client ', () => {
             let error = e as APIException
             expect(error.httpStatusCode).toBe(400)
             expect(error.apiError).toBe(9990000)
+            expect(error.errorMessage).toBe("Testing error.")
          }
      })
 

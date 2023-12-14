@@ -143,9 +143,10 @@ export class AppStoreServerAPIClient {
         try {
             const responseBody = await response.json()
             const errorCode = responseBody['errorCode']
+            const errorMessage = responseBody['errorMessage']
 
             if (errorCode) {
-                throw new APIException(response.status, errorCode)
+                throw new APIException(response.status, errorCode, errorMessage)
             }
 
             throw new APIException(response.status)
@@ -369,11 +370,13 @@ export class AppStoreServerAPIClient {
 export class APIException extends Error {
     public httpStatusCode: number
     public apiError: number | APIError | null
+    public errorMessage: string | null
 
-    constructor(httpStatusCode: number, apiError: number | null = null) {
+    constructor(httpStatusCode: number, apiError: number | null = null, errorMessage: string | null = null) {
         super()
         this.httpStatusCode = httpStatusCode
         this.apiError = apiError
+        this.errorMessage = errorMessage
     }
 }
 
@@ -437,7 +440,7 @@ export enum APIError {
      * 
      * {@link https://developer.apple.com/documentation/appstoreserverapi/invalidrequestidentifiererror InvalidRequestIdentifierError}
      */
-    INVALID_IDENTIFIER = 4000011,
+    INVALID_REQUEST_IDENTIFIER = 4000011,
 
     /**
      * An error that indicates that the start date is earlier than the earliest allowed date.
