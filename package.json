@@ -16,16 +16,20 @@
     "@types/node": "^18.11.18",
     "@types/node-fetch": "^2.6.3",
     "base64url": "^3.0.1",
-    "jsonwebtoken": "^9.0.0",
-    "jsrsasign": "^10.7.0",
-    "node-fetch": "^2.6.7"
+    "jsonwebtoken": "^9.0.2",
+    "jsrsasign": "^10.9.0",
+    "node-fetch": "^2.7.0"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.0",
-    "jest": "^29.5.0",
-    "ts-jest": "^29.1.0",
-    "typedoc": "^0.23.28",
-    "typescript": "^5.0.3"
+    "@types/jest": "^29.5.11",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "typedoc": "^0.25.4",
+    "typescript": "^5.3.3"
+  },
+  "resolutions": {
+    "@babel/traverse": "^7.23.6",
+    "semver": "^6.3.1"
   },
   "scripts": {
     "build": "tsc -p .",
