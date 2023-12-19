@@ -8,10 +8,6 @@ The Node.js server library for the [App Store Server API](https://developer.appl
 4. [Usage](#usage)
 5. [Support](#support)
 
-## ⚠️ Beta ⚠️
-
-This software is currently in Beta testing. Therefore, it should only be used for testing purposes, like for the Sandbox environment. API signatures may change between releases and signature verification may receive security updates. 
-
 ## Installation
 
 #### Requirements
