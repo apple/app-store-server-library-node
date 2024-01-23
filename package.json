@@ -17,7 +17,7 @@
     "@types/node-fetch": "^2.6.3",
     "base64url": "^3.0.1",
     "jsonwebtoken": "^9.0.2",
-    "jsrsasign": "^10.9.0",
+    "jsrsasign": "^11.0.0",
     "node-fetch": "^2.7.0"
   },
   "devDependencies": {
