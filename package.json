@@ -11,7 +11,7 @@
   },
   "types": "dist/index.d.ts",
   "dependencies": {
-    "@types/jsonwebtoken": "^8.5.9",
+    "@types/jsonwebtoken": "^9.0.5",
     "@types/jsrsasign": "^10.5.8",
     "@types/node": "^18.11.18",
     "@types/node-fetch": "^2.6.3",
