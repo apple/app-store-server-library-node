@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 1.0.1
+- Bump jsrsasign package version [#62]
+
 ## Version 1.0.0
 - Add error message to APIException [#48]
 
