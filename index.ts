@@ -81,7 +81,7 @@ import { URLSearchParams } from 'url';
 export class AppStoreServerAPIClient {
     private static PRODUCTION_URL = "https://api.storekit.itunes.apple.com";
     private static SANDBOX_URL = "https://api.storekit-sandbox.itunes.apple.com";
-    private static USER_AGENT = "app-store-server-library/node/1.0.0";
+    private static USER_AGENT = "app-store-server-library/node/1.0.1";
 
     private issuerId: string
     private keyId: string
