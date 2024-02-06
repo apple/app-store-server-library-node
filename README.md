@@ -50,6 +50,38 @@ try {
 }
 ```
 
+### Verification Through API Usage
+
+```typescript
+import { AppStoreServerAPIClient, Environment, SendTestNotificationResponse } from "@apple/app-store-server-library"
+
+const issuerId = "99b16628-15e4-4668-972b-eeff55eeff55"
+const keyId = "ABCDEFGHIJ"
+const bundleId = "com.example"
+const filePath = "/path/to/key/SubscriptionKey_ABCDEFGHIJ.p8"
+const encodedKey = readFile(filePath) // Specific implementation may vary
+const environment = Environment.PRODUCTION
+const transctionId = '123567891'
+
+const client = new AppStoreServerAPIClient(encodedKey, keyId, issuerId, bundleId, environment)
+
+try {
+    const response: TransactionInfoResponse = await client.getTransactionInfo(transctionId)
+    console.log(response)
+} catch (e) {
+    let error = e as APIException
+    if (error.apiError === APIError.TRANSACTION_ID_NOT_FOUND) {
+        const clientProd = new AppStoreServerAPIClient(encodedKey, keyId, issuerId, bundleId, Environment.SANDBOX)
+        try {
+            const responseProd: TransactionInfoResponse = await clientProd.getTransactionInfo(transctionId)
+            console.log(responseProd)
+        } catch (e) {
+            console.log(e)
+        }
+    }
+}
+```
+
 ### Verification Usage
 
 ```typescript
