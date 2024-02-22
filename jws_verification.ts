@@ -57,6 +57,9 @@ export class SignedDataVerifier {
       this.bundleId = bundleId;
       this.environment = environment
       this.appAppleId = appAppleId
+      if (environment === Environment.PRODUCTION && appAppleId === undefined) {
+        throw new Error("appAppleId is required when the environment is Production")
+      }
     }
 
     /**

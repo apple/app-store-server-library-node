@@ -39,8 +39,9 @@ const bundleId = "com.example"
 const filePath = "/path/to/key/SubscriptionKey_ABCDEFGHIJ.p8"
 const encodedKey = readFile(filePath) // Specific implementation may vary
 const environment = Environment.SANDBOX
+const appAppleId = undefined // appAppleId is required when the environment is Production
 
-const client = new AppStoreServerAPIClient(encodedKey, keyId, issuerId, bundleId, environment)
+const client = new AppStoreServerAPIClient(encodedKey, keyId, issuerId, bundleId, environment, appAppleId)
 
 try {
     const response: SendTestNotificationResponse = await client.requestTestNotification()
