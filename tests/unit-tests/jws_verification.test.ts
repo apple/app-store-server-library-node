@@ -34,7 +34,7 @@ class SignedJWTVerifierTest extends SignedDataVerifier {
 
 describe("Chain Verification Checks", () => {
     it('should validate a chain without OCSP', async () => {
-        const verifier = new SignedJWTVerifierTest([Buffer.from(ROOT_CA_BASE64_ENCODED, 'base64')], false, Environment.PRODUCTION, "com.example");
+        const verifier = new SignedJWTVerifierTest([Buffer.from(ROOT_CA_BASE64_ENCODED, 'base64')], false, Environment.PRODUCTION, "com.example", 1234);
         const publicKey = await verifier.testVerifyCertificateChain(verifier.getRootCertificates(), LEAF_CERT_BASE64_ENCODED, INTERMEDIATE_CA_BASE64_ENCODED)
         expect(Buffer.from(LEAF_CERT_PUBLIC_KEY_BASE64_ENCODED, 'base64')).toMatchObject(publicKey.export({
             type: 'spki',
@@ -43,7 +43,7 @@ describe("Chain Verification Checks", () => {
     })
 
     it('should fail to validate a chain with an invalid intermediate OID', async () => {
-        const verifier = new SignedJWTVerifierTest([Buffer.from(ROOT_CA_BASE64_ENCODED, 'base64')], false, Environment.PRODUCTION, "com.example");
+        const verifier = new SignedJWTVerifierTest([Buffer.from(ROOT_CA_BASE64_ENCODED, 'base64')], false, Environment.PRODUCTION, "com.example", 1234);
         try {
             await verifier.testVerifyCertificateChain(verifier.getRootCertificates(), LEAF_CERT_FOR_INTERMEDIATE_CA_INVALID_OID_BASE64_ENCODED, INTERMEDIATE_CA_INVALID_OID_BASE64_ENCODED)
             assert(false)
@@ -54,7 +54,7 @@ describe("Chain Verification Checks", () => {
     })
 
     it('should fail to validate a chain with an invalid leaf OID', async () => {
-        const verifier = new SignedJWTVerifierTest([Buffer.from(ROOT_CA_BASE64_ENCODED, 'base64')], false, Environment.PRODUCTION, "com.example");
+        const verifier = new SignedJWTVerifierTest([Buffer.from(ROOT_CA_BASE64_ENCODED, 'base64')], false, Environment.PRODUCTION, "com.example", 1234);
         try {
             await verifier.testVerifyCertificateChain(verifier.getRootCertificates(), LEAF_CERT_INVALID_OID_BASE64_ENCODED, INTERMEDIATE_CA_BASE64_ENCODED)
             assert(false)
@@ -65,7 +65,7 @@ describe("Chain Verification Checks", () => {
     })
 
     it('should fail to validate a chain with empty root certificate array', async () => {
-        const verifier = new SignedJWTVerifierTest([], false, Environment.PRODUCTION, "com.example");
+        const verifier = new SignedJWTVerifierTest([], false, Environment.PRODUCTION, "com.example", 1234);
         try {
             await verifier.testVerifyCertificateChain(verifier.getRootCertificates(), LEAF_CERT_BASE64_ENCODED, INTERMEDIATE_CA_BASE64_ENCODED)
             assert(false)
@@ -76,7 +76,7 @@ describe("Chain Verification Checks", () => {
     })
 
     it('should fail to validate a chain with an expired chain', async () => {
-        const verifier = new SignedJWTVerifierTest([Buffer.from(ROOT_CA_BASE64_ENCODED, 'base64')], false, Environment.PRODUCTION, "com.example");
+        const verifier = new SignedJWTVerifierTest([Buffer.from(ROOT_CA_BASE64_ENCODED, 'base64')], false, Environment.PRODUCTION, "com.example", 1234);
         verifier.effectiveDate = new Date(2280946846000)
         try {
             await verifier.testVerifyCertificateChain(verifier.getRootCertificates(), LEAF_CERT_BASE64_ENCODED, INTERMEDIATE_CA_BASE64_ENCODED)
@@ -88,12 +88,12 @@ describe("Chain Verification Checks", () => {
     })
 
     it('should validate a real chain with OCSP', async () => {
-        const verifier = new SignedJWTVerifierTest([Buffer.from(REAL_APPLE_ROOT_BASE64_ENCODED, 'base64')], true, Environment.PRODUCTION, "com.example");
+        const verifier = new SignedJWTVerifierTest([Buffer.from(REAL_APPLE_ROOT_BASE64_ENCODED, 'base64')], true, Environment.PRODUCTION, "com.example", 1234);
         await verifier.testVerifyCertificateChain(verifier.getRootCertificates(), REAL_APPLE_SIGNING_CERTIFICATE_BASE64_ENCODED, REAL_APPLE_INTERMEDIATE_BASE64_ENCODED)
     })
 
     it('should fail to validate a chain with mismatched root certificates', async () => {
-        const verifier = new SignedJWTVerifierTest([Buffer.from(REAL_APPLE_ROOT_BASE64_ENCODED, 'base64')], false, Environment.PRODUCTION, "com.example");
+        const verifier = new SignedJWTVerifierTest([Buffer.from(REAL_APPLE_ROOT_BASE64_ENCODED, 'base64')], false, Environment.PRODUCTION, "com.example", 1234);
         try {
             await verifier.testVerifyCertificateChain(verifier.getRootCertificates(), LEAF_CERT_BASE64_ENCODED, INTERMEDIATE_CA_BASE64_ENCODED)
             assert(false)
@@ -106,7 +106,7 @@ describe("Chain Verification Checks", () => {
 
     it('should fail to validate a chain with invalid root certificates', async () => {
         try {
-            const verifier = new SignedJWTVerifierTest([Buffer.from("abc", "utf-8")], false, Environment.PRODUCTION, "com.example");
+            const verifier = new SignedJWTVerifierTest([Buffer.from("abc", "utf-8")], false, Environment.PRODUCTION, "com.example", 1234);
             await verifier.testVerifyCertificateChain(verifier.getRootCertificates(), LEAF_CERT_BASE64_ENCODED, INTERMEDIATE_CA_BASE64_ENCODED)
         } catch (e) {
             return
