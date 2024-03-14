@@ -63,7 +63,7 @@ const environment = Environment.SANDBOX
 const verifier = new SignedDataVerifier(appleRootCAs, enableOnlineChecks, environment, bundleId)
 
 const notificationPayload = "ey..."
-const verifiedNotification = await verifier.verifyAndDecodeNotification()
+const verifiedNotification = await verifier.verifyAndDecodeNotification(notificationPayload)
 console.log(verifiedNotification)
 ```
 
