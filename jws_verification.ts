@@ -105,16 +105,37 @@ export class SignedDataVerifier {
      */
     async verifyAndDecodeNotification(signedPayload: string): Promise<ResponseBodyV2DecodedPayload> {
       const decodedJWT: ResponseBodyV2DecodedPayload = await this.verifyJWT(signedPayload, this.responseBodyV2DecodedPayloadValidator, this.extractSignedDate);
-      const appAppleId = decodedJWT.data ? decodedJWT.data.appAppleId : (decodedJWT.summary ? decodedJWT.summary.appAppleId : null)
-      const bundleId = decodedJWT.data ? decodedJWT.data.bundleId : (decodedJWT.summary ? decodedJWT.summary.bundleId : null)
-      const environment = decodedJWT.data ? decodedJWT.data.environment : (decodedJWT.summary ? decodedJWT.summary.environment : null)
+      let appAppleId: number | undefined
+      let bundleId: string | undefined
+      let environment: string | undefined
+      if (decodedJWT.data) {
+        appAppleId = decodedJWT.data.appAppleId
+        bundleId = decodedJWT.data.bundleId
+        environment = decodedJWT.data.environment
+      } else if (decodedJWT.summary) {
+        appAppleId = decodedJWT.summary.appAppleId
+        bundleId = decodedJWT.summary.bundleId
+        environment = decodedJWT.summary.environment
+      } else if (decodedJWT.externalPurchaseToken) {
+        appAppleId = decodedJWT.externalPurchaseToken.appAppleId
+        bundleId = decodedJWT.externalPurchaseToken.bundleId
+        if (decodedJWT.externalPurchaseToken.externalPurchaseId && decodedJWT.externalPurchaseToken.externalPurchaseId.startsWith("SANDBOX")) {
+          environment = Environment.SANDBOX
+        } else {
+          environment = Environment.PRODUCTION
+        }
+      }
+      this.verifyNotification(bundleId, appAppleId, environment)
+      return decodedJWT
+    }
+
+    protected verifyNotification(bundleId?: string, appAppleId?: number, environment?: string) {
       if (this.bundleId !== bundleId || (this.environment === Environment.PRODUCTION && this.appAppleId !== appAppleId)) {
         throw new VerificationException(VerificationStatus.INVALID_APP_IDENTIFIER)
       }
       if (this.environment !== environment) {
         throw new VerificationException(VerificationStatus.INVALID_ENVIRONMENT)
       }
-      return decodedJWT
     }
 
     /**

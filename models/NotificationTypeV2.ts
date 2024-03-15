@@ -25,6 +25,7 @@ export enum NotificationTypeV2 {
     TEST = "TEST",
     RENEWAL_EXTENSION = "RENEWAL_EXTENSION",
     REFUND_REVERSED = "REFUND_REVERSED",
+    EXTERNAL_PURCHASE_TOKEN = "EXTERNAL_PURCHASE_TOKEN",
 }
 
 export class NotificationTypeV2Validator extends StringValidator {}
