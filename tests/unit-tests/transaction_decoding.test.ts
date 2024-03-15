@@ -94,6 +94,7 @@ describe('Testing decoding of signed data', () => {
         expect(1698148900000).toBe(notification.signedDate)
         expect(notification.data).toBeTruthy()
         expect(notification.summary).toBeFalsy()
+        expect(notification.externalPurchaseToken).toBeFalsy()
         expect(Environment.LOCAL_TESTING).toBe(notification.data!.environment)
         expect(41234).toBe(notification.data!.appAppleId)
         expect("com.example").toBe(notification.data!.bundleId)
@@ -114,6 +115,7 @@ describe('Testing decoding of signed data', () => {
         expect(1698148900000).toBe(notification.signedDate)
         expect(notification.data).toBeFalsy();
         expect(notification.summary).toBeTruthy();
+        expect(notification.externalPurchaseToken).toBeFalsy()
         expect(Environment.LOCAL_TESTING).toBe(notification.summary!.environment)
         expect(41234).toBe(notification.summary!.appAppleId)
         expect("com.example").toBe(notification.summary!.bundleId)
@@ -122,5 +124,55 @@ describe('Testing decoding of signed data', () => {
         expect(["CAN", "USA", "MEX"]).toStrictEqual(notification.summary!.storefrontCountryCodes)
         expect(5).toBe(notification.summary!.succeededCount)
         expect(2).toBe(notification.summary!.failedCount)
+    })
+
+    it('should decode a signed external purchase token notification', async () => {
+        const signedNotification = createSignedDataFromJson("tests/resources/models/signedExternalPurchaseTokenNotification.json")
+
+        const verifier = await getDefaultSignedPayloadVerifier();
+        (verifier as any).verifyNotification = function(bundleId?: string, appAppleId?: number, environment?: string) {
+            expect(bundleId).toBe("com.example")
+            expect(appAppleId).toBe(55555)
+            expect(environment).toBe(Environment.PRODUCTION)
+        }
+        const notification = await verifier.verifyAndDecodeNotification(signedNotification)
+
+        expect(NotificationTypeV2.EXTERNAL_PURCHASE_TOKEN).toBe(notification.notificationType)
+        expect(Subtype.UNREPORTED).toBe(notification.subtype)
+        expect("002e14d5-51f5-4503-b5a8-c3a1af68eb20").toBe(notification.notificationUUID)
+        expect("2.0").toBe(notification.version)
+        expect(1698148900000).toBe(notification.signedDate)
+        expect(notification.data).toBeFalsy();
+        expect(notification.summary).toBeFalsy();
+        expect(notification.externalPurchaseToken).toBeTruthy()
+        expect("b2158121-7af9-49d4-9561-1f588205523e").toBe(notification.externalPurchaseToken!.externalPurchaseId)
+        expect(1698148950000).toBe(notification.externalPurchaseToken!.tokenCreationDate)
+        expect(55555).toBe(notification.externalPurchaseToken!.appAppleId)
+        expect("com.example").toBe(notification.externalPurchaseToken!.bundleId)
+    })
+
+    it('should decode a signed sandbox external purchase token notification', async () => {
+        const signedNotification = createSignedDataFromJson("tests/resources/models/signedExternalPurchaseTokenSandboxNotification.json")
+
+        const verifier = await getDefaultSignedPayloadVerifier();
+        (verifier as any).verifyNotification = function(bundleId?: string, appAppleId?: number, environment?: string) {
+            expect(bundleId).toBe("com.example")
+            expect(appAppleId).toBe(55555)
+            expect(environment).toBe(Environment.SANDBOX)
+        }
+        const notification = await verifier.verifyAndDecodeNotification(signedNotification)
+
+        expect(NotificationTypeV2.EXTERNAL_PURCHASE_TOKEN).toBe(notification.notificationType)
+        expect(Subtype.UNREPORTED).toBe(notification.subtype)
+        expect("002e14d5-51f5-4503-b5a8-c3a1af68eb20").toBe(notification.notificationUUID)
+        expect("2.0").toBe(notification.version)
+        expect(1698148900000).toBe(notification.signedDate)
+        expect(notification.data).toBeFalsy();
+        expect(notification.summary).toBeFalsy();
+        expect(notification.externalPurchaseToken).toBeTruthy()
+        expect("SANDBOX_b2158121-7af9-49d4-9561-1f588205523e").toBe(notification.externalPurchaseToken!.externalPurchaseId)
+        expect(1698148950000).toBe(notification.externalPurchaseToken!.tokenCreationDate)
+        expect(55555).toBe(notification.externalPurchaseToken!.appAppleId)
+        expect("com.example").toBe(notification.externalPurchaseToken!.bundleId)
     })
 })

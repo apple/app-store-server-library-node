@@ -24,6 +24,7 @@ export enum Subtype {
     PRODUCT_NOT_FOR_SALE = "PRODUCT_NOT_FOR_SALE",
     SUMMARY = "SUMMARY",
     FAILURE = "FAILURE",
+    UNREPORTED = "UNREPORTED",
 }
 
 export class SubtypeValidator extends StringValidator {}
