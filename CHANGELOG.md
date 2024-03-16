@@ -1,15 +1,19 @@
 # Changelog
 
+## Version 1.1.0
+- Support App Store Server Notifications v2.10 [https://github.com/apple/app-store-server-library-node/pull/107]
+- Require appAppleId in SignedDataVerifier for the Production environment [https://github.com/apple/app-store-server-library-node/pull/86]
+
 ## Version 1.0.1
-- Bump jsrsasign package version [#62]
+- Bump jsrsasign package version [https://github.com/apple/app-store-server-library-node/pull/62]
 
 ## Version 1.0.0
-- Add error message to APIException [#48]
+- Add error message to APIException [https://github.com/apple/app-store-server-library-node/pull/48]
 
 ## Version 0.2.0
-- Add support for reading unknown enum values [#35]
-- Add support for Xcode and LocalTesting environments [#34]
-- Add error codes from App Store Server API v1.9 [#33]
-- Add new fields from App Store Server API v1.10 [#27]
-- Document error codes [#23]
-- Correct naming of SignedDataVerifier to match other libraries [#40]
+- Add support for reading unknown enum values [https://github.com/apple/app-store-server-library-node/pull/35]
+- Add support for Xcode and LocalTesting environments [https://github.com/apple/app-store-server-library-node/pull/34]
+- Add error codes from App Store Server API v1.9 [https://github.com/apple/app-store-server-library-node/pull/33]
+- Add new fields from App Store Server API v1.10 [https://github.com/apple/app-store-server-library-node/pull/27]
+- Document error codes [https://github.com/apple/app-store-server-library-node/pull/23]
+- Correct naming of SignedDataVerifier to match other libraries [https://github.com/apple/app-store-server-library-node/pull/40]
