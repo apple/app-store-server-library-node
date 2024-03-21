@@ -39,9 +39,8 @@ const bundleId = "com.example"
 const filePath = "/path/to/key/SubscriptionKey_ABCDEFGHIJ.p8"
 const encodedKey = readFile(filePath) // Specific implementation may vary
 const environment = Environment.SANDBOX
-const appAppleId = undefined // appAppleId is required when the environment is Production
 
-const client = new AppStoreServerAPIClient(encodedKey, keyId, issuerId, bundleId, environment, appAppleId)
+const client = new AppStoreServerAPIClient(encodedKey, keyId, issuerId, bundleId, environment)
 
 try {
     const response: SendTestNotificationResponse = await client.requestTestNotification()
@@ -60,7 +59,8 @@ const bundleId = "com.example"
 const appleRootCAs: Buffer[] = loadRootCAs() // Specific implementation may vary
 const enableOnlineChecks = true
 const environment = Environment.SANDBOX
-const verifier = new SignedDataVerifier(appleRootCAs, enableOnlineChecks, environment, bundleId)
+const appAppleId = undefined // appAppleId is required when the environment is Production
+const verifier = new SignedDataVerifier(appleRootCAs, enableOnlineChecks, environment, bundleId, appAppleId)
 
 const notificationPayload = "ey..."
 const verifiedNotification = await verifier.verifyAndDecodeNotification(notificationPayload)
