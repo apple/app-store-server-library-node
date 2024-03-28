@@ -26,6 +26,15 @@ yarn add @apple/app-store-server-library
 [Documentation](https://apple.github.io/app-store-server-library-node/)
 
 [WWDC Video](https://developer.apple.com/videos/play/wwdc2023/10143/)
+
+### Obtaining an In-App Purchase key from App Store Connect
+
+To use the App Store Server API or create promotional offer signatures, a signing key downloaded from App Store Connect is required. To obtain this key, you must have the Admin role. Go to Users and Access > Integrations > In-App Purchase. Here you can create and manage keys, as well as find your issuer id. When using a key, you'll need the key id and issuer id as well.
+
+### Obtaining Apple Root Certificates
+
+Download and store the root certificates found in the Apple Root Certificates section of the [Apple PKI](https://www.apple.com/certificateauthority/) site. Provide these certificates as an array to a SignedDataVerifier to allow verifying the signed data comes from Apple.
+
 ## Usage
 
 ### API Usage
