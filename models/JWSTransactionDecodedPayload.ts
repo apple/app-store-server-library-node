@@ -186,7 +186,7 @@ export interface JWSTransactionDecodedPayload extends DecodedSignedData {
     currency?: string
 
     /**
-     * The price of the in-app purchase or subscription offer that you configured in App Store Connect, as an integer.
+     * The price, in milliunits, of the in-app purchase or subscription offer that you configured in App Store Connect.
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/price price}
      **/
