@@ -29,7 +29,7 @@ yarn add @apple/app-store-server-library
 
 ### Obtaining an In-App Purchase key from App Store Connect
 
-To use the App Store Server API or create promotional offer signatures, a signing key downloaded from App Store Connect is required. To obtain this key, you must have the Admin role. Go to Users and Access > Integrations > In-App Purchase. Here you can create and manage keys, as well as find your issuer id. When using a key, you'll need the key id and issuer id as well.
+To use the App Store Server API or create promotional offer signatures, a signing key downloaded from App Store Connect is required. To obtain this key, you must have the Admin role. Go to Users and Access > Integrations > In-App Purchase. Here you can create and manage keys, as well as find your issuer ID. When using a key, you'll need the key ID and issuer ID as well.
 
 ### Obtaining Apple Root Certificates
 
