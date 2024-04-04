@@ -57,8 +57,12 @@ function getClientWithBody(path: string, callback: callbackType, statusCode: num
 }
 
 function getAppStoreServerAPIClient(body: string, statusCode: number, callback: callbackType): AppStoreServerAPIClient {
-    const key = readFile('tests/resources/certs/testSigningKey.p8')
+    const key = getSigningKey()
     return new AppStoreServerAPIClientForTest(key, "keyId", "issuerId", "bundleId", Environment.LOCAL_TESTING, callback, body, statusCode)
+}
+
+function getSigningKey(): string {
+    return readFile('tests/resources/certs/testSigningKey.p8')
 }
 
 describe('The api client ', () => {
@@ -499,5 +503,16 @@ describe('The api client ', () => {
         } catch (e) {
             return;
         }
+     })
+     
+     it('throws an error when the XCODE environment is passed', async () => {
+         try {
+            const key = getSigningKey()
+            new AppStoreServerAPIClient(key, "keyId", "issuerId", "bundleId", Environment.XCODE)
+            fail('this test call is expected to throw')
+         } catch (e) {
+            let error = e as Error
+            expect(error.message).toBe("Xcode is not a supported environment for an AppStoreServerAPIClient")
+         }
      })
 })

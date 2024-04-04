@@ -81,6 +81,7 @@ import { URLSearchParams } from 'url';
 export class AppStoreServerAPIClient {
     private static PRODUCTION_URL = "https://api.storekit.itunes.apple.com";
     private static SANDBOX_URL = "https://api.storekit-sandbox.itunes.apple.com";
+    private static LOCAL_TESTING_URL = "https://local-testing-base-url";
     private static USER_AGENT = "app-store-server-library/node/1.1.0";
 
     private issuerId: string
@@ -102,7 +103,19 @@ export class AppStoreServerAPIClient {
         this.keyId = keyId
         this.bundleId = bundleId
         this.signingKey = signingKey
-        this.urlBase = environment === "Sandbox" ? AppStoreServerAPIClient.SANDBOX_URL : AppStoreServerAPIClient.PRODUCTION_URL
+        switch(environment) {
+            case Environment.XCODE:
+                throw new Error("Xcode is not a supported environment for an AppStoreServerAPIClient")
+            case Environment.PRODUCTION:
+                this.urlBase = AppStoreServerAPIClient.PRODUCTION_URL
+                break
+            case Environment.LOCAL_TESTING:
+                this.urlBase = AppStoreServerAPIClient.LOCAL_TESTING_URL
+                break
+            case Environment.SANDBOX:
+                this.urlBase = AppStoreServerAPIClient.SANDBOX_URL
+                break
+        }
     }
 
     protected async makeRequest<T>(path: string, method: string, queryParameters: { [key: string]: string[]}, body: object | null, validator: Validator<T> | null): Promise<T> {
