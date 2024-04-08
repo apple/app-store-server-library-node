@@ -11,7 +11,7 @@ export enum Environment {
     SANDBOX = "Sandbox",
     PRODUCTION = "Production",
     XCODE = "Xcode",
-    LOCAL_TESTING = "LocalTesting",
+    LOCAL_TESTING = "LocalTesting", // Used for unit testing
 }
 
 export class EnvironmentValidator extends StringValidator {}
