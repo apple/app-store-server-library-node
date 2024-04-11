@@ -273,7 +273,7 @@ export class AppStoreServerAPIClient {
      * @param notificationHistoryRequest The request body that includes the start and end dates, and optional query constraints.
      * @return A response that contains the App Store Server Notifications history for your app.
      * @throws APIException If a response was returned indicating the request could not be processed
-     * {@link https://developer.apple.com/documentation/appstoreserverapi/get_notification_histor Get Notification History}
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/get_notification_history Get Notification History}
      */
     public async getNotificationHistory(paginationToken: string | null, notificationHistoryRequest: NotificationHistoryRequest): Promise<NotificationHistoryResponse> {
         const queryParameters: { [key: string]: [string]} = {}
