@@ -13,6 +13,7 @@ import { InAppOwnershipType } from "../../models/InAppOwnershipType";
 import { RevocationReason } from "../../models/RevocationReason";
 import { TransactionReason } from "../../models/TransactionReason";
 import { Type } from "../../models/Type";
+import { ConsumptionRequestReason } from "../../models/ConsumptionRequestReason";
 
 
 describe('Testing decoding of signed data', () => {
@@ -102,6 +103,29 @@ describe('Testing decoding of signed data', () => {
         expect("signed_transaction_info_value").toBe(notification.data!.signedTransactionInfo)
         expect("signed_renewal_info_value").toBe(notification.data!.signedRenewalInfo)
         expect(Status.ACTIVE).toBe(notification.data!.status)
+        expect(notification.data!.consumptionRequestReason).toBeFalsy()
+    })
+    it('should decode a signed CONSUMPTION_REQUEST notification', async () => {
+        const signedNotification = createSignedDataFromJson("tests/resources/models/signedConsumptionRequestNotification.json")
+
+        const notification = await getDefaultSignedPayloadVerifier().verifyAndDecodeNotification(signedNotification)
+
+        expect(NotificationTypeV2.CONSUMPTION_REQUEST).toBe(notification.notificationType)
+        expect(notification.subtype).toBeFalsy()
+        expect("002e14d5-51f5-4503-b5a8-c3a1af68eb20").toBe(notification.notificationUUID)
+        expect("2.0").toBe(notification.version)
+        expect(1698148900000).toBe(notification.signedDate)
+        expect(notification.data).toBeTruthy()
+        expect(notification.summary).toBeFalsy()
+        expect(notification.externalPurchaseToken).toBeFalsy()
+        expect(Environment.LOCAL_TESTING).toBe(notification.data!.environment)
+        expect(41234).toBe(notification.data!.appAppleId)
+        expect("com.example").toBe(notification.data!.bundleId)
+        expect("1.2.3").toBe(notification.data!.bundleVersion)
+        expect("signed_transaction_info_value").toBe(notification.data!.signedTransactionInfo)
+        expect("signed_renewal_info_value").toBe(notification.data!.signedRenewalInfo)
+        expect(Status.ACTIVE).toBe(notification.data!.status)
+        expect(ConsumptionRequestReason.UNINTENDED_PURCHASE).toBe(notification.data!.consumptionRequestReason)
     })
     it('should decode a signed summary notification', async () => {
         const signedNotification = createSignedDataFromJson("tests/resources/models/signedSummaryNotification.json")

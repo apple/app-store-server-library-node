@@ -1,5 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
+import { ConsumptionRequestReason, ConsumptionRequestReasonValidator } from "./ConsumptionRequestReason"
 import { Environment, EnvironmentValidator } from "./Environment"
 import { Status, StatusValidator } from "./Status"
 import { Validator } from "./Validator"
@@ -59,12 +60,20 @@ export interface Data {
      * {@link https://developer.apple.com/documentation/appstoreservernotifications/status status}
      **/
     status?: Status | number
+
+    /**
+     * The reason the customer requested the refund.
+     *
+     * {@link https://developer.apple.com/documentation/appstoreservernotifications/consumptionrequestreason consumptionRequestReason}
+     **/
+    consumptionRequestReason?: ConsumptionRequestReason | string
 }
 
 
 export class DataValidator implements Validator<Data> {
     static readonly environmentValidator = new EnvironmentValidator()
     static readonly statusValidator = new StatusValidator()
+    static readonly consumptionRequestReasonValidator = new ConsumptionRequestReasonValidator()
     validate(obj: any): obj is Data {
         if ((typeof obj['environment'] !== 'undefined') && !(DataValidator.environmentValidator.validate(obj['environment']))) {
             return false
@@ -85,6 +94,9 @@ export class DataValidator implements Validator<Data> {
             return false
         }
         if ((typeof obj['status'] !== 'undefined') && !(DataValidator.statusValidator.validate(obj['status']))) {
+            return false
+        }
+        if ((typeof obj['consumptionRequestReason'] !== 'undefined') && !(DataValidator.consumptionRequestReasonValidator.validate(obj['consumptionRequestReason']))) {
             return false
         }
         return true

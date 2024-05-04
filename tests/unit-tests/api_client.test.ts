@@ -15,6 +15,7 @@ import { Subtype } from "../../models/Subtype";
 import { UserStatus } from "../../models/UserStatus";
 import { readFile } from "../util"
 import { InAppOwnershipType } from "../../models/InAppOwnershipType";
+import { RefundPreference } from "../../models/RefundPreference";
 import { APIError, APIException, AppStoreServerAPIClient, ExtendReasonCode, ExtendRenewalDateRequest, MassExtendRenewalDateRequest, NotificationHistoryRequest, NotificationHistoryResponseItem, Order, OrderLookupStatus, ProductType, SendAttemptResult, TransactionHistoryRequest } from "../../index";
 import { Response } from "node-fetch";
 
@@ -387,6 +388,7 @@ describe('The api client ', () => {
             expect(6).toBe(body.lifetimeDollarsRefunded)
             expect(7).toBe(body.lifetimeDollarsPurchased)
             expect(4).toBe(body.userStatus)
+            expect(3).toBe(body.refundPreference)
         });
 
         const consumptionRequest: ConsumptionRequest = {
@@ -400,7 +402,8 @@ describe('The api client ', () => {
             playTime: PlayTime.ONE_DAY_TO_FOUR_DAYS,
             lifetimeDollarsRefunded: LifetimeDollarsRefunded.ONE_THOUSAND_DOLLARS_TO_ONE_THOUSAND_NINE_HUNDRED_NINETY_NINE_DOLLARS_AND_NINETY_NINE_CENTS,
             lifetimeDollarsPurchased: LifetimeDollarsPurchased.TWO_THOUSAND_DOLLARS_OR_GREATER,
-            userStatus: UserStatus.LIMITED_ACCESS
+            userStatus: UserStatus.LIMITED_ACCESS,
+            refundPreference: RefundPreference.NO_PREFERENCE
         }
 
         client.sendConsumptionData("49571273", consumptionRequest);

@@ -7,6 +7,7 @@ import { LifetimeDollarsPurchased } from "./LifetimeDollarsPurchased"
 import { LifetimeDollarsRefunded } from "./LifetimeDollarsRefunded"
 import { Platform } from "./Platform"
 import { PlayTime } from "./PlayTime"
+import { RefundPreference } from "./RefundPreference"
 import { UserStatus } from "./UserStatus"
 
 /**
@@ -92,4 +93,11 @@ export interface ConsumptionRequest {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/userstatus userStatus}
      **/
     userStatus?: UserStatus | number
+
+    /**
+     * A value that indicates your preference, based on your operational logic, as to whether Apple should grant the refund.
+     *
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/refundpreference refundPreference}
+     **/
+    refundPreference?: RefundPreference | number
 }
