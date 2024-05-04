@@ -3,9 +3,9 @@
 import { StringValidator, Validator } from "./Validator";
 
 /**
- * A notification type value that App Store Server Notifications V2 uses.
+ * The type that describes the in-app purchase or external purchase event for which the App Store sends the version 2 notification.
  *
- * {@link https://developer.apple.com/documentation/appstoreserverapi/notificationtype notificationType}
+ * {@link https://developer.apple.com/documentation/appstoreservernotifications/notificationtype notificationType}
  */
 export enum NotificationTypeV2 {
     SUBSCRIBED = "SUBSCRIBED",

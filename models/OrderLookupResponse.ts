@@ -19,6 +19,7 @@ export interface OrderLookupResponse {
     /**
      * An array of in-app purchase transactions that are part of order, signed by Apple, in JSON Web Signature format.
      *
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/jwstransaction JWSTransaction}
      **/
     signedTransactions?: string[];
 }

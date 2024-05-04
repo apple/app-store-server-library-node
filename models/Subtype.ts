@@ -3,9 +3,9 @@
 import { StringValidator } from "./Validator";
 
 /**
- * A notification subtype value that App Store Server Notifications 2 uses.
+ * A string that provides details about select notification types in version 2.
  *
- * {@link https://developer.apple.com/documentation/appstoreserverapi/notificationsubtype notificationSubtype}
+ * {@link https://developer.apple.com/documentation/appstoreservernotifications/subtype subtype}
  */
 export enum Subtype {
     INITIAL_BUY = "INITIAL_BUY",

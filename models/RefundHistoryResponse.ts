@@ -12,6 +12,7 @@ export interface RefundHistoryResponse {
     /**
      * A list of up to 20 JWS transactions, or an empty array if the customer hasn&#39;t received any refunds in your app. The transactions are sorted in ascending order by revocationDate.
      *
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/jwstransaction JWSTransaction}
      **/
     signedTransactions?: string[];
         
