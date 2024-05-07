@@ -26,7 +26,8 @@ export interface NotificationHistoryResponse {
 
     /**
      * An array of App Store server notification history records.
-     *
+     * 
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/notificationhistoryresponseitem notificationHistoryResponseItem}
      **/
     notificationHistory?: NotificationHistoryResponseItem[];
 }
