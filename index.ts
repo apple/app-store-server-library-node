@@ -292,34 +292,36 @@ export class AppStoreServerAPIClient {
      * @throws APIException If a response was returned indicating the request could not be processed
      * {@link https://developer.apple.com/documentation/appstoreserverapi/get_transaction_history Get Transaction History}
      */
-    public async getTransactionHistory(transactionId: string, revision: string | null, transactionHistoryRequest: TransactionHistoryRequest): Promise<HistoryResponse> {
+    public async getTransactionHistory(transactionId: string, revision: string | null, transactionHistoryRequest?: TransactionHistoryRequest): Promise<HistoryResponse> {
         const queryParameters: { [key: string]: string[]} = {}
         if (revision != null) {
             queryParameters["revision"] = [revision];
         }
-        if (transactionHistoryRequest.startDate) {
-            queryParameters["startDate"] = [transactionHistoryRequest.startDate.toString()];
-        }
-        if (transactionHistoryRequest.endDate) {
-            queryParameters["endDate"] = [transactionHistoryRequest.endDate.toString()];
-        }
-        if (transactionHistoryRequest.productIds) {
-            queryParameters["productId"] = transactionHistoryRequest.productIds;
-        }
-        if (transactionHistoryRequest.productTypes) {
-            queryParameters["productType"] = transactionHistoryRequest.productTypes;
-        }
-        if (transactionHistoryRequest.sort) {
-            queryParameters["sort"] = [transactionHistoryRequest.sort];
-        }
-        if (transactionHistoryRequest.subscriptionGroupIdentifiers) {
-            queryParameters["subscriptionGroupIdentifier"] = transactionHistoryRequest.subscriptionGroupIdentifiers;
-        }
-        if (transactionHistoryRequest.inAppOwnershipType) {
-            queryParameters["inAppOwnershipType"] = [transactionHistoryRequest.inAppOwnershipType];
-        }
-        if (transactionHistoryRequest.revoked !== undefined) {
-            queryParameters["revoked"] = [transactionHistoryRequest.revoked.toString()];
+        if (transactionHistoryRequest) {
+            if (transactionHistoryRequest.startDate) {
+                queryParameters["startDate"] = [transactionHistoryRequest.startDate.toString()];
+            }
+            if (transactionHistoryRequest.endDate) {
+                queryParameters["endDate"] = [transactionHistoryRequest.endDate.toString()];
+            }
+            if (transactionHistoryRequest.productIds) {
+                queryParameters["productId"] = transactionHistoryRequest.productIds;
+            }
+            if (transactionHistoryRequest.productTypes) {
+                queryParameters["productType"] = transactionHistoryRequest.productTypes;
+            }
+            if (transactionHistoryRequest.sort) {
+                queryParameters["sort"] = [transactionHistoryRequest.sort];
+            }
+            if (transactionHistoryRequest.subscriptionGroupIdentifiers) {
+                queryParameters["subscriptionGroupIdentifier"] = transactionHistoryRequest.subscriptionGroupIdentifiers;
+            }
+            if (transactionHistoryRequest.inAppOwnershipType) {
+                queryParameters["inAppOwnershipType"] = [transactionHistoryRequest.inAppOwnershipType];
+            }
+            if (transactionHistoryRequest.revoked !== undefined) {
+                queryParameters["revoked"] = [transactionHistoryRequest.revoked.toString()];
+            }
         }
         return await this.makeRequest("/inApps/v1/history/" + transactionId, "GET", queryParameters, null, new HistoryResponseValidator());
     }
