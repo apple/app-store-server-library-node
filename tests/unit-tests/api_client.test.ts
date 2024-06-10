@@ -16,7 +16,7 @@ import { UserStatus } from "../../models/UserStatus";
 import { readFile } from "../util"
 import { InAppOwnershipType } from "../../models/InAppOwnershipType";
 import { RefundPreference } from "../../models/RefundPreference";
-import { APIError, APIException, AppStoreServerAPIClient, ExtendReasonCode, ExtendRenewalDateRequest, MassExtendRenewalDateRequest, NotificationHistoryRequest, NotificationHistoryResponseItem, Order, OrderLookupStatus, ProductType, SendAttemptResult, TransactionHistoryRequest } from "../../index";
+import { APIError, APIException, AppStoreServerAPIClient, ExtendReasonCode, ExtendRenewalDateRequest, GetTransactionHistoryVersion, MassExtendRenewalDateRequest, NotificationHistoryRequest, NotificationHistoryResponseItem, Order, OrderLookupStatus, ProductType, SendAttemptResult, TransactionHistoryRequest } from "../../index";
 import { Response } from "node-fetch";
 
 import jsonwebtoken = require('jsonwebtoken');
@@ -288,7 +288,7 @@ describe('The api client ', () => {
         expect(expectedNotificationHistory).toStrictEqual(notificationHistoryResponse.notificationHistory)
     })
 
-    it('calls getTransactionHistory', async () => {
+    it('calls getTransactionHistory V1', async () => {
        const client = getClientWithBody("tests/resources/models/transactionHistoryResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, stringBody: string | undefined, headers: { [key: string]: string; }) => {
             expect("GET").toBe(method)
             expect("/inApps/v1/history/1234").toBe(path)
@@ -315,7 +315,7 @@ describe('The api client ', () => {
             subscriptionGroupIdentifiers: ["sub_group_id", "sub_group_id_2"]
         }
 
-        const historyResponse = await client.getTransactionHistory("1234", "revision_input", request);
+        const historyResponse = await client.getTransactionHistory("1234", "revision_input", request, GetTransactionHistoryVersion.V1);
 
         expect(historyResponse).toBeTruthy()
         expect("revision_output").toBe(historyResponse.revision)
@@ -325,6 +325,44 @@ describe('The api client ', () => {
         expect(Environment.LOCAL_TESTING).toBe(historyResponse.environment)
         expect(["signed_transaction_value", "signed_transaction_value2"]).toStrictEqual(historyResponse.signedTransactions)
     })
+
+    it('calls getTransactionHistory V2', async () => {
+        const client = getClientWithBody("tests/resources/models/transactionHistoryResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, stringBody: string | undefined, headers: { [key: string]: string; }) => {
+             expect("GET").toBe(method)
+             expect("/inApps/v2/history/1234").toBe(path)
+             expect("revision_input").toBe(parsedQueryParameters.get("revision"))
+             expect("123455").toBe(parsedQueryParameters.get("startDate"))
+             expect("123456").toBe(parsedQueryParameters.get("endDate"))
+             expect(["com.example.1", "com.example.2"]).toStrictEqual(parsedQueryParameters.getAll("productId"))
+             expect(["CONSUMABLE", "AUTO_RENEWABLE"]).toStrictEqual(parsedQueryParameters.getAll("productType"))
+             expect("ASCENDING").toBe(parsedQueryParameters.get("sort"))
+             expect(["sub_group_id", "sub_group_id_2"]).toStrictEqual(parsedQueryParameters.getAll("subscriptionGroupIdentifier"))
+             expect("FAMILY_SHARED").toBe(parsedQueryParameters.get("inAppOwnershipType"))
+             expect("false").toBe(parsedQueryParameters.get("revoked"))
+             expect(stringBody).toBeUndefined()
+         });
+ 
+         const request: TransactionHistoryRequest = {
+             sort: Order.ASCENDING,
+             productTypes: [ProductType.CONSUMABLE, ProductType.AUTO_RENEWABLE],
+             endDate: 123456,
+             startDate: 123455,
+             revoked: false,
+             inAppOwnershipType: InAppOwnershipType.FAMILY_SHARED,
+             productIds: ["com.example.1", "com.example.2"],
+             subscriptionGroupIdentifiers: ["sub_group_id", "sub_group_id_2"]
+         }
+ 
+         const historyResponse = await client.getTransactionHistory("1234", "revision_input", request, GetTransactionHistoryVersion.V2);
+ 
+         expect(historyResponse).toBeTruthy()
+         expect("revision_output").toBe(historyResponse.revision)
+         expect(historyResponse.hasMore).toBe(true)
+         expect("com.example").toBe(historyResponse.bundleId)
+         expect(323232).toBe(historyResponse.appAppleId)
+         expect(Environment.LOCAL_TESTING).toBe(historyResponse.environment)
+         expect(["signed_transaction_value", "signed_transaction_value2"]).toStrictEqual(historyResponse.signedTransactions)
+     })
 
     it('calls getTransactionInfo', async () => {
        const client = getClientWithBody("tests/resources/models/transactionInfoResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, stringBody: string | undefined, headers: { [key: string]: string; }) => {
@@ -481,7 +519,7 @@ describe('The api client ', () => {
             subscriptionGroupIdentifiers: ["sub_group_id", "sub_group_id_2"]
         }
 
-        const historyResponse = await client.getTransactionHistory("1234", "revision_input", request);
+        const historyResponse = await client.getTransactionHistory("1234", "revision_input", request, GetTransactionHistoryVersion.V2);
         expect(historyResponse.environment).toBe("LocalTestingxxx")
      })
 

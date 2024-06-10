@@ -14,6 +14,7 @@ import { RevocationReason } from "../../models/RevocationReason";
 import { TransactionReason } from "../../models/TransactionReason";
 import { Type } from "../../models/Type";
 import { ConsumptionRequestReason } from "../../models/ConsumptionRequestReason";
+import { OfferDiscountType } from "../../models/OfferDiscountType";
 
 
 describe('Testing decoding of signed data', () => {
@@ -53,6 +54,9 @@ describe('Testing decoding of signed data', () => {
         expect(Environment.LOCAL_TESTING).toBe(renewalInfo.environment)
         expect(1698148800000).toBe(renewalInfo.recentSubscriptionStartDate)
         expect(1698148850000).toBe(renewalInfo.renewalDate)
+        expect(9990).toBe(renewalInfo.renewalPrice)
+        expect("USD").toBe(renewalInfo.currency)
+        expect(OfferDiscountType.PAY_AS_YOU_GO).toBe(renewalInfo.offerDiscountType)
     })
     it('should decode a transaction info', async () => {
         const signedTransaction = createSignedDataFromJson("tests/resources/models/signedTransaction.json")
@@ -82,6 +86,9 @@ describe('Testing decoding of signed data', () => {
         expect("143441").toBe(transaction.storefrontId)
         expect(TransactionReason.PURCHASE).toBe(transaction.transactionReason)
         expect(Environment.LOCAL_TESTING).toBe(transaction.environment)
+        expect(10990).toBe(transaction.price)
+        expect("USD").toBe(transaction.currency)
+        expect(OfferDiscountType.PAY_AS_YOU_GO).toBe(transaction.offerDiscountType)
     })
     it('should decode a signed notification', async () => {
         const signedNotification = createSignedDataFromJson("tests/resources/models/signedNotification.json")

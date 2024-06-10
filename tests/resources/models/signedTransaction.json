@@ -21,5 +21,8 @@
   "environment":"LocalTesting",
   "transactionReason":"PURCHASE",
   "storefront":"USA",
-  "storefrontId":"143441"
+  "storefrontId":"143441",
+  "price": 10990,
+  "currency": "USD",
+  "offerDiscountType": "PAY_AS_YOU_GO"
 }
