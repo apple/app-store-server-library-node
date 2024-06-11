@@ -288,11 +288,12 @@ export class AppStoreServerAPIClient {
      *
      * @param transactionId The identifier of a transaction that belongs to the customer, and which may be an original transaction identifier.
      * @param revision              A token you provide to get the next set of up to 20 transactions. All responses include a revision token. Note: For requests that use the revision token, include the same query parameters from the initial request. Use the revision token from the previous HistoryResponse.
+     * @param version The version of the Get Transaction History endpoint to use. V2 is recommended.
      * @return A response that contains the customer’s transaction history for an app.
      * @throws APIException If a response was returned indicating the request could not be processed
      * {@link https://developer.apple.com/documentation/appstoreserverapi/get_transaction_history Get Transaction History}
      */
-    public async getTransactionHistory(transactionId: string, revision: string | null, transactionHistoryRequest: TransactionHistoryRequest): Promise<HistoryResponse> {
+    public async getTransactionHistory(transactionId: string, revision: string | null, transactionHistoryRequest: TransactionHistoryRequest, version: GetTransactionHistoryVersion = GetTransactionHistoryVersion.V1): Promise<HistoryResponse> {
         const queryParameters: { [key: string]: string[]} = {}
         if (revision != null) {
             queryParameters["revision"] = [revision];
@@ -321,7 +322,7 @@ export class AppStoreServerAPIClient {
         if (transactionHistoryRequest.revoked !== undefined) {
             queryParameters["revoked"] = [transactionHistoryRequest.revoked.toString()];
         }
-        return await this.makeRequest("/inApps/v1/history/" + transactionId, "GET", queryParameters, null, new HistoryResponseValidator());
+        return await this.makeRequest("/inApps/" + version + "/history/" + transactionId, "GET", queryParameters, null, new HistoryResponseValidator());
     }
 
     /**
@@ -794,4 +795,12 @@ export enum APIError {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/generalinternalretryableerror GeneralInternalRetryableError}
      */
     GENERAL_INTERNAL_RETRYABLE = 5000001,
+}
+
+export enum GetTransactionHistoryVersion {
+    /**
+     * @deprecated
+     */
+    V1 = "v1",
+    V2 = "v2",
 }

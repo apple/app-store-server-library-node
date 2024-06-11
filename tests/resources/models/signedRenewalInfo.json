@@ -12,5 +12,8 @@
   "signedDate": 1698148800000,
   "environment": "LocalTesting",
   "recentSubscriptionStartDate": 1698148800000,
-  "renewalDate": 1698148850000
+  "renewalDate": 1698148850000,
+  "renewalPrice": 9990,
+  "currency": "USD",
+  "offerDiscountType": "PAY_AS_YOU_GO"
 }

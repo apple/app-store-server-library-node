@@ -4,6 +4,7 @@ import { AutoRenewStatus, AutoRenewStatusValidator } from "./AutoRenewStatus"
 import { DecodedSignedData } from "./DecodedSignedData"
 import { Environment, EnvironmentValidator } from "./Environment"
 import { ExpirationIntent, ExpirationIntentValidator } from "./ExpirationIntent"
+import { OfferDiscountType, OfferDiscountTypeValidator } from "./OfferDiscountType"
 import { OfferType, OfferTypeValidator } from "./OfferType"
 import { PriceIncreaseStatus, PriceIncreaseStatusValidator } from "./PriceIncreaseStatus"
 import { Validator } from "./Validator"
@@ -112,6 +113,27 @@ export interface JWSRenewalInfoDecodedPayload extends DecodedSignedData {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/renewaldate renewalDate}
      **/
     renewalDate?: number
+
+    /**
+     * The currency code for the renewalPrice of the subscription.
+     *
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/currency currency}
+     **/
+    currency?: string
+
+    /**
+     * The renewal price, in milliunits, of the auto-renewable subscription that renews at the next billing period.
+     *
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/renewalprice renewalPrice}
+     **/
+    renewalPrice?: number
+
+    /**
+     * The payment mode of the discount offer.
+     *
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/offerdiscounttype offerDiscountType}
+     **/
+    offerDiscountType?: OfferDiscountType | string
 }
 
 
@@ -121,6 +143,7 @@ export class JWSRenewalInfoDecodedPayloadValidator implements Validator<JWSRenew
     static readonly priceIncreaseStatusValidator = new PriceIncreaseStatusValidator()
     static readonly autoRenewStatusValidator = new AutoRenewStatusValidator()
     static readonly expirationIntentValidator = new ExpirationIntentValidator()
+    static readonly offerDiscountTypeValidator = new OfferDiscountTypeValidator()
     validate(obj: any): obj is JWSRenewalInfoDecodedPayload {
         if ((typeof obj['expirationIntent'] !== 'undefined') && !(JWSRenewalInfoDecodedPayloadValidator.expirationIntentValidator.validate(obj['expirationIntent']))) {
             return false
@@ -162,6 +185,15 @@ export class JWSRenewalInfoDecodedPayloadValidator implements Validator<JWSRenew
             return false
         }
         if ((typeof obj['renewalDate'] !== 'undefined') && !(typeof obj['renewalDate'] === 'number')) {
+            return false
+        }
+        if ((typeof obj['currency'] !== 'undefined') && !(typeof obj['currency'] === "string" || obj['currency'] instanceof String)) {
+            return false
+        }
+        if ((typeof obj['renewalPrice'] !== 'undefined') && !(typeof obj['renewalPrice'] === "number")) {
+            return false
+        }
+        if ((typeof obj['offerDiscountType'] !== 'undefined') && !(JWSRenewalInfoDecodedPayloadValidator.offerDiscountTypeValidator.validate(obj['offerDiscountType']))) {
             return false
         }
         return true
