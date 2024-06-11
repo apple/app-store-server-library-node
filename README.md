@@ -125,12 +125,12 @@ const encodedKey = readFile(filePath) // Specific implementation may vary
 
 const productId = "<product_id>"
 const subscriptionOfferId = "<subscription_offer_id>"
-const applicationUsername = "<application_username>"
+const appAccountToken = "<app_account_token>"
 const nonce = "<nonce>"
 const timestamp = Date.now()
 const signatureCreator = new PromotionalOfferSignatureCreator(encodedKey, keyId, bundleId)
 
-const signature = signatureCreator.createSignature(productId, subscriptionOfferId, applicationUsername, nonce, timestamp)
+const signature = signatureCreator.createSignature(productId, subscriptionOfferId, appAccountToken, nonce, timestamp)
 console.log(signature)
 ```
 
