@@ -79,7 +79,7 @@ console.log(verifiedNotification)
 ### Receipt Usage
 
 ```typescript
-import { AppStoreServerAPIClient, Environment, ReceiptUtility, Order, ProductType, HistoryResponse, TransactionHistoryRequest } from "@apple/app-store-server-library"
+import { AppStoreServerAPIClient, Environment, GetTransactionHistoryVersion, ReceiptUtility, Order, ProductType, HistoryResponse, TransactionHistoryRequest } from "@apple/app-store-server-library"
 
 const issuerId = "99b16628-15e4-4668-972b-eeff55eeff55"
 const keyId = "ABCDEFGHIJ"
@@ -104,7 +104,7 @@ if (transactionId != null) {
     let transactions: string[] = []
     do {
         const revisionToken = response !== null && response.revision !== null ? response.revision : null
-        response = await client.getTransactionHistory(transactionId, revisionToken, transactionHistoryRequest)
+        response = await client.getTransactionHistory(transactionId, revisionToken, transactionHistoryRequest, GetTransactionHistoryVersion.V2)
         if (response.signedTransactions) {
             transactions = transactions.concat(response.signedTransactions)
         }
