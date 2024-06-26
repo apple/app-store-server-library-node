@@ -49,6 +49,7 @@ export { NotificationHistoryResponse } from './models/NotificationHistoryRespons
 export { NotificationHistoryResponseItem } from './models/NotificationHistoryResponseItem'
 export { NotificationTypeV2 } from './models/NotificationTypeV2'
 export { OfferType } from './models/OfferType'
+export { OfferDiscountType } from './models/OfferDiscountType'
 export { OrderLookupResponse } from './models/OrderLookupResponse'
 export { OrderLookupStatus } from './models/OrderLookupStatus'
 export { Platform } from './models/Platform'
