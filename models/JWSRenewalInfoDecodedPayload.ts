@@ -134,6 +134,13 @@ export interface JWSRenewalInfoDecodedPayload extends DecodedSignedData {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/offerdiscounttype offerDiscountType}
      **/
     offerDiscountType?: OfferDiscountType | string
+
+    /**
+     * An array of win-back offer identifiers that a customer is eligible to redeem, which sorts the identifiers to present the better offers first.
+     *
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/eligiblewinbackofferids eligibleWinBackOfferIds}
+     **/
+    eligibleWinBackOfferIds?: string[];
 }
 
 
@@ -195,6 +202,16 @@ export class JWSRenewalInfoDecodedPayloadValidator implements Validator<JWSRenew
         }
         if ((typeof obj['offerDiscountType'] !== 'undefined') && !(JWSRenewalInfoDecodedPayloadValidator.offerDiscountTypeValidator.validate(obj['offerDiscountType']))) {
             return false
+        }
+        if (typeof obj['eligibleWinBackOfferIds'] !== 'undefined') {
+            if (!Array.isArray(obj['eligibleWinBackOfferIds'])) {
+                return false
+            }
+            for (const eligibleWinBackOfferId of obj['eligibleWinBackOfferIds']) {
+                if (!(typeof eligibleWinBackOfferId === "string" || eligibleWinBackOfferId instanceof String)) {
+                    return false
+                }
+            }
         }
         return true
     }

@@ -15,5 +15,9 @@
   "renewalDate": 1698148850000,
   "renewalPrice": 9990,
   "currency": "USD",
-  "offerDiscountType": "PAY_AS_YOU_GO"
+  "offerDiscountType": "PAY_AS_YOU_GO",
+  "eligibleWinBackOfferIds": [
+    "eligible1",
+    "eligible2"
+  ]
 }
