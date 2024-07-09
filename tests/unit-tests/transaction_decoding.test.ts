@@ -57,6 +57,7 @@ describe('Testing decoding of signed data', () => {
         expect(9990).toBe(renewalInfo.renewalPrice)
         expect("USD").toBe(renewalInfo.currency)
         expect(OfferDiscountType.PAY_AS_YOU_GO).toBe(renewalInfo.offerDiscountType)
+        expect(["eligible1", "eligible2"]).toStrictEqual(renewalInfo.eligibleWinBackOfferIds)
     })
     it('should decode a transaction info', async () => {
         const signedTransaction = createSignedDataFromJson("tests/resources/models/signedTransaction.json")
