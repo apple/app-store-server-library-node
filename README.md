@@ -76,7 +76,8 @@ const verifiedNotification = await verifier.verifyAndDecodeNotification(notifica
 console.log(verifiedNotification)
 ```
 
-### Receipt Usage
+### Receipt Usage (For Legacy App Receipts)
+If you use an App Receipt from [Original StoreKit](https://developer.apple.com/documentation/storekit/in-app_purchase/original_api_for_in-app_purchase/validating_receipts_with_the_app_store), you can utilize `ReceiptUtility` to verify the legacy receipt.
 
 ```typescript
 import { AppStoreServerAPIClient, Environment, GetTransactionHistoryVersion, ReceiptUtility, Order, ProductType, HistoryResponse, TransactionHistoryRequest } from "@apple/app-store-server-library"
