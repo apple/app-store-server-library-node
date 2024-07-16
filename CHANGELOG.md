@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 1.4.0
+- Incorporate changes for App Store Server API v1.13 and App Store Server Notifications v2.13 [https://github.com/apple/app-store-server-library-node/pull/163]
+- Add missing export for OfferDiscountType [https://github.com/apple/app-store-server-library-node/pull/159] from @coltkenn2658
+
 ## Version 1.3.0
 - Incorporate changes for App Store Server API v1.12 and App Store Server Notifications v2.12 [https://github.com/apple/app-store-server-library-node/pull/146]
 
