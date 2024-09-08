@@ -49,7 +49,7 @@ export class SignedDataVerifier {
      * @param enableOnlineChecks Whether to enable revocation checking and check expiration using the current date
      * @param environment The App Store environment to target for checks
      * @param bundleId The app's bundle identifier
-     * @param appAppleId The app's identifier, ommitted in the sandbox environment
+     * @param appAppleId The app's identifier, omitted in the sandbox environment
      */
     constructor(appleRootCertificates: Buffer[], enableOnlineChecks: boolean, environment: Environment, bundleId: string, appAppleId?: number) {
       this.rootCertificates = appleRootCertificates.map(cert => new X509Certificate(cert))
@@ -288,9 +288,9 @@ export class SignedDataVerifier {
         // This is directly signed by the issuer
       } else if (signingCert.verify(issuer.publicKey)) {
         // This is issued by the issuer, let's check the dates and purpose
-        const signingCertAsign = new X509()
-        signingCertAsign.readCertPEM(signingCert.toString())
-        if (!signingCertAsign.getExtExtKeyUsage().array.includes("ocspSigning")) {
+        const signingCertAssign = new X509()
+        signingCertAssign.readCertPEM(signingCert.toString())
+        if (!signingCertAssign.getExtExtKeyUsage().array.includes("ocspSigning")) {
           throw new VerificationException(VerificationStatus.INVALID_CERTIFICATE)
         }
         this.checkDates(signingCert, new Date())
