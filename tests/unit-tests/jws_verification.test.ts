@@ -131,8 +131,8 @@ describe("Decoding checks", () => {
     it('should fail to verify with an invalid bundle id', async () => {
         const verifier = getSignedPayloadVerifierWithDefaultAppAppleId(Environment.SANDBOX, "com.example")
         try {
-            const wrongBundelId = readFile('tests/resources/mock_signed_data/wrongBundleId')
-            await verifier.verifyAndDecodeNotification(wrongBundelId)
+            const wrongBundleId = readFile('tests/resources/mock_signed_data/wrongBundleId')
+            await verifier.verifyAndDecodeNotification(wrongBundleId)
             assert(false)
         } catch (e) {
             expect(e).toBeInstanceOf(VerificationException)
