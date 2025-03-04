@@ -134,7 +134,6 @@ const signature = signatureCreator.createSignature(productId, subscriptionOfferI
 console.log(signature)
 ```
 
-
 ## Support
 
 Only the latest major version of the library will receive updates, including security updates. Therefore, it is recommended to update to new major versions.
