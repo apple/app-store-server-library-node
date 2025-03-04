@@ -21,10 +21,16 @@ const REAL_APPLE_INTERMEDIATE_BASE64_ENCODED = "MIIDFjCCApygAwIBAgIUIsGhRwp0c2nv
 const REAL_APPLE_SIGNING_CERTIFICATE_BASE64_ENCODED = "MIIEMDCCA7agAwIBAgIQaPoPldvpSoEH0lBrjDPv9jAKBggqhkjOPQQDAzB1MUQwQgYDVQQDDDtBcHBsZSBXb3JsZHdpZGUgRGV2ZWxvcGVyIFJlbGF0aW9ucyBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eTELMAkGA1UECwwCRzYxEzARBgNVBAoMCkFwcGxlIEluYy4xCzAJBgNVBAYTAlVTMB4XDTIxMDgyNTAyNTAzNFoXDTIzMDkyNDAyNTAzM1owgZIxQDA+BgNVBAMMN1Byb2QgRUNDIE1hYyBBcHAgU3RvcmUgYW5kIGlUdW5lcyBTdG9yZSBSZWNlaXB0IFNpZ25pbmcxLDAqBgNVBAsMI0FwcGxlIFdvcmxkd2lkZSBEZXZlbG9wZXIgUmVsYXRpb25zMRMwEQYDVQQKDApBcHBsZSBJbmMuMQswCQYDVQQGEwJVUzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABOoTcaPcpeipNL9eQ06tCu7pUcwdCXdN8vGqaUjd58Z8tLxiUC0dBeA+euMYggh1/5iAk+FMxUFmA2a1r4aCZ8SjggIIMIICBDAMBgNVHRMBAf8EAjAAMB8GA1UdIwQYMBaAFD8vlCNR01DJmig97bB85c+lkGKZMHAGCCsGAQUFBwEBBGQwYjAtBggrBgEFBQcwAoYhaHR0cDovL2NlcnRzLmFwcGxlLmNvbS93d2RyZzYuZGVyMDEGCCsGAQUFBzABhiVodHRwOi8vb2NzcC5hcHBsZS5jb20vb2NzcDAzLXd3ZHJnNjAyMIIBHgYDVR0gBIIBFTCCAREwggENBgoqhkiG92NkBQYBMIH+MIHDBggrBgEFBQcCAjCBtgyBs1JlbGlhbmNlIG9uIHRoaXMgY2VydGlmaWNhdGUgYnkgYW55IHBhcnR5IGFzc3VtZXMgYWNjZXB0YW5jZSBvZiB0aGUgdGhlbiBhcHBsaWNhYmxlIHN0YW5kYXJkIHRlcm1zIGFuZCBjb25kaXRpb25zIG9mIHVzZSwgY2VydGlmaWNhdGUgcG9saWN5IGFuZCBjZXJ0aWZpY2F0aW9uIHByYWN0aWNlIHN0YXRlbWVudHMuMDYGCCsGAQUFBwIBFipodHRwOi8vd3d3LmFwcGxlLmNvbS9jZXJ0aWZpY2F0ZWF1dGhvcml0eS8wHQYDVR0OBBYEFCOCmMBq//1L5imvVmqX1oCYeqrMMA4GA1UdDwEB/wQEAwIHgDAQBgoqhkiG92NkBgsBBAIFADAKBggqhkjOPQQDAwNoADBlAjEAl4JB9GJHixP2nuibyU1k3wri5psGIxPME05sFKq7hQuzvbeyBu82FozzxmbzpogoAjBLSFl0dZWIYl2ejPV+Di5fBnKPu8mymBQtoE/H2bES0qAs8bNueU3CBjjh1lwnDsI=";
 
 const EFFECTIVE_DATE = new Date(1681312846000); // April 2023
+
+const CLOCK_DATE = 41231
 class SignedJWTVerifierTest extends SignedDataVerifier {
     effectiveDate = EFFECTIVE_DATE
     async testVerifyCertificateChain(trustedRoots: X509Certificate[], leaf: string, intermediate: string): Promise<KeyObject> {
         return await this.verifyCertificateChain(trustedRoots, new X509Certificate(Buffer.from(leaf, 'base64')), new X509Certificate(Buffer.from(intermediate, 'base64')), this.effectiveDate)
+    }
+
+    public async verifyCertificateChainWithoutCaching(trustedRoots: X509Certificate[], leaf: X509Certificate, intermediate: X509Certificate, effectiveDate: Date): Promise<KeyObject> {
+        return await super.verifyCertificateChainWithoutCaching(trustedRoots, leaf, intermediate, effectiveDate)
     }
 
     getRootCertificates() {
@@ -112,6 +118,62 @@ describe("Chain Verification Checks", () => {
             return
         }
         assert(false)
+    })
+
+    it('should cache OCSP responses', async () => {
+        jest.useFakeTimers()
+        jest.setSystemTime(CLOCK_DATE)
+        const verifier = new SignedJWTVerifierTest([Buffer.from(ROOT_CA_BASE64_ENCODED, 'base64')], true, Environment.PRODUCTION, "com.example", 1234);
+        let spy = jest.spyOn(verifier, 'verifyCertificateChainWithoutCaching').mockImplementation((_, _2, _3, _4) => Promise.resolve(new X509Certificate(Buffer.from(LEAF_CERT_BASE64_ENCODED, 'base64')).publicKey));
+        await verifier.testVerifyCertificateChain(verifier.getRootCertificates(), LEAF_CERT_BASE64_ENCODED, INTERMEDIATE_CA_BASE64_ENCODED)
+        expect(spy).toHaveBeenCalledTimes(1);
+        jest.setSystemTime(CLOCK_DATE + 1_000) // 1 second
+        await verifier.testVerifyCertificateChain(verifier.getRootCertificates(), LEAF_CERT_BASE64_ENCODED, INTERMEDIATE_CA_BASE64_ENCODED)
+        expect(spy).toHaveBeenCalledTimes(1);
+        jest.runOnlyPendingTimers()
+        jest.useRealTimers()
+    })
+
+    it('should cache OCSP responses for a limited time', async () => {
+        jest.useFakeTimers()
+        jest.setSystemTime(CLOCK_DATE)
+        const verifier = new SignedJWTVerifierTest([Buffer.from(ROOT_CA_BASE64_ENCODED, 'base64')], true, Environment.PRODUCTION, "com.example", 1234);
+        let spy = jest.spyOn(verifier, 'verifyCertificateChainWithoutCaching').mockImplementation((_, _2, _3, _4) => Promise.resolve(new X509Certificate(Buffer.from(LEAF_CERT_BASE64_ENCODED, 'base64')).publicKey));
+        await verifier.testVerifyCertificateChain(verifier.getRootCertificates(), LEAF_CERT_BASE64_ENCODED, INTERMEDIATE_CA_BASE64_ENCODED)
+        expect(spy).toHaveBeenCalledTimes(1);
+        jest.setSystemTime(CLOCK_DATE + 15 * 60 * 1_000) // 15 minutes
+        await verifier.testVerifyCertificateChain(verifier.getRootCertificates(), LEAF_CERT_BASE64_ENCODED, INTERMEDIATE_CA_BASE64_ENCODED)
+        expect(spy).toHaveBeenCalledTimes(2);
+        jest.runOnlyPendingTimers()
+        jest.useRealTimers()
+    })
+
+    it('should not return cached OCSP responses for a different chain', async () => {
+        jest.useFakeTimers()
+        jest.setSystemTime(CLOCK_DATE)
+        const verifier = new SignedJWTVerifierTest([Buffer.from(ROOT_CA_BASE64_ENCODED, 'base64')], true, Environment.PRODUCTION, "com.example", 1234);
+        let spy = jest.spyOn(verifier, 'verifyCertificateChainWithoutCaching').mockImplementation((_, _2, _3, _4) => Promise.resolve(new X509Certificate(Buffer.from(LEAF_CERT_BASE64_ENCODED, 'base64')).publicKey));
+        await verifier.testVerifyCertificateChain(verifier.getRootCertificates(), LEAF_CERT_BASE64_ENCODED, INTERMEDIATE_CA_BASE64_ENCODED)
+        expect(spy).toHaveBeenCalledTimes(1);
+        jest.setSystemTime(CLOCK_DATE + 15 * 60 * 1_000) // 15 minutes
+        await verifier.testVerifyCertificateChain(verifier.getRootCertificates(), REAL_APPLE_SIGNING_CERTIFICATE_BASE64_ENCODED, REAL_APPLE_INTERMEDIATE_BASE64_ENCODED)
+        expect(spy).toHaveBeenCalledTimes(2);
+        jest.runOnlyPendingTimers()
+        jest.useRealTimers()
+    })
+
+    it('should not return cached OCSP responses for a slightly different chain', async () => {
+        jest.useFakeTimers()
+        jest.setSystemTime(CLOCK_DATE)
+        const verifier = new SignedJWTVerifierTest([Buffer.from(ROOT_CA_BASE64_ENCODED, 'base64')], true, Environment.PRODUCTION, "com.example", 1234);
+        let spy = jest.spyOn(verifier, 'verifyCertificateChainWithoutCaching').mockImplementation((_, _2, _3, _4) => Promise.resolve(new X509Certificate(Buffer.from(LEAF_CERT_BASE64_ENCODED, 'base64')).publicKey));
+        await verifier.testVerifyCertificateChain(verifier.getRootCertificates(), LEAF_CERT_BASE64_ENCODED, INTERMEDIATE_CA_BASE64_ENCODED)
+        expect(spy).toHaveBeenCalledTimes(1);
+        jest.setSystemTime(CLOCK_DATE + 15 * 60 * 1_000) // 15 minutes
+        await verifier.testVerifyCertificateChain(verifier.getRootCertificates(), LEAF_CERT_BASE64_ENCODED, REAL_APPLE_INTERMEDIATE_BASE64_ENCODED)
+        expect(spy).toHaveBeenCalledTimes(2);
+        jest.runOnlyPendingTimers()
+        jest.useRealTimers()
     })
 })
 

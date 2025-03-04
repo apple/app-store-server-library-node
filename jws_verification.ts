@@ -16,6 +16,19 @@ import { AppTransaction, AppTransactionValidator } from './models/AppTransaction
 
 const MAX_SKEW = 60000
 
+const MAXIMUM_CACHE_SIZE = 32 // There are unlikely to be more than a couple keys at once
+const CACHE_TIME_LIMIT = 15 * 60 * 1_000 // 15 minutes
+
+class CacheValue {
+  public publicKey: KeyObject
+  public cacheExpiry: number
+
+  constructor(publicKey: KeyObject, cacheExpiry: number) {
+    this.publicKey = publicKey
+    this.cacheExpiry = cacheExpiry
+  }
+}
+
 /**
  * A class providing utility methods for verifying and decoding App Store signed data.
  * 
@@ -42,6 +55,7 @@ export class SignedDataVerifier {
     protected bundleId: string
     protected appAppleId?: number
     protected environment: Environment
+    protected verifiedPublicKeyCache: { [index: string]: CacheValue }
 
     /**
      * 
@@ -57,6 +71,7 @@ export class SignedDataVerifier {
       this.bundleId = bundleId;
       this.environment = environment
       this.appAppleId = appAppleId
+      this.verifiedPublicKeyCache = {}
       if (environment === Environment.PRODUCTION && appAppleId === undefined) {
         throw new Error("appAppleId is required when the environment is Production")
       }
@@ -208,6 +223,31 @@ export class SignedDataVerifier {
     }
 
     protected async verifyCertificateChain(trustedRoots: X509Certificate[], leaf: X509Certificate, intermediate: X509Certificate, effectiveDate: Date): Promise<KeyObject> {
+      let cacheKey = leaf.toString() + intermediate.toString()
+      if (this.enableOnlineChecks) {
+        if (cacheKey in this.verifiedPublicKeyCache) {
+          if (this.verifiedPublicKeyCache[cacheKey].cacheExpiry > new Date().getTime()) {
+            return this.verifiedPublicKeyCache[cacheKey].publicKey
+          }
+        }
+      }
+
+      let publicKey = await this.verifyCertificateChainWithoutCaching(trustedRoots, leaf, intermediate, effectiveDate)
+
+      if (this.enableOnlineChecks) {
+        this.verifiedPublicKeyCache[cacheKey] = new CacheValue(leaf.publicKey, new Date().getTime() + CACHE_TIME_LIMIT)
+        if (Object.keys(this.verifiedPublicKeyCache).length > MAXIMUM_CACHE_SIZE) {
+          for (let key in Object.keys(this.verifiedPublicKeyCache)) {
+            if (this.verifiedPublicKeyCache[key].cacheExpiry < new Date().getTime()) {
+              delete this.verifiedPublicKeyCache[key]
+            }
+          }
+        }
+      }
+      return publicKey
+    }
+
+    protected async verifyCertificateChainWithoutCaching(trustedRoots: X509Certificate[], leaf: X509Certificate, intermediate: X509Certificate, effectiveDate: Date): Promise<KeyObject> {
       let validity = false
       let rootCert
       for (const root of trustedRoots) {
