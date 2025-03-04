@@ -9,5 +9,7 @@
   "originalApplicationVersion": "1.1.2",
   "deviceVerification": "device_verification_value",
   "deviceVerificationNonce": "48ccfa42-7431-4f22-9908-7e88983e105a",
-  "preorderDate": 1698148700000
+  "preorderDate": 1698148700000,
+  "appTransactionId": "71134",
+  "originalPlatform": "iOS"
 }

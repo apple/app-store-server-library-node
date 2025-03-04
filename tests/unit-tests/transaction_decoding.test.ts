@@ -6,6 +6,7 @@ import { ExpirationIntent } from "../../models/ExpirationIntent";
 import { NotificationTypeV2 } from "../../models/NotificationTypeV2";
 import { OfferType } from "../../models/OfferType";
 import { PriceIncreaseStatus } from "../../models/PriceIncreaseStatus";
+import { PurchasePlatform } from "../../models/PurchasePlatform";
 import { Status } from "../../models/Status";
 import { Subtype } from "../../models/Subtype";
 import { createSignedDataFromJson, getDefaultSignedPayloadVerifier } from "../util"
@@ -34,6 +35,8 @@ describe('Testing decoding of signed data', () => {
         expect("device_verification_value").toBe(appTransaction.deviceVerification)
         expect("48ccfa42-7431-4f22-9908-7e88983e105a").toBe(appTransaction.deviceVerificationNonce)
         expect(1698148700000).toBe(appTransaction.preorderDate)
+        expect("71134").toBe(appTransaction.appTransactionId)
+        expect(PurchasePlatform.IOS).toBe(appTransaction.originalPlatform)
     })
     it('should decode a renewal info', async () => {
         const signedRenewalInfo = createSignedDataFromJson("tests/resources/models/signedRenewalInfo.json")
@@ -58,6 +61,9 @@ describe('Testing decoding of signed data', () => {
         expect("USD").toBe(renewalInfo.currency)
         expect(OfferDiscountType.PAY_AS_YOU_GO).toBe(renewalInfo.offerDiscountType)
         expect(["eligible1", "eligible2"]).toStrictEqual(renewalInfo.eligibleWinBackOfferIds)
+        expect("71134").toBe(renewalInfo.appTransactionId)
+        expect("P1Y").toBe(renewalInfo.offerPeriod)
+        expect("7e3fb20b-4cdb-47cc-936d-99d65f608138").toBe(renewalInfo.appAccountToken)
     })
     it('should decode a transaction info', async () => {
         const signedTransaction = createSignedDataFromJson("tests/resources/models/signedTransaction.json")
@@ -90,6 +96,8 @@ describe('Testing decoding of signed data', () => {
         expect(10990).toBe(transaction.price)
         expect("USD").toBe(transaction.currency)
         expect(OfferDiscountType.PAY_AS_YOU_GO).toBe(transaction.offerDiscountType)
+        expect("71134").toBe(transaction.appTransactionId)
+        expect("P1Y").toBe(transaction.offerPeriod)
     })
     it('should decode a signed notification', async () => {
         const signedNotification = createSignedDataFromJson("tests/resources/models/signedNotification.json")

@@ -19,5 +19,8 @@
   "eligibleWinBackOfferIds": [
     "eligible1",
     "eligible2"
-  ]
+  ],
+  "appTransactionId": "71134",
+  "offerPeriod": "P1Y",
+  "appAccountToken": "7e3fb20b-4cdb-47cc-936d-99d65f608138"
 }

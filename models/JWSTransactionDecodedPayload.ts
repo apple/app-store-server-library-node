@@ -198,6 +198,20 @@ export interface JWSTransactionDecodedPayload extends DecodedSignedData {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/offerdiscounttype offerDiscountType}
      **/
     offerDiscountType?: OfferDiscountType | string
+
+    /**
+     * The unique identifier of the app download transaction.
+     *
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/appTransactionId appTransactionId}
+     **/
+    appTransactionId?: string
+
+    /**
+     * The duration of the offer.
+     *
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/offerPeriod offerPeriod}
+     **/
+    offerPeriod?: string
 }
 
 
@@ -286,6 +300,12 @@ export class JWSTransactionDecodedPayloadValidator implements Validator<JWSTrans
             return false
         }
         if ((typeof obj['offerDiscountType'] !== 'undefined') && !(JWSTransactionDecodedPayloadValidator.offerDiscountTypeValidator.validate(obj['offerDiscountType']))) {
+            return false
+        }
+        if ((typeof obj['appTransactionId'] !== 'undefined') && !(typeof obj['appTransactionId'] === "string" || obj['appTransactionId'] instanceof String)) {
+            return false
+        }
+        if ((typeof obj['offerPeriod'] !== 'undefined') && !(typeof obj['offerPeriod'] === "string" || obj['offerPeriod'] instanceof String)) {
             return false
         }
         return true
