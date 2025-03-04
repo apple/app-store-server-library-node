@@ -134,13 +134,6 @@ const signature = signatureCreator.createSignature(productId, subscriptionOfferI
 console.log(signature)
 ```
 
-## Local Development
-
-```fish
-$ git clone https://github.com/apple/app-store-server-library-node.git
-$ cd app-store-server-library-node
-$ npm install / yarn install
-```
 
 ## Support
 
