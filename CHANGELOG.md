@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 1.5.0
+- Incorporate changes for App Store Server API v1.15 and App Store Server Notifications v2.15 [https://github.com/apple/app-store-server-library-node/pull/236]
+- Add verified chain caching to improve performance [https://github.com/apple/app-store-server-library-node/pull/235]
+- Expose VerificationStatus and VerificationException [https://github.com/apple/app-store-server-library-node/pull/222]
+- Typo corrections [https://github.com/apple/app-store-server-library-node/pull/199] from @hakusai22
+
 ## Version 1.4.0
 - Incorporate changes for App Store Server API v1.13 and App Store Server Notifications v2.13 [https://github.com/apple/app-store-server-library-node/pull/163]
 - Add missing export for OfferDiscountType [https://github.com/apple/app-store-server-library-node/pull/159] from @coltkenn2658
