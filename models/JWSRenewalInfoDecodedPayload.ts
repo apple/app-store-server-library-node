@@ -140,7 +140,28 @@ export interface JWSRenewalInfoDecodedPayload extends DecodedSignedData {
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/eligiblewinbackofferids eligibleWinBackOfferIds}
      **/
-    eligibleWinBackOfferIds?: string[];
+    eligibleWinBackOfferIds?: string[]
+
+    /**
+     * The UUID that an app optionally generates to map a customer’s in-app purchase with its resulting App Store transaction.
+     *
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/appaccounttoken appAccountToken}
+     **/
+    appAccountToken?: string
+
+    /**
+     * The unique identifier of the app download transaction.
+     *
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/appTransactionId appTransactionId}
+     **/
+    appTransactionId?: string
+
+    /**
+     * The duration of the offer.
+     *
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/offerPeriod offerPeriod}
+     **/
+    offerPeriod?: string
 }
 
 
@@ -212,6 +233,15 @@ export class JWSRenewalInfoDecodedPayloadValidator implements Validator<JWSRenew
                     return false
                 }
             }
+        }
+        if ((typeof obj['appAccountToken'] !== 'undefined') && !(typeof obj['appAccountToken'] === "string" || obj['appAccountToken'] instanceof String)) {
+            return false
+        }
+        if ((typeof obj['appTransactionId'] !== 'undefined') && !(typeof obj['appTransactionId'] === "string" || obj['appTransactionId'] instanceof String)) {
+            return false
+        }
+        if ((typeof obj['offerPeriod'] !== 'undefined') && !(typeof obj['offerPeriod'] === "string" || obj['offerPeriod'] instanceof String)) {
+            return false
         }
         return true
     }

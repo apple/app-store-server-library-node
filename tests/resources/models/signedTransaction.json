@@ -24,5 +24,7 @@
   "storefrontId":"143441",
   "price": 10990,
   "currency": "USD",
-  "offerDiscountType": "PAY_AS_YOU_GO"
+  "offerDiscountType": "PAY_AS_YOU_GO",
+  "appTransactionId": "71134",
+  "offerPeriod": "P1Y"
 }

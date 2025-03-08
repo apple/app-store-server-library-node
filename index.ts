@@ -55,6 +55,7 @@ export { OrderLookupStatus } from './models/OrderLookupStatus'
 export { Platform } from './models/Platform'
 export { PlayTime } from './models/PlayTime'
 export { PriceIncreaseStatus } from './models/PriceIncreaseStatus'
+export { PurchasePlatform } from './models/PurchasePlatform'
 export { RefundHistoryResponse } from './models/RefundHistoryResponse'
 export { ResponseBodyV2 } from './models/ResponseBodyV2'
 export { ResponseBodyV2DecodedPayload } from './models/ResponseBodyV2DecodedPayload'
@@ -71,6 +72,7 @@ export { TransactionReason } from './models/TransactionReason'
 export { Type } from './models/Type'
 export { UserStatus } from './models/UserStatus'
 export { PromotionalOfferSignatureCreator } from './promotional_offer'
+export { PromotionalOfferV2SignatureCreator, AdvancedCommerceInAppSignatureCreator, AdvancedCommerceInAppRequest, IntroductoryOfferEligibilitySignatureCreator } from './jws_signature_creator'
 export { DecodedSignedData } from './models/DecodedSignedData'
 export { AppTransaction } from './models/AppTransaction'
 
@@ -684,6 +686,13 @@ export enum APIError {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/invalidtransactiontypenotsupportederror InvalidTransactionTypeNotSupportedError}
      */
     INVALID_TRANSACTION_TYPE_NOT_SUPPORTED = 4000047,
+
+    /**
+     * An error that indicates the endpoint doesn't support an app transaction ID.
+     * 
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/apptransactionidnotsupportederror AppTransactionIdNotSupportedError}
+     */
+    APP_TRANSACTION_ID_NOT_SUPPORTED_ERROR = 4000048,
 
     /**
      * An error that indicates the subscription doesn't qualify for a renewal-date extension due to its subscription state.

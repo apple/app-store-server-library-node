@@ -1,6 +1,7 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
 import { Environment, EnvironmentValidator } from "./Environment"
+import { PurchasePlatform, PurchasePlatformValidator } from "./PurchasePlatform"
 import { Validator } from "./Validator"
 
 /**
@@ -86,10 +87,25 @@ export interface AppTransaction {
      * {@link https://developer.apple.com/documentation/storekit/apptransaction/4013175-preorderdate preorderDate}
     */
     preorderDate?: number
+
+    /**
+     * The unique identifier of the app download transaction.
+     * 
+     * {@link https://developer.apple.com/documentation/storekit/apptransaction/apptransactionid appTransactionId}
+    */
+    appTransactionId?: string
+
+    /**
+     * The platform on which the customer originally purchased the app.
+     * 
+     * {@link https://developer.apple.com/documentation/storekit/apptransaction/originalplatform-4mogz originalPlatform}
+    */
+    originalPlatform?: PurchasePlatform | string
 }
 
 export class AppTransactionValidator implements Validator<AppTransaction> {
     static readonly environmentValidator = new EnvironmentValidator()
+    static readonly originalPlatformValidator = new PurchasePlatformValidator()
     validate(obj: any): obj is AppTransaction {
         if ((typeof obj['appAppleId'] !== 'undefined') && !(typeof obj['appAppleId'] === "number")) {
             return false
@@ -122,6 +138,12 @@ export class AppTransactionValidator implements Validator<AppTransaction> {
             return false
         }
         if ((typeof obj['environment'] !== 'undefined') && !(AppTransactionValidator.environmentValidator.validate(obj['environment']))) {
+            return false
+        }
+        if ((typeof obj['appTransactionId'] !== 'undefined') && !(typeof obj['appTransactionId'] === "string" || obj['appTransactionId'] instanceof String)) {
+            return false
+        }
+        if ((typeof obj['originalPlatform'] !== 'undefined') && !(AppTransactionValidator.originalPlatformValidator.validate(obj['originalPlatform']))) {
             return false
         }
         return true
