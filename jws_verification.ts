@@ -3,7 +3,7 @@
 import jsonwebtoken = require('jsonwebtoken');
 
 import base64url from 'base64url';
-import { KeyObject, X509Certificate, createHash, verify } from 'crypto';
+import { KeyObject, X509Certificate, createHash, verify, webcrypto } from 'crypto';
 import { KJUR, X509, ASN1HEX } from 'jsrsasign';
 import fetch, { Headers } from 'node-fetch';
 import { Environment } from './models/Environment';
@@ -13,6 +13,7 @@ import { JWSRenewalInfoDecodedPayload, JWSRenewalInfoDecodedPayloadValidator } f
 import { Validator } from './models/Validator';
 import { DecodedSignedData } from './models/DecodedSignedData';
 import { AppTransaction, AppTransactionValidator } from './models/AppTransaction';
+import { isCryptoKey } from 'util/types';
 
 const MAX_SKEW = 60000
 
@@ -175,6 +176,13 @@ export class SignedDataVerifier {
       }
       return decodedAppTransaction
     }
+    
+    protected getKeyFrom(publicKey: KeyObject | webcrypto.CryptoKey){
+      if (isCryptoKey(publicKey)) { 
+        return KeyObject.from(publicKey)
+      }
+      return publicKey
+    }
 
     protected async verifyJWT<T>(jwt: string, validator: Validator<T>, signedDateExtractor: (decodedJWT: T) => Date): Promise<T> {
       let certificateChain;
@@ -206,7 +214,7 @@ export class SignedDataVerifier {
         }
         const effectiveDate = this.enableOnlineChecks ? new Date() : signedDateExtractor(decodedJWT)
         const publicKey = await this.verifyCertificateChain(this.rootCertificates, certificateChain[0], certificateChain[1], effectiveDate);
-        const encodedKey = publicKey.export({
+        const encodedKey = this.getKeyFrom(publicKey).export({
           type: "spki",
           format: "pem"
         });
