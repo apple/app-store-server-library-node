@@ -1,84 +1,84 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
 import fetch from 'node-fetch';
-import { CheckTestNotificationResponse, CheckTestNotificationResponseValidator } from './models/CheckTestNotificationResponse';
+import { type CheckTestNotificationResponse, CheckTestNotificationResponseValidator } from './models/CheckTestNotificationResponse';
 import { ConsumptionRequest } from './models/ConsumptionRequest';
 import { Environment } from './models/Environment';
-import { ExtendRenewalDateRequest } from './models/ExtendRenewalDateRequest';
-import { ExtendRenewalDateResponse, ExtendRenewalDateResponseValidator } from './models/ExtendRenewalDateResponse';
-import { HistoryResponse, HistoryResponseValidator } from './models/HistoryResponse';
-import { MassExtendRenewalDateRequest } from './models/MassExtendRenewalDateRequest';
-import { MassExtendRenewalDateResponse, MassExtendRenewalDateResponseValidator } from './models/MassExtendRenewalDateResponse';
-import { MassExtendRenewalDateStatusResponse, MassExtendRenewalDateStatusResponseValidator } from './models/MassExtendRenewalDateStatusResponse';
-import { OrderLookupResponse, OrderLookupResponseValidator } from './models/OrderLookupResponse';
-import { RefundHistoryResponse, RefundHistoryResponseValidator } from './models/RefundHistoryResponse';
-import { SendTestNotificationResponse, SendTestNotificationResponseValidator } from './models/SendTestNotificationResponse';
-import { StatusResponse, StatusResponseValidator } from './models/StatusResponse';
-import { TransactionHistoryRequest } from './models/TransactionHistoryRequest';
-import { TransactionInfoResponse, TransactionInfoResponseValidator } from './models/TransactionInfoResponse';
-import { Validator } from './models/Validator';
+import type { ExtendRenewalDateRequest } from './models/ExtendRenewalDateRequest';
+import { type ExtendRenewalDateResponse, ExtendRenewalDateResponseValidator } from './models/ExtendRenewalDateResponse';
+import { type HistoryResponse, HistoryResponseValidator } from './models/HistoryResponse';
+import { type MassExtendRenewalDateRequest } from './models/MassExtendRenewalDateRequest';
+import { type MassExtendRenewalDateResponse, MassExtendRenewalDateResponseValidator } from './models/MassExtendRenewalDateResponse';
+import { type MassExtendRenewalDateStatusResponse, MassExtendRenewalDateStatusResponseValidator } from './models/MassExtendRenewalDateStatusResponse';
+import { type OrderLookupResponse, OrderLookupResponseValidator } from './models/OrderLookupResponse';
+import { type RefundHistoryResponse, RefundHistoryResponseValidator } from './models/RefundHistoryResponse';
+import { type SendTestNotificationResponse, SendTestNotificationResponseValidator } from './models/SendTestNotificationResponse';
+import { type StatusResponse, StatusResponseValidator } from './models/StatusResponse';
+import { type TransactionHistoryRequest } from './models/TransactionHistoryRequest';
+import { type TransactionInfoResponse, TransactionInfoResponseValidator } from './models/TransactionInfoResponse';
+import type { Validator } from './models/Validator';
 import { Status } from './models/Status';
 export { SignedDataVerifier, VerificationException, VerificationStatus } from './jws_verification'
 export { ReceiptUtility } from './receipt_utility'
 export { AccountTenure } from "./models/AccountTenure"
 export { AutoRenewStatus } from './models/AutoRenewStatus'
-export { CheckTestNotificationResponse } from './models/CheckTestNotificationResponse'
-export { ConsumptionRequest } from './models/ConsumptionRequest'
+export type { CheckTestNotificationResponse } from './models/CheckTestNotificationResponse'
+export type { ConsumptionRequest } from './models/ConsumptionRequest'
 export { ConsumptionStatus } from './models/ConsumptionStatus'
-export { Data } from './models/Data'
+export type { Data } from './models/Data'
 export { DeliveryStatus } from './models/DeliveryStatus'
 export { Environment } from './models/Environment'
 export { ExpirationIntent } from './models/ExpirationIntent'
 export { ExtendReasonCode } from './models/ExtendReasonCode'
-export { ExtendRenewalDateRequest } from './models/ExtendRenewalDateRequest'
-export { ExtendRenewalDateResponse } from './models/ExtendRenewalDateResponse'
+export type { ExtendRenewalDateRequest } from './models/ExtendRenewalDateRequest'
+export type { ExtendRenewalDateResponse } from './models/ExtendRenewalDateResponse'
 export { SendAttemptResult } from './models/SendAttemptResult'
-export { SendAttemptItem } from './models/SendAttemptItem'
-export { HistoryResponse } from './models/HistoryResponse'
+export type { SendAttemptItem } from './models/SendAttemptItem'
+export type { HistoryResponse } from './models/HistoryResponse'
 export { InAppOwnershipType } from './models/InAppOwnershipType'
-export { JWSRenewalInfoDecodedPayload } from './models/JWSRenewalInfoDecodedPayload'
-export { JWSTransactionDecodedPayload } from './models/JWSTransactionDecodedPayload'
-export { LastTransactionsItem } from './models/LastTransactionsItem'
+export type { JWSRenewalInfoDecodedPayload } from './models/JWSRenewalInfoDecodedPayload'
+export type { JWSTransactionDecodedPayload } from './models/JWSTransactionDecodedPayload'
+export type { LastTransactionsItem } from './models/LastTransactionsItem'
 export { LifetimeDollarsPurchased } from './models/LifetimeDollarsPurchased'
 export { LifetimeDollarsRefunded } from './models/LifetimeDollarsRefunded'
-export { MassExtendRenewalDateRequest } from './models/MassExtendRenewalDateRequest'
-export { MassExtendRenewalDateResponse } from './models/MassExtendRenewalDateResponse'
-export { MassExtendRenewalDateStatusResponse } from './models/MassExtendRenewalDateStatusResponse'
-export { NotificationHistoryRequest } from './models/NotificationHistoryRequest'
-export { NotificationHistoryResponse } from './models/NotificationHistoryResponse'
-export { NotificationHistoryResponseItem } from './models/NotificationHistoryResponseItem'
+export type { MassExtendRenewalDateRequest } from './models/MassExtendRenewalDateRequest'
+export type { MassExtendRenewalDateResponse } from './models/MassExtendRenewalDateResponse'
+export type { MassExtendRenewalDateStatusResponse } from './models/MassExtendRenewalDateStatusResponse'
+export type { NotificationHistoryRequest } from './models/NotificationHistoryRequest'
+export type { NotificationHistoryResponse } from './models/NotificationHistoryResponse'
+export type { NotificationHistoryResponseItem } from './models/NotificationHistoryResponseItem'
 export { NotificationTypeV2 } from './models/NotificationTypeV2'
 export { OfferType } from './models/OfferType'
 export { OfferDiscountType } from './models/OfferDiscountType'
-export { OrderLookupResponse } from './models/OrderLookupResponse'
+export type { OrderLookupResponse } from './models/OrderLookupResponse'
 export { OrderLookupStatus } from './models/OrderLookupStatus'
 export { Platform } from './models/Platform'
 export { PlayTime } from './models/PlayTime'
 export { PriceIncreaseStatus } from './models/PriceIncreaseStatus'
 export { PurchasePlatform } from './models/PurchasePlatform'
-export { RefundHistoryResponse } from './models/RefundHistoryResponse'
-export { ResponseBodyV2 } from './models/ResponseBodyV2'
-export { ResponseBodyV2DecodedPayload } from './models/ResponseBodyV2DecodedPayload'
+export type { RefundHistoryResponse } from './models/RefundHistoryResponse'
+export type { ResponseBodyV2 } from './models/ResponseBodyV2'
+export type { ResponseBodyV2DecodedPayload } from './models/ResponseBodyV2DecodedPayload'
 export { RevocationReason } from './models/RevocationReason'
-export { SendTestNotificationResponse } from './models/SendTestNotificationResponse'
+export type { SendTestNotificationResponse } from './models/SendTestNotificationResponse'
 export { Status } from './models/Status'
-export { StatusResponse } from './models/StatusResponse'
-export { SubscriptionGroupIdentifierItem } from './models/SubscriptionGroupIdentifierItem'
+export type { StatusResponse } from './models/StatusResponse'
+export type { SubscriptionGroupIdentifierItem } from './models/SubscriptionGroupIdentifierItem'
 export { Subtype } from './models/Subtype'
-export { Summary } from './models/Summary'
-export { TransactionHistoryRequest, Order, ProductType } from './models/TransactionHistoryRequest'
-export { TransactionInfoResponse } from './models/TransactionInfoResponse'
+export type { Summary } from './models/Summary'
+export { type TransactionHistoryRequest, Order, ProductType } from './models/TransactionHistoryRequest'
+export type { TransactionInfoResponse } from './models/TransactionInfoResponse'
 export { TransactionReason } from './models/TransactionReason'
 export { Type } from './models/Type'
 export { UserStatus } from './models/UserStatus'
 export { PromotionalOfferSignatureCreator } from './promotional_offer'
-export { PromotionalOfferV2SignatureCreator, AdvancedCommerceInAppSignatureCreator, AdvancedCommerceInAppRequest, IntroductoryOfferEligibilitySignatureCreator } from './jws_signature_creator'
-export { DecodedSignedData } from './models/DecodedSignedData'
-export { AppTransaction } from './models/AppTransaction'
+export { PromotionalOfferV2SignatureCreator, AdvancedCommerceInAppSignatureCreator, type AdvancedCommerceInAppRequest, IntroductoryOfferEligibilitySignatureCreator } from './jws_signature_creator'
+export type { DecodedSignedData } from './models/DecodedSignedData'
+export type { AppTransaction } from './models/AppTransaction'
 
 import jsonwebtoken = require('jsonwebtoken');
-import { NotificationHistoryRequest } from './models/NotificationHistoryRequest';
-import { NotificationHistoryResponse, NotificationHistoryResponseValidator } from './models/NotificationHistoryResponse';
+import type { NotificationHistoryRequest } from './models/NotificationHistoryRequest';
+import { type NotificationHistoryResponse, NotificationHistoryResponseValidator } from './models/NotificationHistoryResponse';
 import { URLSearchParams } from 'url';
 
 export class AppStoreServerAPIClient {
