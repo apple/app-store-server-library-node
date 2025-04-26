@@ -3,7 +3,7 @@
 import jsonwebtoken = require('jsonwebtoken');
 
 import base64url from 'base64url';
-import { KeyObject, X509Certificate, createHash, verify } from 'crypto';
+import { KeyObject, X509Certificate, createHash, verify, webcrypto } from 'crypto';
 import { KJUR, X509, ASN1HEX } from 'jsrsasign';
 import fetch, { Headers } from 'node-fetch';
 import { Environment } from './models/Environment';
@@ -13,6 +13,7 @@ import { JWSRenewalInfoDecodedPayload, JWSRenewalInfoDecodedPayloadValidator } f
 import { Validator } from './models/Validator';
 import { DecodedSignedData } from './models/DecodedSignedData';
 import { AppTransaction, AppTransactionValidator } from './models/AppTransaction';
+import { isCryptoKey } from 'util/types';
 
 const MAX_SKEW = 60000
 
@@ -31,11 +32,11 @@ class CacheValue {
 
 /**
  * A class providing utility methods for verifying and decoding App Store signed data.
- * 
+ *
  * Example Usage:
  * ```ts
  * const verifier = new SignedDataVerifier([appleRoot, appleRoot2], true, Environment.SANDBOX, "com.example")
- * 
+ *
  * try {
  *     const decodedNotification = verifier.verifyAndDecodeNotification("ey...")
  *     console.log(decodedNotification)
@@ -58,8 +59,8 @@ export class SignedDataVerifier {
     protected verifiedPublicKeyCache: { [index: string]: CacheValue }
 
     /**
-     * 
-     * @param appleRootCertificates A list of DER-encoded root certificates 
+     *
+     * @param appleRootCertificates A list of DER-encoded root certificates
      * @param enableOnlineChecks Whether to enable revocation checking and check expiration using the current date
      * @param environment The App Store environment to target for checks
      * @param bundleId The app's bundle identifier
@@ -176,6 +177,13 @@ export class SignedDataVerifier {
       return decodedAppTransaction
     }
 
+    protected getKeyFrom(publicKey: KeyObject | webcrypto.CryptoKey){
+      if (isCryptoKey(publicKey)) {
+        return KeyObject.from(publicKey)
+      }
+      return publicKey
+    }
+
     protected async verifyJWT<T>(jwt: string, validator: Validator<T>, signedDateExtractor: (decodedJWT: T) => Date): Promise<T> {
       let certificateChain;
       let decodedJWT
@@ -227,7 +235,7 @@ export class SignedDataVerifier {
       if (this.enableOnlineChecks) {
         if (cacheKey in this.verifiedPublicKeyCache) {
           if (this.verifiedPublicKeyCache[cacheKey].cacheExpiry > new Date().getTime()) {
-            return this.verifiedPublicKeyCache[cacheKey].publicKey
+            return this.getKeyFrom(this.verifiedPublicKeyCache[cacheKey].publicKey)
           }
         }
       }
@@ -244,7 +252,7 @@ export class SignedDataVerifier {
           }
         }
       }
-      return publicKey
+      return this.getKeyFrom(publicKey)
     }
 
     protected async verifyCertificateChainWithoutCaching(trustedRoots: X509Certificate[], leaf: X509Certificate, intermediate: X509Certificate, effectiveDate: Date): Promise<KeyObject> {
@@ -285,13 +293,13 @@ export class SignedDataVerifier {
       const request = new KJUR.asn1.ocsp.OCSPRequest({reqList: [{issuerCert: issuer.toString(), subjectCert: cert.toString() , alg: "sha256"}]})
       const headers = new Headers()
       headers.append('Content-Type', 'application/ocsp-request')
-      
+
       const response = await fetch(matchResult[1], {
         headers: headers,
         method: 'POST',
         body: Buffer.from(request.getEncodedHex(), 'hex')
       })
-      
+
       const responseBuffer = await response.buffer()
       const parsedResponse = new (KJUR.asn1.ocsp as any).OCSPParser().getOCSPResponse(responseBuffer.toString('hex'))
       // The issuer could also be the signer
@@ -337,7 +345,7 @@ export class SignedDataVerifier {
       } else {
         throw new VerificationException(VerificationStatus.INVALID_CERTIFICATE)
       }
-    
+
       // Extract raw responseData
       const responseData = ASN1HEX.getTLVbyList(responseBuffer.toString('hex'), 0, [1, 0, 1, 0, 0]) as string
       // Verify Payload signed by cert
@@ -349,7 +357,7 @@ export class SignedDataVerifier {
       if (!verify(shortAlg, Buffer.from(responseData, 'hex'), signingCert.publicKey, Buffer.from(parsedResponse.sighex, 'hex'))) {
         throw new VerificationException(VerificationStatus.FAILURE)
       }
-      
+
       for (const singleResponse of parsedResponse.array) {
         // Confirm entry is for this cert
         const certIdBuilder = new KJUR.asn1.ocsp.CertID() as any
@@ -361,7 +369,7 @@ export class SignedDataVerifier {
         // Validate contents
         const issueDate = this.parseX509Date(singleResponse.thisupdate)
         const nextDate = this.parseX509Date(singleResponse.nextupdate)
-        
+
         if (singleResponse.status.status !== 'good' || new Date().getTime() - MAX_SKEW < issueDate.getTime() || nextDate.getTime() < new Date().getTime() + MAX_SKEW) {
           throw new VerificationException(VerificationStatus.FAILURE)
         }

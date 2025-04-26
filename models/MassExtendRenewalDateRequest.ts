@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import { ExtendReasonCode, ExtendReasonCodeValidator } from "./ExtendReasonCode";
+import { ExtendReasonCode } from "./ExtendReasonCode";
 
 /**
  * The request body that contains subscription-renewal-extension data to apply for all eligible active subscribers.
