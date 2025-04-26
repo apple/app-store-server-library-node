@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import { StringValidator, Validator } from "./Validator";
+import { StringValidator } from "./Validator";
 
 /**
  * The type that describes the in-app purchase or external purchase event for which the App Store sends the version 2 notification.
