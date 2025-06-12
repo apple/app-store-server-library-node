@@ -3,6 +3,7 @@
 import fetch from 'node-fetch';
 import { CheckTestNotificationResponse, CheckTestNotificationResponseValidator } from './models/CheckTestNotificationResponse';
 import { ConsumptionRequest } from './models/ConsumptionRequest';
+import { UpdateAppAccountTokenRequest } from './models/UpdateAppAccountTokenRequest'
 import { Environment } from './models/Environment';
 import { ExtendRenewalDateRequest } from './models/ExtendRenewalDateRequest';
 import { ExtendRenewalDateResponse, ExtendRenewalDateResponseValidator } from './models/ExtendRenewalDateResponse';
@@ -24,6 +25,7 @@ export { AccountTenure } from "./models/AccountTenure"
 export { AutoRenewStatus } from './models/AutoRenewStatus'
 export { CheckTestNotificationResponse } from './models/CheckTestNotificationResponse'
 export { ConsumptionRequest } from './models/ConsumptionRequest'
+export { UpdateAppAccountTokenRequest } from './models/UpdateAppAccountTokenRequest'
 export { ConsumptionStatus } from './models/ConsumptionStatus'
 export { Data } from './models/Data'
 export { DeliveryStatus } from './models/DeliveryStatus'
@@ -375,6 +377,18 @@ export class AppStoreServerAPIClient {
         await this.makeRequest("/inApps/v1/transactions/consumption/" + transactionId, "PUT", {}, consumptionRequest, null);
     }
 
+    /**
+     * Sets the app account token value for a purchase the customer makes outside your app, or updates its value in an existing transaction.
+     *
+     * @param originalTransactionId The original transaction identifier of the transaction to receive the app account token update.
+     * @param updateAppAccountTokenRequest The request body that contains a valid app account token value.
+     * @throws APIException If a response was returned indicating the request could not be processed.
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/set-app-account-token Set App Account Token}
+     */
+    public async setAppAccountToken(originalTransactionId: string, updateAppAccountTokenRequest: UpdateAppAccountTokenRequest): Promise<void> {
+        await this.makeRequest("/inApps/v1/transactions/" + originalTransactionId + "/appAccountToken", "PUT", {}, updateAppAccountTokenRequest, null);
+    }
+
     private createBearerToken(): string {
         const payload = {
             bid: this.bundleId
@@ -693,6 +707,27 @@ export enum APIError {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/apptransactionidnotsupportederror AppTransactionIdNotSupportedError}
      */
     APP_TRANSACTION_ID_NOT_SUPPORTED_ERROR = 4000048,
+
+    /**
+     * An error that indicates the app account token value is not a valid UUID.
+     *
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/invalidappaccounttokenuuiderror InvalidAppAccountTokenUUIDError}
+     */
+    INVALID_APP_ACCOUNT_TOKEN_UUID_ERROR = 4000183,
+
+    /**
+     * An error that indicates the transaction is for a product the customer obtains through Family Sharing, which the endpoint doesn’t support.
+     *
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/familytransactionnotsupportederror FamilyTransactionNotSupportedError}
+     */
+    FAMILY_TRANSACTION_NOT_SUPPORTED_ERROR = 4000185,
+
+    /**
+     * An error that indicates the endpoint expects an original transaction identifier.
+     *
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/transactionidisnotoriginaltransactioniderror TransactionIdIsNotOriginalTransactionIdError}
+     */
+    TRANSACTION_ID_IS_NOT_ORIGINAL_TRANSACTION_ID_ERROR = 4000187,
 
     /**
      * An error that indicates the subscription doesn't qualify for a renewal-date extension due to its subscription state.

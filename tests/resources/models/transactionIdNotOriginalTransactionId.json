@@ -1,0 +1,4 @@
+{
+  "errorCode": 4000187,
+  "errorMessage": "Invalid request. The transaction ID provided is not an original transaction ID."
+}
