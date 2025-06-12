@@ -2,6 +2,7 @@
 
 import { AccountTenure } from "../../models/AccountTenure";
 import { ConsumptionRequest } from "../../models/ConsumptionRequest";
+import { UpdateAppAccountTokenRequest } from "../../models/UpdateAppAccountTokenRequest";
 import { ConsumptionStatus } from "../../models/ConsumptionStatus";
 import { DeliveryStatus } from "../../models/DeliveryStatus";
 import { Environment } from "../../models/Environment";
@@ -556,4 +557,88 @@ describe('The api client ', () => {
             expect(error.message).toBe("Xcode is not a supported environment for an AppStoreServerAPIClient")
          }
      })
+
+    it('calls setAppAccountToken', async () => {
+        const client = getAppStoreServerAPIClient("", 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, stringBody: string | undefined, headers: { [key: string]: string; }) => {
+            expect("PUT").toBe(method)
+            expect("/inApps/v1/transactions/49571273/appAccountToken").toBe(path)
+            expect(parsedQueryParameters.entries.length).toBe(0)
+
+            expect(stringBody).toBeTruthy()
+            const body = JSON.parse(stringBody!)
+            expect("7389a31a-fb6d-4569-a2a6-db7d85d84813").toBe(body.appAccountToken)
+        });
+
+        const updateAppAccountTokenRequest: UpdateAppAccountTokenRequest = {
+            appAccountToken: "7389a31a-fb6d-4569-a2a6-db7d85d84813"
+        }
+
+        client.setAppAccountToken("49571273", updateAppAccountTokenRequest);
+    })
+
+    it('calls setAppAccountToken but receives an invalid UUID error', async () => {
+        const client = getClientWithBody("tests/resources/models/invalidAppAccountTokenUUIDError.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, stringBody: string | undefined, headers: { [key: string]: string; }) => {
+            expect("PUT").toBe(method)
+            expect("/inApps/v1/transactions/49571273/appAccountToken").toBe(path)
+            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect(stringBody).toBeTruthy()
+        }, 400);
+
+        try {
+            const updateAppAccountTokenRequest: UpdateAppAccountTokenRequest = {
+                appAccountToken: "abc"
+            }
+            await client.setAppAccountToken("49571273", updateAppAccountTokenRequest);
+            fail('this test call is expected to throw')
+        } catch (e) {
+            let error = e as APIException
+            expect(error.httpStatusCode).toBe(400)
+            expect(error.apiError).toBe(4000183)
+            expect(error.errorMessage).toBe("Invalid request. The app account token field must be a valid UUID.")
+        }
+    })
+
+    it('calls setAppAccountToken but receives family transaction not supported error', async () => {
+        const client = getClientWithBody("tests/resources/models/familyTransactionNotSupportedError.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, stringBody: string | undefined, headers: { [key: string]: string; }) => {
+            expect("PUT").toBe(method)
+            expect("/inApps/v1/transactions/1234/appAccountToken").toBe(path)
+            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect(stringBody).toBeTruthy()
+        }, 400);
+
+        try {
+            const updateAppAccountTokenRequest: UpdateAppAccountTokenRequest = {
+                appAccountToken: "7389a31a-fb6d-4569-a2a6-db7d85d84813"
+            }
+            await client.setAppAccountToken("1234", updateAppAccountTokenRequest);
+            fail('this test call is expected to throw')
+        } catch (e) {
+            let error = e as APIException
+            expect(error.httpStatusCode).toBe(400)
+            expect(error.apiError).toBe(4000185)
+            expect(error.errorMessage).toBe("Invalid request. Family Sharing transactions aren't supported by this endpoint.")
+        }
+    })
+
+    it('calls setAppAccountToken but transactionId not originalTransactionId error', async () => {
+        const client = getClientWithBody("tests/resources/models/transactionIdNotOriginalTransactionId.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, stringBody: string | undefined, headers: { [key: string]: string; }) => {
+            expect("PUT").toBe(method)
+            expect("/inApps/v1/transactions/1234/appAccountToken").toBe(path)
+            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect(stringBody).toBeTruthy()
+        }, 400);
+
+        try {
+            const updateAppAccountTokenRequest: UpdateAppAccountTokenRequest = {
+                appAccountToken: "7389a31a-fb6d-4569-a2a6-db7d85d84813"
+            }
+            await client.setAppAccountToken("1234", updateAppAccountTokenRequest);
+            fail('this test call is expected to throw')
+        } catch (e) {
+            let error = e as APIException
+            expect(error.httpStatusCode).toBe(400)
+            expect(error.apiError).toBe(4000187)
+            expect(error.errorMessage).toBe("Invalid request. The transaction ID provided is not an original transaction ID.")
+        }
+    })
 })
