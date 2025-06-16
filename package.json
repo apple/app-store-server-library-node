@@ -1,6 +1,6 @@
 {
   "name": "@apple/app-store-server-library",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "The App Store Server Library",
   "main": "dist/index.js",
   "keywords": [],
