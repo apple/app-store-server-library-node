@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 1.6.0
+- Incorporate changes for App Store Server API v1.16 [https://github.com/apple/app-store-server-library-node/pull/275]
+
 ## Version 1.5.0
 - Incorporate changes for App Store Server API v1.15 and App Store Server Notifications v2.15 [https://github.com/apple/app-store-server-library-node/pull/236]
 - Add verified chain caching to improve performance [https://github.com/apple/app-store-server-library-node/pull/235]
