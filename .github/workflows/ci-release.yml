@@ -10,7 +10,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '18.x'
-          scope: '@apple'
+          scope: '@dinhanhminh'
           always-auth: true
           registry-url: 'https://registry.npmjs.org'
       - run: yarn install --frozen-lockfile
