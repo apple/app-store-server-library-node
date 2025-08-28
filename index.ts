@@ -77,6 +77,7 @@ export { PromotionalOfferSignatureCreator } from './promotional_offer'
 export { PromotionalOfferV2SignatureCreator, AdvancedCommerceInAppSignatureCreator, AdvancedCommerceInAppRequest, IntroductoryOfferEligibilitySignatureCreator } from './jws_signature_creator'
 export { DecodedSignedData } from './models/DecodedSignedData'
 export { AppTransaction } from './models/AppTransaction'
+export { ExternalPurchaseToken } from './models/ExternalPurchaseToken'
 
 import jsonwebtoken = require('jsonwebtoken');
 import { NotificationHistoryRequest } from './models/NotificationHistoryRequest';
