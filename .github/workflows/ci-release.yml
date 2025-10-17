@@ -1,4 +1,6 @@
 name: Publish Library
+permissions:
+  contents: read
 on:
   release:
     types: [published]

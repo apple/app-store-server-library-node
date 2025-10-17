@@ -1,10 +1,9 @@
 name: Doc Builder
+permissions:
+  contents: read
 on:
   release:
     types: [published]
-permissions:
-  pages: write
-  id-token: write
 jobs:
   build:
     name: Doc Builder
@@ -26,6 +25,9 @@ jobs:
         with:
           path: docs
   deploy:
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
