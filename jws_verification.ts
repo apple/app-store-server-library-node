@@ -10,6 +10,7 @@ import { Environment } from './models/Environment';
 import { JWSTransactionDecodedPayload, JWSTransactionDecodedPayloadValidator } from './models/JWSTransactionDecodedPayload';
 import { ResponseBodyV2DecodedPayload, ResponseBodyV2DecodedPayloadValidator } from './models/ResponseBodyV2DecodedPayload';
 import { JWSRenewalInfoDecodedPayload, JWSRenewalInfoDecodedPayloadValidator } from './models/JWSRenewalInfoDecodedPayload';
+import { DecodedRealtimeRequestBody, DecodedRealtimeRequestBodyValidator } from './models/DecodedRealtimeRequestBody';
 import { Validator } from './models/Validator';
 import { DecodedSignedData } from './models/DecodedSignedData';
 import { AppTransaction, AppTransactionValidator } from './models/AppTransaction';
@@ -49,6 +50,7 @@ export class SignedDataVerifier {
     private JWSTransactionDecodedPayloadValidator = new JWSTransactionDecodedPayloadValidator()
     private responseBodyV2DecodedPayloadValidator = new ResponseBodyV2DecodedPayloadValidator()
     private appTransactionValidator = new AppTransactionValidator()
+    private decodedRealtimeRequestBodyValidator = new DecodedRealtimeRequestBodyValidator()
 
     protected rootCertificates: X509Certificate[]
     protected enableOnlineChecks: boolean
@@ -174,6 +176,25 @@ export class SignedDataVerifier {
         throw new VerificationException(VerificationStatus.INVALID_ENVIRONMENT)
       }
       return decodedAppTransaction
+    }
+
+    /**
+     * Verifies and decodes a Retention Messaging API signedPayload
+     * See {@link https://developer.apple.com/documentation/retentionmessaging/signedpayload signedPayload}
+     *
+     * @param signedPayload The payload received by your server
+     * @returns The decoded payload after verification
+     * @throws VerificationException Thrown if the data could not be verified
+     */
+    async verifyAndDecodeRealtimeRequest(signedPayload: string): Promise<DecodedRealtimeRequestBody> {
+      const decodedRequest: DecodedRealtimeRequestBody = await this.verifyJWT(signedPayload, this.decodedRealtimeRequestBodyValidator, this.extractSignedDate);
+      if (this.environment === Environment.PRODUCTION && this.appAppleId !== decodedRequest.appAppleId) {
+        throw new VerificationException(VerificationStatus.INVALID_APP_IDENTIFIER)
+      }
+      if (this.environment !== decodedRequest.environment) {
+        throw new VerificationException(VerificationStatus.INVALID_ENVIRONMENT)
+      }
+      return decodedRequest
     }
 
     protected async verifyJWT<T>(jwt: string, validator: Validator<T>, signedDateExtractor: (decodedJWT: T) => Date): Promise<T> {

@@ -4,9 +4,12 @@ import fetch from 'node-fetch';
 import { CheckTestNotificationResponse, CheckTestNotificationResponseValidator } from './models/CheckTestNotificationResponse';
 import { ConsumptionRequest } from './models/ConsumptionRequest';
 import { UpdateAppAccountTokenRequest } from './models/UpdateAppAccountTokenRequest'
+import { DefaultConfigurationRequest } from './models/DefaultConfigurationRequest';
 import { Environment } from './models/Environment';
 import { ExtendRenewalDateRequest } from './models/ExtendRenewalDateRequest';
 import { ExtendRenewalDateResponse, ExtendRenewalDateResponseValidator } from './models/ExtendRenewalDateResponse';
+import { GetImageListResponse, GetImageListResponseValidator } from './models/GetImageListResponse';
+import { GetMessageListResponse, GetMessageListResponseValidator } from './models/GetMessageListResponse';
 import { HistoryResponse, HistoryResponseValidator } from './models/HistoryResponse';
 import { MassExtendRenewalDateRequest } from './models/MassExtendRenewalDateRequest';
 import { MassExtendRenewalDateResponse, MassExtendRenewalDateResponseValidator } from './models/MassExtendRenewalDateResponse';
@@ -17,26 +20,35 @@ import { SendTestNotificationResponse, SendTestNotificationResponseValidator } f
 import { StatusResponse, StatusResponseValidator } from './models/StatusResponse';
 import { TransactionHistoryRequest } from './models/TransactionHistoryRequest';
 import { TransactionInfoResponse, TransactionInfoResponseValidator } from './models/TransactionInfoResponse';
+import { UploadMessageRequestBody } from './models/UploadMessageRequestBody';
 import { Validator } from './models/Validator';
 import { Status } from './models/Status';
 export { SignedDataVerifier, VerificationException, VerificationStatus } from './jws_verification'
 export { ReceiptUtility } from './receipt_utility'
 export { AccountTenure } from "./models/AccountTenure"
+export { AlternateProduct } from './models/AlternateProduct'
 export { AutoRenewStatus } from './models/AutoRenewStatus'
 export { CheckTestNotificationResponse } from './models/CheckTestNotificationResponse'
 export { ConsumptionRequest } from './models/ConsumptionRequest'
 export { UpdateAppAccountTokenRequest } from './models/UpdateAppAccountTokenRequest'
 export { ConsumptionStatus } from './models/ConsumptionStatus'
 export { Data } from './models/Data'
+export { DecodedRealtimeRequestBody } from './models/DecodedRealtimeRequestBody'
+export { DefaultConfigurationRequest } from './models/DefaultConfigurationRequest'
 export { DeliveryStatus } from './models/DeliveryStatus'
 export { Environment } from './models/Environment'
 export { ExpirationIntent } from './models/ExpirationIntent'
 export { ExtendReasonCode } from './models/ExtendReasonCode'
 export { ExtendRenewalDateRequest } from './models/ExtendRenewalDateRequest'
 export { ExtendRenewalDateResponse } from './models/ExtendRenewalDateResponse'
+export { GetImageListResponse } from './models/GetImageListResponse'
+export { GetImageListResponseItem } from './models/GetImageListResponseItem'
+export { GetMessageListResponse } from './models/GetMessageListResponse'
+export { GetMessageListResponseItem } from './models/GetMessageListResponseItem'
 export { SendAttemptResult } from './models/SendAttemptResult'
 export { SendAttemptItem } from './models/SendAttemptItem'
 export { HistoryResponse } from './models/HistoryResponse'
+export { ImageState } from './models/ImageState'
 export { InAppOwnershipType } from './models/InAppOwnershipType'
 export { JWSRenewalInfoDecodedPayload } from './models/JWSRenewalInfoDecodedPayload'
 export { JWSTransactionDecodedPayload } from './models/JWSTransactionDecodedPayload'
@@ -46,6 +58,8 @@ export { LifetimeDollarsRefunded } from './models/LifetimeDollarsRefunded'
 export { MassExtendRenewalDateRequest } from './models/MassExtendRenewalDateRequest'
 export { MassExtendRenewalDateResponse } from './models/MassExtendRenewalDateResponse'
 export { MassExtendRenewalDateStatusResponse } from './models/MassExtendRenewalDateStatusResponse'
+export { Message } from './models/Message'
+export { MessageState } from './models/MessageState'
 export { NotificationHistoryRequest } from './models/NotificationHistoryRequest'
 export { NotificationHistoryResponse } from './models/NotificationHistoryResponse'
 export { NotificationHistoryResponseItem } from './models/NotificationHistoryResponseItem'
@@ -57,7 +71,11 @@ export { OrderLookupStatus } from './models/OrderLookupStatus'
 export { Platform } from './models/Platform'
 export { PlayTime } from './models/PlayTime'
 export { PriceIncreaseStatus } from './models/PriceIncreaseStatus'
+export { PromotionalOffer } from './models/PromotionalOffer'
+export { PromotionalOfferSignatureV1 } from './models/PromotionalOfferSignatureV1'
 export { PurchasePlatform } from './models/PurchasePlatform'
+export { RealtimeRequestBody } from './models/RealtimeRequestBody'
+export { RealtimeResponseBody } from './models/RealtimeResponseBody'
 export { RefundHistoryResponse } from './models/RefundHistoryResponse'
 export { ResponseBodyV2 } from './models/ResponseBodyV2'
 export { ResponseBodyV2DecodedPayload } from './models/ResponseBodyV2DecodedPayload'
@@ -72,6 +90,8 @@ export { TransactionHistoryRequest, Order, ProductType } from './models/Transact
 export { TransactionInfoResponse } from './models/TransactionInfoResponse'
 export { TransactionReason } from './models/TransactionReason'
 export { Type } from './models/Type'
+export { UploadMessageImage } from './models/UploadMessageImage'
+export { UploadMessageRequestBody } from './models/UploadMessageRequestBody'
 export { UserStatus } from './models/UserStatus'
 export { PromotionalOfferSignatureCreator } from './promotional_offer'
 export { PromotionalOfferV2SignatureCreator, AdvancedCommerceInAppSignatureCreator, AdvancedCommerceInAppRequest, IntroductoryOfferEligibilitySignatureCreator } from './jws_signature_creator'
@@ -124,7 +144,7 @@ export class AppStoreServerAPIClient {
         }
     }
 
-    protected async makeRequest<T>(path: string, method: string, queryParameters: { [key: string]: string[]}, body: object | null, validator: Validator<T> | null): Promise<T> {
+    protected async makeRequest<T>(path: string, method: string, queryParameters: { [key: string]: string[]}, body: object | Buffer | null, validator: Validator<T> | null, contentType?: string): Promise<T> {
         const headers: { [key: string]: string } = {
             'User-Agent': AppStoreServerAPIClient.USER_AGENT,
             'Authorization': 'Bearer ' + this.createBearerToken(),
@@ -136,13 +156,18 @@ export class AppStoreServerAPIClient {
                 parsedQueryParameters.append(queryParam, queryVal)
             }
         }
-        let stringBody = undefined
-        if (body != null) {
-            stringBody = JSON.stringify(body)
+        let requestBody: string | Buffer | undefined = undefined
+        if (body instanceof Buffer) {
+            requestBody = body
+            if (contentType) {
+                headers['Content-Type'] = contentType
+            }
+        } else if (body != null) {
+            requestBody = JSON.stringify(body)
             headers['Content-Type'] = 'application/json'
         }
 
-        const response = await this.makeFetchRequest(path, parsedQueryParameters, method, stringBody, headers)
+        const response = await this.makeFetchRequest(path, parsedQueryParameters, method, requestBody, headers)
 
         if(response.ok) {
             // Success
@@ -178,10 +203,10 @@ export class AppStoreServerAPIClient {
         }
     }
 
-    protected async makeFetchRequest(path: string, parsedQueryParameters: URLSearchParams, method: string, stringBody: string | undefined, headers: { [key: string]: string; }) {
+    protected async makeFetchRequest(path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) {
         return await fetch(this.urlBase + path + '?' + parsedQueryParameters, {
             method: method,
-            body: stringBody,
+            body: requestBody,
             headers: headers
         });
     }
@@ -195,7 +220,7 @@ export class AppStoreServerAPIClient {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/extend_subscription_renewal_dates_for_all_active_subscribers Extend Subscription Renewal Dates for All Active Subscribers}
      */
     public async extendRenewalDateForAllActiveSubscribers(massExtendRenewalDateRequest: MassExtendRenewalDateRequest): Promise<MassExtendRenewalDateResponse> {
-        return await this.makeRequest("/inApps/v1/subscriptions/extend/mass", "POST", {}, massExtendRenewalDateRequest, new MassExtendRenewalDateResponseValidator());
+        return await this.makeRequest("/inApps/v1/subscriptions/extend/mass", "POST", {}, massExtendRenewalDateRequest, new MassExtendRenewalDateResponseValidator(), 'application/json');
     }
 
     /**
@@ -208,7 +233,7 @@ export class AppStoreServerAPIClient {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/extend_a_subscription_renewal_date Extend a Subscription Renewal Date}
      */
     public async extendSubscriptionRenewalDate(originalTransactionId: string, extendRenewalDateRequest: ExtendRenewalDateRequest): Promise<ExtendRenewalDateResponse> {
-        return await this.makeRequest<ExtendRenewalDateResponse>("/inApps/v1/subscriptions/extend/" + originalTransactionId, "PUT", {}, extendRenewalDateRequest, new ExtendRenewalDateResponseValidator());
+        return await this.makeRequest<ExtendRenewalDateResponse>("/inApps/v1/subscriptions/extend/" + originalTransactionId, "PUT", {}, extendRenewalDateRequest, new ExtendRenewalDateResponseValidator(), 'application/json');
     }
 
     /**
@@ -226,7 +251,7 @@ export class AppStoreServerAPIClient {
             queryParameters["status"] = status.map(s => s.toString()) as [string];
         }
 
-        return await this.makeRequest("/inApps/v1/subscriptions/" + transactionId, "GET", queryParameters, null, new StatusResponseValidator());
+        return await this.makeRequest("/inApps/v1/subscriptions/" + transactionId, "GET", queryParameters, null, new StatusResponseValidator(), undefined);
     }
 
     /**
@@ -244,7 +269,7 @@ export class AppStoreServerAPIClient {
             queryParameters["revision"] = [revision];
         }
 
-        return await this.makeRequest("/inApps/v2/refund/lookup/" + transactionId, "GET", queryParameters, null, new RefundHistoryResponseValidator());
+        return await this.makeRequest("/inApps/v2/refund/lookup/" + transactionId, "GET", queryParameters, null, new RefundHistoryResponseValidator(), undefined);
     }
 
     /**
@@ -257,7 +282,7 @@ export class AppStoreServerAPIClient {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/get_status_of_subscription_renewal_date_extensions Get Status of Subscription Renewal Date Extensions}
      */
     public async getStatusOfSubscriptionRenewalDateExtensions(requestIdentifier: string, productId: string): Promise<MassExtendRenewalDateStatusResponse> {
-        return await this.makeRequest("/inApps/v1/subscriptions/extend/mass/" + productId + "/" + requestIdentifier, "GET", {}, null, new MassExtendRenewalDateStatusResponseValidator());
+        return await this.makeRequest("/inApps/v1/subscriptions/extend/mass/" + productId + "/" + requestIdentifier, "GET", {}, null, new MassExtendRenewalDateStatusResponseValidator(), undefined);
     }
 
     /**
@@ -269,7 +294,7 @@ export class AppStoreServerAPIClient {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/get_test_notification_status Get Test Notification Status}
      */
     public async getTestNotificationStatus(testNotificationToken: string): Promise<CheckTestNotificationResponse> {
-        return await this.makeRequest("/inApps/v1/notifications/test/" + testNotificationToken, "GET", {}, null, new CheckTestNotificationResponseValidator());
+        return await this.makeRequest("/inApps/v1/notifications/test/" + testNotificationToken, "GET", {}, null, new CheckTestNotificationResponseValidator(), undefined);
     }
 
     /**
@@ -286,7 +311,7 @@ export class AppStoreServerAPIClient {
         if (paginationToken != null) {
             queryParameters["paginationToken"] = [paginationToken];
         }
-        return await this.makeRequest("/inApps/v1/notifications/history", "POST", queryParameters, notificationHistoryRequest, new NotificationHistoryResponseValidator());
+        return await this.makeRequest("/inApps/v1/notifications/history", "POST", queryParameters, notificationHistoryRequest, new NotificationHistoryResponseValidator(), 'application/json');
     }
 
     /**
@@ -328,7 +353,7 @@ export class AppStoreServerAPIClient {
         if (transactionHistoryRequest.revoked !== undefined) {
             queryParameters["revoked"] = [transactionHistoryRequest.revoked.toString()];
         }
-        return await this.makeRequest("/inApps/" + version + "/history/" + transactionId, "GET", queryParameters, null, new HistoryResponseValidator());
+        return await this.makeRequest("/inApps/" + version + "/history/" + transactionId, "GET", queryParameters, null, new HistoryResponseValidator(), undefined);
     }
 
     /**
@@ -340,7 +365,7 @@ export class AppStoreServerAPIClient {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/get_transaction_info Get Transaction Info}
      */
     public async getTransactionInfo(transactionId: string): Promise<TransactionInfoResponse> {
-        return await this.makeRequest("/inApps/v1/transactions/" + transactionId, "GET", {}, null, new TransactionInfoResponseValidator());
+        return await this.makeRequest("/inApps/v1/transactions/" + transactionId, "GET", {}, null, new TransactionInfoResponseValidator(), undefined);
     }
 
     /**
@@ -352,7 +377,7 @@ export class AppStoreServerAPIClient {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/look_up_order_id Look Up Order ID}
      */
     public async lookUpOrderId(orderId: string): Promise<OrderLookupResponse> {
-        return await this.makeRequest("/inApps/v1/lookup/" + orderId, "GET", {}, null, new OrderLookupResponseValidator());
+        return await this.makeRequest("/inApps/v1/lookup/" + orderId, "GET", {}, null, new OrderLookupResponseValidator(), undefined);
     }
 
     /**
@@ -363,7 +388,7 @@ export class AppStoreServerAPIClient {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/request_a_test_notification Request a Test Notification}
      */
     public async requestTestNotification(): Promise<SendTestNotificationResponse> {
-        return await this.makeRequest("/inApps/v1/notifications/test", "POST", {}, null, new SendTestNotificationResponseValidator());
+        return await this.makeRequest("/inApps/v1/notifications/test", "POST", {}, null, new SendTestNotificationResponseValidator(), undefined);
     }
 
     /**
@@ -375,7 +400,7 @@ export class AppStoreServerAPIClient {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/send_consumption_information Send Consumption Information}
      */
     public async sendConsumptionData(transactionId: string, consumptionRequest: ConsumptionRequest): Promise<void> {
-        await this.makeRequest("/inApps/v1/transactions/consumption/" + transactionId, "PUT", {}, consumptionRequest, null);
+        await this.makeRequest("/inApps/v1/transactions/consumption/" + transactionId, "PUT", {}, consumptionRequest, null, 'application/json');
     }
 
     /**
@@ -387,7 +412,100 @@ export class AppStoreServerAPIClient {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/set-app-account-token Set App Account Token}
      */
     public async setAppAccountToken(originalTransactionId: string, updateAppAccountTokenRequest: UpdateAppAccountTokenRequest): Promise<void> {
-        await this.makeRequest("/inApps/v1/transactions/" + originalTransactionId + "/appAccountToken", "PUT", {}, updateAppAccountTokenRequest, null);
+        await this.makeRequest("/inApps/v1/transactions/" + originalTransactionId + "/appAccountToken", "PUT", {}, updateAppAccountTokenRequest, null, 'application/json');
+    }
+
+    /**
+     * Upload an image to use for retention messaging.
+     *
+     * @param imageIdentifier A UUID you provide to uniquely identify the image you upload. Must be lowercase.
+     * @param image The image file to upload.
+     * @throws APIException If a response was returned indicating the request could not be processed
+     * {@link https://developer.apple.com/documentation/retentionmessaging/upload-image Upload Image}
+     */
+    public async uploadImage(imageIdentifier: string, image: Buffer): Promise<void> {
+        await this.makeRequest("/inApps/v1/messaging/image/" + imageIdentifier, "PUT", {}, image, null, 'image/png');
+    }
+
+    /**
+     * Delete a previously uploaded image.
+     *
+     * @param imageIdentifier The identifier of the image to delete.
+     * @throws APIException If a response was returned indicating the request could not be processed
+     * {@link https://developer.apple.com/documentation/retentionmessaging/delete-image Delete Image}
+     */
+    public async deleteImage(imageIdentifier: string): Promise<void> {
+        await this.makeRequest("/inApps/v1/messaging/image/" + imageIdentifier, "DELETE", {}, null, null, undefined);
+    }
+
+    /**
+     * Get the image identifier and state for all uploaded images.
+     *
+     * @return A response that contains status information for all images.
+     * @throws APIException If a response was returned indicating the request could not be processed
+     * {@link https://developer.apple.com/documentation/retentionmessaging/get-image-list Get Image List}
+     */
+    public async getImageList(): Promise<GetImageListResponse> {
+        return await this.makeRequest("/inApps/v1/messaging/image/list", "GET", {}, null, new GetImageListResponseValidator(), undefined);
+    }
+
+    /**
+     * Upload a message to use for retention messaging.
+     *
+     * @param messageIdentifier A UUID you provide to uniquely identify the message you upload. Must be lowercase.
+     * @param uploadMessageRequestBody The message text to upload.
+     * @throws APIException If a response was returned indicating the request could not be processed
+     * {@link https://developer.apple.com/documentation/retentionmessaging/upload-message Upload Message}
+     */
+    public async uploadMessage(messageIdentifier: string, uploadMessageRequestBody: UploadMessageRequestBody): Promise<void> {
+        await this.makeRequest("/inApps/v1/messaging/message/" + messageIdentifier, "PUT", {}, uploadMessageRequestBody, null, 'application/json');
+    }
+
+    /**
+     * Delete a previously uploaded message.
+     *
+     * @param messageIdentifier The identifier of the message to delete.
+     * @throws APIException If a response was returned indicating the request could not be processed
+     * {@link https://developer.apple.com/documentation/retentionmessaging/delete-message Delete Message}
+     */
+    public async deleteMessage(messageIdentifier: string): Promise<void> {
+        await this.makeRequest("/inApps/v1/messaging/message/" + messageIdentifier, "DELETE", {}, null, null, undefined);
+    }
+
+    /**
+     * Get the message identifier and state of all uploaded messages.
+     *
+     * @return A response that contains status information for all messages.
+     * @throws APIException If a response was returned indicating the request could not be processed
+     * {@link https://developer.apple.com/documentation/retentionmessaging/get-message-list Get Message List}
+     */
+    public async getMessageList(): Promise<GetMessageListResponse> {
+        return await this.makeRequest("/inApps/v1/messaging/message/list", "GET", {}, null, new GetMessageListResponseValidator(), undefined);
+    }
+
+    /**
+     * Configure a default message for a specific product in a specific locale.
+     *
+     * @param productId The product identifier for the default configuration.
+     * @param locale The locale for the default configuration.
+     * @param defaultConfigurationRequest The request body that includes the message identifier to configure as the default message.
+     * @throws APIException If a response was returned indicating the request could not be processed
+     * {@link https://developer.apple.com/documentation/retentionmessaging/configure-default-message Configure Default Message}
+     */
+    public async configureDefaultMessage(productId: string, locale: string, defaultConfigurationRequest: DefaultConfigurationRequest): Promise<void> {
+        await this.makeRequest("/inApps/v1/messaging/default/" + productId + "/" + locale, "PUT", {}, defaultConfigurationRequest, null, 'application/json');
+    }
+
+    /**
+     * Delete a default message for a product in a locale.
+     *
+     * @param productId The product ID of the default message configuration.
+     * @param locale The locale of the default message configuration.
+     * @throws APIException If a response was returned indicating the request could not be processed
+     * {@link https://developer.apple.com/documentation/retentionmessaging/delete-default-message Delete Default Message}
+     */
+    public async deleteDefaultMessage(productId: string, locale: string): Promise<void> {
+        await this.makeRequest("/inApps/v1/messaging/default/" + productId + "/" + locale, "DELETE", {}, null, null, undefined);
     }
 
     private createBearerToken(): string {
@@ -710,6 +828,41 @@ export enum APIError {
     APP_TRANSACTION_ID_NOT_SUPPORTED_ERROR = 4000048,
 
     /**
+     * An error that indicates the image that's uploading is invalid.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/invalidimageerror InvalidImageError}
+     */
+    INVALID_IMAGE = 4000161,
+
+    /**
+     * An error that indicates the header text is too long.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/headertoolongerror HeaderTooLongError}
+     */
+    HEADER_TOO_LONG = 4000162,
+
+    /**
+     * An error that indicates the body text is too long.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/bodytoolongerror BodyTooLongError}
+     */
+    BODY_TOO_LONG = 4000163,
+
+    /**
+     * An error that indicates the locale is invalid.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/invalidlocaleerror InvalidLocaleError}
+     */
+    INVALID_LOCALE = 4000164,
+
+    /**
+     * An error that indicates the alternative text for an image is too long.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/alttexttoolongerror AltTextTooLongError}
+     */
+    ALT_TEXT_TOO_LONG = 4000175,
+
+    /**
      * An error that indicates the app account token value is not a valid UUID.
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/invalidappaccounttokenuuiderror InvalidAppAccountTokenUUIDError}
@@ -752,8 +905,43 @@ export enum APIError {
     FAMILY_SHARED_SUBSCRIPTION_EXTENSION_INELIGIBLE = 4030007,
 
     /**
-     * An error that indicates the App Store account wasn’t found.
-     * 
+     * An error that indicates when you reach the maximum number of uploaded images.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/maximumnumberofimagesreachederror MaximumNumberOfImagesReachedError}
+     */
+    MAXIMUM_NUMBER_OF_IMAGES_REACHED = 4030014,
+
+    /**
+     * An error that indicates when you reach the maximum number of uploaded messages.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/maximumnumberofmessagesreachederror MaximumNumberOfMessagesReachedError}
+     */
+    MAXIMUM_NUMBER_OF_MESSAGES_REACHED = 4030016,
+
+    /**
+     * An error that indicates the message isn't in the approved state, so you can't configure it as a default message.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/messagenotapprovederror MessageNotApprovedError}
+     */
+    MESSAGE_NOT_APPROVED = 4030017,
+
+    /**
+     * An error that indicates the image isn't in the approved state, so you can't configure it as part of a default message.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/imagenotapprovederror ImageNotApprovedError}
+     */
+    IMAGE_NOT_APPROVED = 4030018,
+
+    /**
+     * An error that indicates the image is currently in use as part of a message, so you can't delete it.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/imageinuseerror ImageInUseError}
+     */
+    IMAGE_IN_USE = 4030019,
+
+    /**
+     * An error that indicates the App Store account wasn't found.
+     *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/accountnotfounderror AccountNotFoundError}
      */
     ACCOUNT_NOT_FOUND = 4040001,
@@ -820,6 +1008,34 @@ export enum APIError {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/transactionidnotfounderror TransactionIdNotFoundError}
      */
     TRANSACTION_ID_NOT_FOUND = 4040010,
+
+    /**
+     * An error that indicates the system can't find the image identifier.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/imagenotfounderror ImageNotFoundError}
+     */
+    IMAGE_NOT_FOUND = 4040014,
+
+    /**
+     * An error that indicates the system can't find the message identifier.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/messagenotfounderror MessageNotFoundError}
+     */
+    MESSAGE_NOT_FOUND = 4040015,
+
+    /**
+     * An error that indicates the image identifier already exists.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/imagealreadyexistserror ImageAlreadyExistsError}
+     */
+    IMAGE_ALREADY_EXISTS = 4090000,
+
+    /**
+     * An error that indicates the message identifier already exists.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/messagealreadyexistserror MessageAlreadyExistsError}
+     */
+    MESSAGE_ALREADY_EXISTS = 4090001,
 
     /**
      * An error that indicates that the request exceeded the rate limit.
