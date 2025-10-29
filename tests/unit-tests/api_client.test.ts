@@ -801,4 +801,75 @@ describe('The api client ', () => {
 
         await client.deleteDefaultMessage("com.example.product", "en-US")
     })
+
+    it('calls getAppTransactionInfo', async () => {
+        const client = getClientWithBody("tests/resources/models/appTransactionInfoResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+             expect("GET").toBe(method)
+             expect("/inApps/v1/transactions/appTransactions/1234").toBe(path)
+             expect(parsedQueryParameters.entries.length).toBe(0)
+             expect(requestBody).toBeUndefined()
+         });
+
+         const appTransactionInfoResponse = await client.getAppTransactionInfo("1234");
+
+         expect(appTransactionInfoResponse).toBeTruthy()
+         expect("signed_app_transaction_info_value").toBe(appTransactionInfoResponse.signedAppTransactionInfo)
+     })
+
+     it('calls getAppTransactionInfo but receives invalid transaction id error', async () => {
+         const client = getClientWithBody("tests/resources/models/invalidTransactionIdError.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+              expect("GET").toBe(method)
+              expect("/inApps/v1/transactions/appTransactions/invalid_id").toBe(path)
+              expect(parsedQueryParameters.entries.length).toBe(0)
+              expect(requestBody).toBeUndefined()
+          }, 400);
+
+          try {
+             const appTransactionInfoResponse = await client.getAppTransactionInfo("invalid_id");
+             fail('this test call is expected to throw')
+          } catch (e) {
+             let error = e as APIException
+             expect(error.httpStatusCode).toBe(400)
+             expect(error.apiError).toBe(APIError.INVALID_TRANSACTION_ID)
+             expect(error.errorMessage).toBe("Invalid transaction id.")
+          }
+      })
+
+      it('calls getAppTransactionInfo but receives app transaction does not exist error', async () => {
+         const client = getClientWithBody("tests/resources/models/appTransactionDoesNotExistError.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+              expect("GET").toBe(method)
+              expect("/inApps/v1/transactions/appTransactions/5678").toBe(path)
+              expect(parsedQueryParameters.entries.length).toBe(0)
+              expect(requestBody).toBeUndefined()
+          }, 404);
+
+          try {
+             const appTransactionInfoResponse = await client.getAppTransactionInfo("5678");
+             fail('this test call is expected to throw')
+          } catch (e) {
+             let error = e as APIException
+             expect(error.httpStatusCode).toBe(404)
+             expect(error.apiError).toBe(APIError.APP_TRANSACTION_DOES_NOT_EXIST_ERROR)
+             expect(error.errorMessage).toBe("No AppTransaction exists for the customer.")
+          }
+      })
+
+      it('calls getAppTransactionInfo but receives transaction id not found error', async () => {
+         const client = getClientWithBody("tests/resources/models/transactionIdNotFoundError.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+              expect("GET").toBe(method)
+              expect("/inApps/v1/transactions/appTransactions/9999").toBe(path)
+              expect(parsedQueryParameters.entries.length).toBe(0)
+              expect(requestBody).toBeUndefined()
+          }, 404);
+
+          try {
+             const appTransactionInfoResponse = await client.getAppTransactionInfo("9999");
+             fail('this test call is expected to throw')
+          } catch (e) {
+             let error = e as APIException
+             expect(error.httpStatusCode).toBe(404)
+             expect(error.apiError).toBe(APIError.TRANSACTION_ID_NOT_FOUND)
+             expect(error.errorMessage).toBe("Transaction id not found.")
+          }
+      })
 })
