@@ -27,6 +27,7 @@ export { SignedDataVerifier, VerificationException, VerificationStatus } from '.
 export { ReceiptUtility } from './receipt_utility'
 export { AccountTenure } from "./models/AccountTenure"
 export { AlternateProduct } from './models/AlternateProduct'
+export { AppTransactionInfoResponse } from './models/AppTransactionInfoResponse';
 export { AutoRenewStatus } from './models/AutoRenewStatus'
 export { CheckTestNotificationResponse } from './models/CheckTestNotificationResponse'
 export { ConsumptionRequest } from './models/ConsumptionRequest'
@@ -100,6 +101,7 @@ export { AppTransaction } from './models/AppTransaction'
 export { ExternalPurchaseToken } from './models/ExternalPurchaseToken'
 
 import jsonwebtoken = require('jsonwebtoken');
+import { AppTransactionInfoResponse, AppTransactionInfoResponseValidator } from './models/AppTransactionInfoResponse';
 import { NotificationHistoryRequest } from './models/NotificationHistoryRequest';
 import { NotificationHistoryResponse, NotificationHistoryResponseValidator } from './models/NotificationHistoryResponse';
 import { URLSearchParams } from 'url';
@@ -507,6 +509,18 @@ export class AppStoreServerAPIClient {
     public async deleteDefaultMessage(productId: string, locale: string): Promise<void> {
         await this.makeRequest("/inApps/v1/messaging/default/" + productId + "/" + locale, "DELETE", {}, null, null, undefined);
     }
+
+    /**
+      * Get a customer's app transaction information for your app.
+      *
+      * @param transactionId Any originalTransactionId, transactionId or appTransactionId that belongs to the customer for your app.
+      * @return A response that contains signed app transaction information for a customer.
+      * @throws APIException If a response was returned indicating the request could not be processed
+      * {@link https://developer.apple.com/documentation/appstoreserverapi/get-app-transaction-info Get App Transaction Info}
+      */
+     public async getAppTransactionInfo(transactionId: string): Promise<AppTransactionInfoResponse> {
+         return await this.makeRequest("/inApps/v1/transactions/appTransactions/" + transactionId, "GET", {}, null, new AppTransactionInfoResponseValidator(), undefined);
+     }
 
     private createBearerToken(): string {
         const payload = {
@@ -1022,6 +1036,13 @@ export enum APIError {
      * {@link https://developer.apple.com/documentation/retentionmessaging/messagenotfounderror MessageNotFoundError}
      */
     MESSAGE_NOT_FOUND = 4040015,
+
+    /**
+     * An error response that indicates an app transaction doesn’t exist for the specified customer.
+     * 
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/apptransactiondoesnotexisterror AppTransactionDoesNotExistError}
+     */
+    APP_TRANSACTION_DOES_NOT_EXIST_ERROR = 4040019,
 
     /**
      * An error that indicates the image identifier already exists.
