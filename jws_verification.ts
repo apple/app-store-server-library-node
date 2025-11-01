@@ -306,13 +306,27 @@ export class SignedDataVerifier {
       const request = new KJUR.asn1.ocsp.OCSPRequest({reqList: [{issuerCert: issuer.toString(), subjectCert: cert.toString() , alg: "sha256"}]})
       const headers = new Headers()
       headers.append('Content-Type', 'application/ocsp-request')
-      
-      const response = await fetch(matchResult[1], {
-        headers: headers,
-        method: 'POST',
-        body: Buffer.from(request.getEncodedHex(), 'hex')
-      })
-      
+
+      let response
+      try {
+        response = await fetch(matchResult[1], {
+          headers: headers,
+          method: 'POST',
+          body: Buffer.from(request.getEncodedHex(), 'hex'),
+          timeout: 30000
+        })
+
+        if (!response.ok) {
+          throw new VerificationException(VerificationStatus.RETRYABLE_VERIFICATION_FAILURE)
+        }
+      } catch (error) {
+        if (error instanceof VerificationException) {
+          throw error
+        }
+        // Network errors
+        throw new VerificationException(VerificationStatus.RETRYABLE_VERIFICATION_FAILURE, error instanceof Error ? error : undefined)
+      }
+
       const responseBuffer = await response.buffer()
       const parsedResponse = new (KJUR.asn1.ocsp as any).OCSPParser().getOCSPResponse(responseBuffer.toString('hex'))
       // The issuer could also be the signer
@@ -414,6 +428,7 @@ export class SignedDataVerifier {
 export enum VerificationStatus {
   OK,
   VERIFICATION_FAILURE,
+  RETRYABLE_VERIFICATION_FAILURE,
   INVALID_APP_IDENTIFIER,
   INVALID_ENVIRONMENT,
   INVALID_CHAIN_LENGTH,
