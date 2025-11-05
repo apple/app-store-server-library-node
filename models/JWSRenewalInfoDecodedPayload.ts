@@ -73,14 +73,14 @@ export interface JWSRenewalInfoDecodedPayload extends DecodedSignedData {
     gracePeriodExpiresDate?: number
         
     /**
-     * The type of the subscription offer.
+     * The type of subscription offer.
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/offertype offerType}
      **/
     offerType?: OfferType | number
         
     /**
-     * The identifier that contains the promo code or the promotional offer identifier.
+     * The offer code or the promotional offer identifier.
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/offeridentifier offerIdentifier}
      **/
@@ -129,7 +129,7 @@ export interface JWSRenewalInfoDecodedPayload extends DecodedSignedData {
     renewalPrice?: number
 
     /**
-     * The payment mode of the discount offer.
+     * The payment mode you configure for the offer.
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/offerdiscounttype offerDiscountType}
      **/
