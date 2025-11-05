@@ -116,7 +116,7 @@ export interface JWSTransactionDecodedPayload extends DecodedSignedData {
     signedDate?: number
         
     /**
-     * The reason that the App Store refunded the transaction or revoked it from family sharing.
+     * The reason that the App Store refunded the transaction or revoked it from Family Sharing.
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/revocationreason revocationReason}
      **/
@@ -144,7 +144,7 @@ export interface JWSTransactionDecodedPayload extends DecodedSignedData {
     offerType?: OfferType | number
         
     /**
-     * The identifier that contains the promo code or the promotional offer identifier.
+     * The identifier that contains the offer code or the promotional offer identifier.
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/offeridentifier offerIdentifier}
      **/
@@ -193,7 +193,7 @@ export interface JWSTransactionDecodedPayload extends DecodedSignedData {
     price?: number
 
     /**
-     * The payment mode you configure for an introductory offer, promotional offer, or offer code on an auto-renewable subscription.
+     * The payment mode you configure for the offer.
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/offerdiscounttype offerDiscountType}
      **/
