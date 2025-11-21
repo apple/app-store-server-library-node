@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 2.0.0
+- Support Retention Messaging API [https://github.com/apple/app-store-server-library-node/pull/341]
+  - This changes internal details of AppStoreServerAPIClient, which is a breaking change for subclassing clients
+- Incorporate changes for App Store Server API v1.17 [https://github.com/apple/app-store-server-library-node/pull/344] from @riyazpanjwani
+- Add a new VerificationStatus case for retryable OCSP network failures [https://github.com/apple/app-store-server-library-node/pull/345]
+- Incorporate changes for App Store Server API v1.18 [https://github.com/apple/app-store-server-library-node/pull/348] from @izanger
+  - This changes OfferType's case SUBSCRIPTION_OFFER_CODE to OFFER_CODE, which is a breaking change
+
 ## Version 1.6.0
 - Incorporate changes for App Store Server API v1.16 [https://github.com/apple/app-store-server-library-node/pull/275]
 
