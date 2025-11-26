@@ -1,6 +1,7 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
 import fetch from 'node-fetch';
+import type { KeyObject } from 'crypto';
 import { CheckTestNotificationResponse, CheckTestNotificationResponseValidator } from './models/CheckTestNotificationResponse';
 import { ConsumptionRequest } from './models/ConsumptionRequest';
 import { UpdateAppAccountTokenRequest } from './models/UpdateAppAccountTokenRequest'
@@ -114,7 +115,7 @@ export class AppStoreServerAPIClient {
 
     private issuerId: string
     private keyId: string
-    private signingKey: string
+    private signingKey: string | KeyObject
     private bundleId: string
     private urlBase: string
 
@@ -126,7 +127,7 @@ export class AppStoreServerAPIClient {
      * @param bundleId Your app’s bundle ID
      * @param environment The environment to target
      */
-    public constructor(signingKey: string, keyId: string, issuerId: string, bundleId: string, environment: Environment) {
+    public constructor(signingKey: string | KeyObject, keyId: string, issuerId: string, bundleId: string, environment: Environment) {
         this.issuerId = issuerId
         this.keyId = keyId
         this.bundleId = bundleId
