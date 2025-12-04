@@ -19,6 +19,7 @@ import { InAppOwnershipType } from "../../models/InAppOwnershipType";
 import { RefundPreference } from "../../models/RefundPreference";
 import { APIError, APIException, AppStoreServerAPIClient, ExtendReasonCode, ExtendRenewalDateRequest, GetTransactionHistoryVersion, MassExtendRenewalDateRequest, NotificationHistoryRequest, NotificationHistoryResponseItem, Order, OrderLookupStatus, ProductType, SendAttemptResult, TransactionHistoryRequest } from "../../index";
 import { Response } from "node-fetch";
+import type { KeyObject } from "crypto";
 
 import jsonwebtoken = require('jsonwebtoken');
 
@@ -30,7 +31,7 @@ class AppStoreServerAPIClientForTest extends AppStoreServerAPIClient {
     private body: string
     private statusCode: number
 
-    public constructor(signingKey: string, keyId: string, issuerId: string, bundleId: string, environment: Environment, callback: callbackType, body: string, statusCode: number) {
+    public constructor(signingKey: string | KeyObject, keyId: string, issuerId: string, bundleId: string, environment: Environment, callback: callbackType, body: string, statusCode: number) {
         super(signingKey, keyId, issuerId, bundleId, environment)
         this.callback = callback
         this.body = body
