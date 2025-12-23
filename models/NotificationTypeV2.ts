@@ -27,6 +27,7 @@ export enum NotificationTypeV2 {
     REFUND_REVERSED = "REFUND_REVERSED",
     EXTERNAL_PURCHASE_TOKEN = "EXTERNAL_PURCHASE_TOKEN",
     ONE_TIME_CHARGE = "ONE_TIME_CHARGE",
+    RESCIND_CONSENT = "RESCIND_CONSENT",
 }
 
 export class NotificationTypeV2Validator extends StringValidator {}

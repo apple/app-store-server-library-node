@@ -1,17 +1,10 @@
-// Copyright (c) 2023 Apple Inc. Licensed under MIT License.
+// Copyright (c) 2025 Apple Inc. Licensed under MIT License.
 
-import { AccountTenure } from "./AccountTenure"
-import { ConsumptionStatus } from "./ConsumptionStatus"
 import { DeliveryStatus } from "./DeliveryStatus"
-import { LifetimeDollarsPurchased } from "./LifetimeDollarsPurchased"
-import { LifetimeDollarsRefunded } from "./LifetimeDollarsRefunded"
-import { Platform } from "./Platform"
-import { PlayTime } from "./PlayTime"
 import { RefundPreference } from "./RefundPreference"
-import { UserStatus } from "./UserStatus"
 
 /**
- * The request body containing consumption information.
+ * The request body that contains consumption information for an In-App Purchase.
  *
  * {@link https://developer.apple.com/documentation/appstoreserverapi/consumptionrequest ConsumptionRequest}
  */
@@ -22,82 +15,33 @@ export interface ConsumptionRequest {
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/customerconsented customerConsented}
      **/
-    customerConsented?: boolean
-        
+    customerConsented: boolean
+
     /**
-     * A value that indicates the extent to which the customer consumed the in-app purchase.
+     * An integer that indicates the percentage, in milliunits, of the In-App Purchase the customer consumed.
      *
-     * {@link https://developer.apple.com/documentation/appstoreserverapi/consumptionstatus consumptionStatus}
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/consumptionpercentage consumptionPercentage}
      **/
-    consumptionStatus?: ConsumptionStatus | number
-        
-    /**
-     * A value that indicates the platform on which the customer consumed the in-app purchase.
-     *
-     * {@link https://developer.apple.com/documentation/appstoreserverapi/platform platform}
-     **/
-    platform?: Platform | number
-        
-    /**
-     * A Boolean value that indicates whether you provided, prior to its purchase, a free sample or trial of the content, or information about its functionality.
-     *
-     * {@link https://developer.apple.com/documentation/appstoreserverapi/samplecontentprovided sampleContentProvided}
-     **/
-    sampleContentProvided?: boolean
-        
+    consumptionPercentage?: number
+
     /**
      * A value that indicates whether the app successfully delivered an in-app purchase that works properly.
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/deliverystatus deliveryStatus}
      **/
-    deliveryStatus?: DeliveryStatus | number
-        
-    /**
-     * The UUID that an app optionally generates to map a customer’s in-app purchase with its resulting App Store transaction.
-     *
-     * {@link https://developer.apple.com/documentation/appstoreserverapi/appaccounttoken appAccountToken}
-     **/
-    appAccountToken?: string
-        
-    /**
-     * The age of the customer’s account.
-     *
-     * {@link https://developer.apple.com/documentation/appstoreserverapi/accounttenure accountTenure}
-     **/
-    accountTenure?: AccountTenure | number
-        
-    /**
-     * A value that indicates the amount of time that the customer used the app.
-     *
-     * {@link https://developer.apple.com/documentation/appstoreserverapi/consumptionrequest ConsumptionRequest}
-     **/
-    playTime?: PlayTime | number
-        
-    /**
-     * A value that indicates the total amount, in USD, of refunds the customer has received, in your app, across all platforms.
-     *
-     * {@link https://developer.apple.com/documentation/appstoreserverapi/lifetimedollarsrefunded lifetimeDollarsRefunded}
-     **/
-    lifetimeDollarsRefunded?: LifetimeDollarsRefunded | number
-        
-    /**
-     * A value that indicates the total amount, in USD, of in-app purchases the customer has made in your app, across all platforms.
-     *
-     * {@link https://developer.apple.com/documentation/appstoreserverapi/lifetimedollarspurchased lifetimeDollarsPurchased}
-     **/
-    lifetimeDollarsPurchased?: LifetimeDollarsPurchased | number
-        
-    /**
-     * The status of the customer’s account.
-     *
-     * {@link https://developer.apple.com/documentation/appstoreserverapi/userstatus userStatus}
-     **/
-    userStatus?: UserStatus | number
+    deliveryStatus: DeliveryStatus | string
 
     /**
-     * A value that indicates your preference, based on your operational logic, as to whether Apple should grant the refund.
+     * A value that indicates your preferred outcome for the refund request.
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/refundpreference refundPreference}
      **/
-    refundPreference?: RefundPreference | number
+    refundPreference?: RefundPreference | string
+
+    /**
+     * A Boolean value that indicates whether you provided, prior to its purchase, a free sample or trial of the content, or information about its functionality.
+     *
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/samplecontentprovided sampleContentProvided}
+     **/
+    sampleContentProvided: boolean
 }

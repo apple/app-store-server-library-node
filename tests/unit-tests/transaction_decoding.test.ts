@@ -12,10 +12,12 @@ import { Subtype } from "../../models/Subtype";
 import { createSignedDataFromJson, getDefaultSignedPayloadVerifier } from "../util"
 import { InAppOwnershipType } from "../../models/InAppOwnershipType";
 import { RevocationReason } from "../../models/RevocationReason";
+import { RevocationType } from "../../models/RevocationType";
 import { TransactionReason } from "../../models/TransactionReason";
 import { Type } from "../../models/Type";
 import { ConsumptionRequestReason } from "../../models/ConsumptionRequestReason";
 import { OfferDiscountType } from "../../models/OfferDiscountType";
+import { JWSTransactionDecodedPayloadValidator } from "../../models/JWSTransactionDecodedPayload";
 
 
 describe('Testing decoding of signed data', () => {
@@ -98,6 +100,42 @@ describe('Testing decoding of signed data', () => {
         expect(OfferDiscountType.PAY_AS_YOU_GO).toBe(transaction.offerDiscountType)
         expect("71134").toBe(transaction.appTransactionId)
         expect("P1Y").toBe(transaction.offerPeriod)
+    })
+    it('should decode a transaction with revocation', async () => {
+        const signedTransaction = createSignedDataFromJson("tests/resources/models/signedTransactionWithRevocation.json")
+
+        const transaction = await getDefaultSignedPayloadVerifier().verifyAndDecodeTransaction(signedTransaction)
+
+        expect("12345").toBe(transaction.originalTransactionId)
+        expect("23456").toBe(transaction.transactionId)
+        expect("34343").toBe(transaction.webOrderLineItemId)
+        expect("com.example").toBe(transaction.bundleId)
+        expect("com.example.product").toBe(transaction.productId)
+        expect("55555").toBe(transaction.subscriptionGroupIdentifier)
+        expect(1698148800000).toBe(transaction.originalPurchaseDate)
+        expect(1698148900000).toBe(transaction.purchaseDate)
+        expect(1698148950000).toBe(transaction.revocationDate)
+        expect(1698149000000).toBe(transaction.expiresDate)
+        expect(1).toBe(transaction.quantity)
+        expect(Type.AUTO_RENEWABLE_SUBSCRIPTION).toBe(transaction.type)
+        expect("7e3fb20b-4cdb-47cc-936d-99d65f608138").toBe(transaction.appAccountToken)
+        expect(InAppOwnershipType.PURCHASED).toBe(transaction.inAppOwnershipType)
+        expect(1698148900000).toBe(transaction.signedDate)
+        expect(RevocationReason.REFUNDED_DUE_TO_ISSUE).toBe(transaction.revocationReason)
+        expect("abc.123").toBe(transaction.offerIdentifier)
+        expect(transaction.isUpgraded).toBe(true)
+        expect(OfferType.INTRODUCTORY_OFFER).toBe(transaction.offerType)
+        expect("USA").toBe(transaction.storefront)
+        expect("143441").toBe(transaction.storefrontId)
+        expect(TransactionReason.PURCHASE).toBe(transaction.transactionReason)
+        expect(Environment.LOCAL_TESTING).toBe(transaction.environment)
+        expect(10990).toBe(transaction.price)
+        expect("USD").toBe(transaction.currency)
+        expect(OfferDiscountType.PAY_AS_YOU_GO).toBe(transaction.offerDiscountType)
+        expect("71134").toBe(transaction.appTransactionId)
+        expect("P1Y").toBe(transaction.offerPeriod)
+        expect(RevocationType.REFUND_PRORATED).toBe(transaction.revocationType)
+        expect(50000).toBe(transaction.revocationPercentage)
     })
     it('should decode a signed notification', async () => {
         const signedNotification = createSignedDataFromJson("tests/resources/models/signedNotification.json")
@@ -214,5 +252,44 @@ describe('Testing decoding of signed data', () => {
         expect(1698148950000).toBe(notification.externalPurchaseToken!.tokenCreationDate)
         expect(55555).toBe(notification.externalPurchaseToken!.appAppleId)
         expect("com.example").toBe(notification.externalPurchaseToken!.bundleId)
+    })
+
+    it('should decode a signed RESCIND_CONSENT notification', async () => {
+        const signedNotification = createSignedDataFromJson("tests/resources/models/signedRescindConsentNotification.json")
+
+        const verifier = await getDefaultSignedPayloadVerifier();
+        (verifier as any).verifyNotification = function(bundleId?: string, appAppleId?: number, environment?: string) {
+            expect(bundleId).toBe("com.example")
+            expect(appAppleId).toBe(41234)
+            expect(environment).toBe(Environment.LOCAL_TESTING)
+        }
+        const notification = await verifier.verifyAndDecodeNotification(signedNotification)
+
+        expect(NotificationTypeV2.RESCIND_CONSENT).toBe(notification.notificationType)
+        expect(notification.subtype).toBeFalsy()
+        expect("002e14d5-51f5-4503-b5a8-c3a1af68eb20").toBe(notification.notificationUUID)
+        expect("2.0").toBe(notification.version)
+        expect(1698148900000).toBe(notification.signedDate)
+        expect(notification.data).toBeFalsy();
+        expect(notification.summary).toBeFalsy();
+        expect(notification.externalPurchaseToken).toBeFalsy()
+        expect(notification.appData).toBeTruthy()
+        expect(Environment.LOCAL_TESTING).toBe(notification.appData!.environment)
+        expect(41234).toBe(notification.appData!.appAppleId)
+        expect("com.example").toBe(notification.appData!.bundleId)
+        expect("signed_app_transaction_info_value").toBe(notification.appData!.signedAppTransactionInfo)
+    })
+
+    it('should validate valid transaction with revocationType as string', () => {
+        const validator = new JWSTransactionDecodedPayloadValidator()
+        const validTransaction = {
+            originalTransactionId: "12345",
+            transactionId: "23456",
+            bundleId: "com.example",
+            productId: "com.example.product",
+            revocationType: "REFUND_FULL"
+        }
+
+        expect(validator.validate(validTransaction)).toBe(true)
     })
 })

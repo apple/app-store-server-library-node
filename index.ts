@@ -3,6 +3,7 @@
 import fetch from 'node-fetch';
 import { CheckTestNotificationResponse, CheckTestNotificationResponseValidator } from './models/CheckTestNotificationResponse';
 import { ConsumptionRequest } from './models/ConsumptionRequest';
+import { ConsumptionRequestV1 } from './models/ConsumptionRequestV1';
 import { UpdateAppAccountTokenRequest } from './models/UpdateAppAccountTokenRequest'
 import { DefaultConfigurationRequest } from './models/DefaultConfigurationRequest';
 import { Environment } from './models/Environment';
@@ -27,16 +28,19 @@ export { SignedDataVerifier, VerificationException, VerificationStatus } from '.
 export { ReceiptUtility } from './receipt_utility'
 export { AccountTenure } from "./models/AccountTenure"
 export { AlternateProduct } from './models/AlternateProduct'
+export { AppData } from './models/AppData'
 export { AppTransactionInfoResponse } from './models/AppTransactionInfoResponse';
 export { AutoRenewStatus } from './models/AutoRenewStatus'
 export { CheckTestNotificationResponse } from './models/CheckTestNotificationResponse'
 export { ConsumptionRequest } from './models/ConsumptionRequest'
+export { ConsumptionRequestV1 } from './models/ConsumptionRequestV1'
 export { UpdateAppAccountTokenRequest } from './models/UpdateAppAccountTokenRequest'
 export { ConsumptionStatus } from './models/ConsumptionStatus'
 export { Data } from './models/Data'
 export { DecodedRealtimeRequestBody } from './models/DecodedRealtimeRequestBody'
 export { DefaultConfigurationRequest } from './models/DefaultConfigurationRequest'
 export { DeliveryStatus } from './models/DeliveryStatus'
+export { DeliveryStatusV1 } from './models/DeliveryStatusV1'
 export { Environment } from './models/Environment'
 export { ExpirationIntent } from './models/ExpirationIntent'
 export { ExtendReasonCode } from './models/ExtendReasonCode'
@@ -78,8 +82,11 @@ export { PurchasePlatform } from './models/PurchasePlatform'
 export { RealtimeRequestBody } from './models/RealtimeRequestBody'
 export { RealtimeResponseBody } from './models/RealtimeResponseBody'
 export { RefundHistoryResponse } from './models/RefundHistoryResponse'
+export { RefundPreference } from './models/RefundPreference'
+export { RefundPreferenceV1 } from './models/RefundPreferenceV1'
 export { ResponseBodyV2 } from './models/ResponseBodyV2'
 export { ResponseBodyV2DecodedPayload } from './models/ResponseBodyV2DecodedPayload'
+export { RevocationType } from './models/RevocationType'
 export { RevocationReason } from './models/RevocationReason'
 export { SendTestNotificationResponse } from './models/SendTestNotificationResponse'
 export { Status } from './models/Status'
@@ -396,13 +403,26 @@ export class AppStoreServerAPIClient {
     /**
      * Send consumption information about a consumable in-app purchase to the App Store after your server receives a consumption request notification.
      *
-     * @param transactionId The transaction identifier for which you’re providing consumption information. You receive this identifier in the CONSUMPTION_REQUEST notification the App Store sends to your server.
+     * @param transactionId The transaction identifier for which you're providing consumption information. You receive this identifier in the CONSUMPTION_REQUEST notification the App Store sends to your server.
      * @param consumptionRequest    The request body containing consumption information.
      * @throws APIException If a response was returned indicating the request could not be processed
+     * @deprecated Use sendConsumptionInformation instead
      * {@link https://developer.apple.com/documentation/appstoreserverapi/send_consumption_information Send Consumption Information}
      */
-    public async sendConsumptionData(transactionId: string, consumptionRequest: ConsumptionRequest): Promise<void> {
+    public async sendConsumptionData(transactionId: string, consumptionRequest: ConsumptionRequestV1): Promise<void> {
         await this.makeRequest("/inApps/v1/transactions/consumption/" + transactionId, "PUT", {}, consumptionRequest, null, 'application/json');
+    }
+
+    /**
+     * Send consumption information about an In-App Purchase to the App Store after your server receives a consumption request notification.
+     *
+     * @param transactionId The transaction identifier for which you're providing consumption information. You receive this identifier in the CONSUMPTION_REQUEST notification the App Store sends to your server's App Store Server Notifications V2 endpoint.
+     * @param consumptionRequest The request body containing consumption information.
+     * @throws APIException If a response was returned indicating the request could not be processed
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/send-consumption-information Send Consumption Information}
+     */
+    public async sendConsumptionInformation(transactionId: string, consumptionRequest: ConsumptionRequest): Promise<void> {
+        await this.makeRequest("/inApps/v2/transactions/consumption/" + transactionId, "PUT", {}, consumptionRequest, null, 'application/json');
     }
 
     /**
