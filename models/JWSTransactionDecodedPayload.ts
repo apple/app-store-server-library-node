@@ -5,6 +5,7 @@ import { Environment, EnvironmentValidator } from "./Environment"
 import { InAppOwnershipType, InAppOwnershipTypeValidator } from "./InAppOwnershipType"
 import { OfferDiscountType, OfferDiscountTypeValidator } from "./OfferDiscountType"
 import { OfferType, OfferTypeValidator } from "./OfferType"
+import { RevocationType, RevocationTypeValidator } from "./RevocationType"
 import { RevocationReason, RevocationReasonValidator } from "./RevocationReason"
 import { TransactionReason, TransactionReasonValidator } from "./TransactionReason"
 import { Type, TypeValidator } from "./Type"
@@ -212,6 +213,20 @@ export interface JWSTransactionDecodedPayload extends DecodedSignedData {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/offerPeriod offerPeriod}
      **/
     offerPeriod?: string
+
+    /**
+     * The type of the refund or revocation that applies to the transaction.
+     *
+     * {@link https://developer.apple.com/documentation/appstoreservernotifications/revocationtype revocationType}
+     **/
+    revocationType?: RevocationType | string
+
+    /**
+     * The percentage, in milliunits, of the transaction that the App Store has refunded or revoked.
+     *
+     * {@link https://developer.apple.com/documentation/appstoreservernotifications/revocationpercentage revocationPercentage}
+     **/
+    revocationPercentage?: number
 }
 
 
@@ -219,6 +234,7 @@ export class JWSTransactionDecodedPayloadValidator implements Validator<JWSTrans
     static readonly environmentValidator = new EnvironmentValidator()
     static readonly offerTypeValidator = new OfferTypeValidator()
     static readonly revocationReasonValidator = new RevocationReasonValidator()
+    static readonly revocationTypeValidator = new RevocationTypeValidator()
     static readonly inAppOwnershipTypeValidator = new InAppOwnershipTypeValidator()
     static readonly typeValidator = new TypeValidator()
     static readonly transactionReasonValidator = new TransactionReasonValidator()
@@ -306,6 +322,12 @@ export class JWSTransactionDecodedPayloadValidator implements Validator<JWSTrans
             return false
         }
         if ((typeof obj['offerPeriod'] !== 'undefined') && !(typeof obj['offerPeriod'] === "string" || obj['offerPeriod'] instanceof String)) {
+            return false
+        }
+        if ((typeof obj['revocationType'] !== 'undefined') && !(JWSTransactionDecodedPayloadValidator.revocationTypeValidator.validate(obj['revocationType']))) {
+            return false
+        }
+        if ((typeof obj['revocationPercentage'] !== 'undefined') && !(typeof obj['revocationPercentage'] === "number")) {
             return false
         }
         return true
