@@ -144,6 +144,10 @@ export class SignedDataVerifier {
         } else {
           environment = Environment.PRODUCTION
         }
+      } else if (decodedJWT.appData) {
+        appAppleId = decodedJWT.appData.appAppleId
+        bundleId = decodedJWT.appData.bundleId
+        environment = decodedJWT.appData.environment
       }
       this.verifyNotification(bundleId, appAppleId, environment)
       return decodedJWT

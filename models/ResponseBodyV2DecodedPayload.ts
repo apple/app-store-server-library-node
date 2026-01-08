@@ -1,5 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
+import { AppData, AppDataValidator } from "./AppData";
 import { Data, DataValidator } from "./Data";
 import { DecodedSignedData } from "./DecodedSignedData";
 import { ExternalPurchaseToken, ExternalPurchaseTokenValidator } from "./ExternalPurchaseToken";
@@ -73,6 +74,14 @@ export interface ResponseBodyV2DecodedPayload extends DecodedSignedData {
      * {@link https://developer.apple.com/documentation/appstoreservernotifications/externalpurchasetoken externalPurchaseToken}
      **/
     externalPurchaseToken?: ExternalPurchaseToken
+
+    /**
+     * The object that contains the app metadata and signed app transaction information.
+     * This field appears when the notificationType is RESCIND_CONSENT.
+     *
+     * {@link https://developer.apple.com/documentation/appstoreservernotifications/appdata appData}
+     **/
+    appData?: AppData
 }
 
 
@@ -82,6 +91,7 @@ export class ResponseBodyV2DecodedPayloadValidator implements Validator<Response
     static readonly dataValidator = new DataValidator()
     static readonly summaryValidator = new SummaryValidator()
     static readonly externalPurchaseTokenValidator = new ExternalPurchaseTokenValidator()
+    static readonly appDataValidator = new AppDataValidator()
     validate(obj: any): obj is ResponseBodyV2DecodedPayload {
         if ((typeof obj['notificationType'] !== 'undefined') && !(ResponseBodyV2DecodedPayloadValidator.notificationTypeValidator.validate(obj['notificationType']))) {
             return false
@@ -105,6 +115,9 @@ export class ResponseBodyV2DecodedPayloadValidator implements Validator<Response
             return false
         }
         if ((typeof obj['externalPurchaseToken'] !== 'undefined') && !(ResponseBodyV2DecodedPayloadValidator.externalPurchaseTokenValidator.validate(obj['externalPurchaseToken']))) {
+            return false
+        }
+        if ((typeof obj['appData'] !== 'undefined') && !(ResponseBodyV2DecodedPayloadValidator.appDataValidator.validate(obj['appData']))) {
             return false
         }
         return true

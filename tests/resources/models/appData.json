@@ -1,0 +1,6 @@
+{
+  "appAppleId": 987654321,
+  "bundleId": "com.example",
+  "environment": "Sandbox",
+  "signedAppTransactionInfo": "signed-app-transaction-info"
+}

@@ -2,9 +2,11 @@
 
 import { AccountTenure } from "../../models/AccountTenure";
 import { ConsumptionRequest } from "../../models/ConsumptionRequest";
+import { ConsumptionRequestV1 } from "../../models/ConsumptionRequestV1";
 import { UpdateAppAccountTokenRequest } from "../../models/UpdateAppAccountTokenRequest";
 import { ConsumptionStatus } from "../../models/ConsumptionStatus";
 import { DeliveryStatus } from "../../models/DeliveryStatus";
+import { DeliveryStatusV1 } from "../../models/DeliveryStatusV1";
 import { Environment } from "../../models/Environment";
 import { LifetimeDollarsPurchased } from "../../models/LifetimeDollarsPurchased";
 import { LifetimeDollarsRefunded } from "../../models/LifetimeDollarsRefunded";
@@ -17,6 +19,7 @@ import { UserStatus } from "../../models/UserStatus";
 import { readFile } from "../util"
 import { InAppOwnershipType } from "../../models/InAppOwnershipType";
 import { RefundPreference } from "../../models/RefundPreference";
+import { RefundPreferenceV1 } from "../../models/RefundPreferenceV1";
 import { APIError, APIException, AppStoreServerAPIClient, ExtendReasonCode, ExtendRenewalDateRequest, GetTransactionHistoryVersion, MassExtendRenewalDateRequest, NotificationHistoryRequest, NotificationHistoryResponseItem, Order, OrderLookupStatus, ProductType, SendAttemptResult, TransactionHistoryRequest } from "../../index";
 import { Response } from "node-fetch";
 
@@ -443,22 +446,74 @@ describe('The api client ', () => {
             expect(3).toBe(body.refundPreference)
         });
 
-        const consumptionRequest: ConsumptionRequest = {
+        const consumptionRequest: ConsumptionRequestV1 = {
             customerConsented: true,
             consumptionStatus: ConsumptionStatus.NOT_CONSUMED,
             platform: Platform.NON_APPLE,
             sampleContentProvided: false,
-            deliveryStatus: DeliveryStatus.DID_NOT_DELIVER_DUE_TO_SERVER_OUTAGE,
+            deliveryStatus: DeliveryStatusV1.DID_NOT_DELIVER_DUE_TO_SERVER_OUTAGE,
             appAccountToken: "7389a31a-fb6d-4569-a2a6-db7d85d84813",
             accountTenure: AccountTenure.THIRTY_DAYS_TO_NINETY_DAYS,
             playTime: PlayTime.ONE_DAY_TO_FOUR_DAYS,
             lifetimeDollarsRefunded: LifetimeDollarsRefunded.ONE_THOUSAND_DOLLARS_TO_ONE_THOUSAND_NINE_HUNDRED_NINETY_NINE_DOLLARS_AND_NINETY_NINE_CENTS,
             lifetimeDollarsPurchased: LifetimeDollarsPurchased.TWO_THOUSAND_DOLLARS_OR_GREATER,
             userStatus: UserStatus.LIMITED_ACCESS,
-            refundPreference: RefundPreference.NO_PREFERENCE
+            refundPreference: RefundPreferenceV1.NO_PREFERENCE
         }
 
         client.sendConsumptionData("49571273", consumptionRequest);
+    })
+
+    it('calls sendConsumptionInformation with all fields', async () => {
+       const client = getAppStoreServerAPIClient("", 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("PUT").toBe(method)
+            expect("/inApps/v2/transactions/consumption/49571273").toBe(path)
+            expect(parsedQueryParameters.entries.length).toBe(0)
+
+            expect(requestBody).toBeTruthy()
+            expect(typeof requestBody).toBe('string')
+            const body = JSON.parse(requestBody as string)
+            expect(body.customerConsented).toBe(true)
+            expect(50000).toBe(body.consumptionPercentage)
+            expect("DELIVERED").toBe(body.deliveryStatus)
+            expect("GRANT_FULL").toBe(body.refundPreference)
+            expect(body.sampleContentProvided).toBe(false)
+        });
+
+        const consumptionRequest: ConsumptionRequest = {
+            customerConsented: true,
+            consumptionPercentage: 50000,
+            deliveryStatus: DeliveryStatus.DELIVERED,
+            refundPreference: RefundPreference.GRANT_FULL,
+            sampleContentProvided: false
+        }
+
+        client.sendConsumptionInformation("49571273", consumptionRequest);
+    })
+
+    it('calls sendConsumptionInformation with only required fields', async () => {
+       const client = getAppStoreServerAPIClient("", 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("PUT").toBe(method)
+            expect("/inApps/v2/transactions/consumption/49571273").toBe(path)
+            expect(parsedQueryParameters.entries.length).toBe(0)
+
+            expect(requestBody).toBeTruthy()
+            expect(typeof requestBody).toBe('string')
+            const body = JSON.parse(requestBody as string)
+            expect(body.customerConsented).toBe(true)
+            expect("UNDELIVERED_QUALITY_ISSUE").toBe(body.deliveryStatus)
+            expect(body.sampleContentProvided).toBe(true)
+            expect(body.consumptionPercentage).toBeUndefined()
+            expect(body.refundPreference).toBeUndefined()
+        });
+
+        const consumptionRequest: ConsumptionRequest = {
+            customerConsented: true,
+            deliveryStatus: DeliveryStatus.UNDELIVERED_QUALITY_ISSUE,
+            sampleContentProvided: true
+        }
+
+        client.sendConsumptionInformation("49571273", consumptionRequest);
     })
 
     it('calls getTransactionInfo but receives a general internal error', async () => {
