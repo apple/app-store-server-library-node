@@ -1,0 +1,14 @@
+{
+  "requestInfo": {
+    "requestReferenceId": "550e8400-e29b-41d4-a716-446655440009"
+  },
+  "items": [
+    {
+      "currentSKU": "currentSKU",
+      "effective": "IMMEDIATELY",
+      "description": "description",
+      "displayName": "display name",
+      "SKU": "sku"
+    }
+  ]
+}

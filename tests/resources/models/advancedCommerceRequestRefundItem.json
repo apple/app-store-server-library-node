@@ -1,0 +1,7 @@
+{
+  "SKU": "sku",
+  "refundReason": "LEGAL",
+  "refundType": "FULL",
+  "revoke": true,
+  "refundAmount": 5000
+}

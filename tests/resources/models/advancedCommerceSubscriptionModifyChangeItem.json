@@ -1,0 +1,9 @@
+{
+  "currentSKU": "currentSku",
+  "description": "description",
+  "displayName": "displayName",
+  "effective": "IMMEDIATELY",
+  "price": 13000,
+  "reason": "UPGRADE",
+  "SKU": "sku"
+}

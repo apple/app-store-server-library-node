@@ -1,0 +1,5 @@
+{
+  "SKU": "sku",
+  "price": 16000,
+  "dependentSKUs": ["dependentSKU"]
+}
