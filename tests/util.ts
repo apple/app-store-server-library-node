@@ -30,7 +30,7 @@ export function getDefaultSignedPayloadVerifier(): SignedDataVerifier {
 
 export function createSignedDataFromJson(path: string): string {
     const fileContents = readFile(path)
-    const keyPairOptions: ECKeyPairOptions<'pem', 'pem'> = {
+    const keyPairOptions: ECKeyPairOptions = {
         namedCurve: 'prime256v1',
         publicKeyEncoding: {
             type: 'spki',
@@ -42,6 +42,7 @@ export function createSignedDataFromJson(path: string): string {
         }
     }
     const keypair = generateKeyPairSync("ec", keyPairOptions)
-    const privateKey = keypair.privateKey
+    // When PEM encoding was selected, the respective key will be a string, otherwise it will be a buffer containing the data encoded as DER.
+    const privateKey = keypair.privateKey as string
     return jsonwebtoken.sign(fileContents, privateKey, { algorithm: 'ES256'});
 }
