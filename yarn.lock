@@ -2511,9 +2511,9 @@ jsonwebtoken@^9.0.2:
     semver "^7.5.4"
 
 jsrsasign@^11.0.0:
-  version "11.1.1"
-  resolved "https://registry.yarnpkg.com/jsrsasign/-/jsrsasign-11.1.1.tgz#a6a213e52b835fd6292fae9903a165921578fc13"
-  integrity sha512-6w95OOXH8DNeGxakqLndBEqqwQ6A70zGaky1oxfg8WVLWOnghTfJsc5Tknx+Z88MHSb1bGLcqQHImOF8Lk22XA==
+  version "11.1.2"
+  resolved "https://registry.yarnpkg.com/jsrsasign/-/jsrsasign-11.1.2.tgz#38787ee9bd4075d2fdbe9f8e0857d37e1f31b79d"
+  integrity sha512-GJuqiU/Grs6BaBBXMAZM9kxhsBrksZE0pF3qIfpkopMd7OMJ9zZmE/+CpV//97srfEyyyq1Ec0ELQtSlW/gPTA==
 
 jwa@^2.0.1:
   version "2.0.1"
