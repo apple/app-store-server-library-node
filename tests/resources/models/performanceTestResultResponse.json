@@ -1,0 +1,24 @@
+{
+  "config": {
+    "maxConcurrentRequests": 10,
+    "totalRequests": 100,
+    "totalDuration": 60000,
+    "responseTimeThreshold": 500,
+    "successRateThreshold": 95
+  },
+  "target": "https://example.com/retention",
+  "result": "PASS",
+  "successRate": 98,
+  "numPending": 0,
+  "responseTimes": {
+    "average": 120,
+    "p50": 100,
+    "p90": 200,
+    "p95": 250,
+    "p99": 400
+  },
+  "failures": {
+    "TIMED_OUT": 1,
+    "NO_RESPONSE": 1
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "config": {
+    "maxConcurrentRequests": 10,
+    "totalRequests": 100,
+    "totalDuration": 60000,
+    "responseTimeThreshold": 500,
+    "successRateThreshold": 95
+  },
+  "requestId": "c4b87a1d-2e3f-4a5b-9c6d-7e8f9a0b1c2d"
+}
