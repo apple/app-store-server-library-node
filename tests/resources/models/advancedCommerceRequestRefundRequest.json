@@ -1,0 +1,22 @@
+{
+  "items": [
+    {
+      "SKU": "sku",
+      "refundReason": "LEGAL",
+      "refundType": "FULL",
+      "revoke": true
+    },
+    {
+      "SKU": "sku",
+      "refundReason": "OTHER",
+      "refundType": "PRORATED",
+      "revoke": false
+    }
+  ],
+  "refundRiskingPreference": true,
+  "requestInfo": {
+    "requestReferenceId": "550e8400-e29b-41d4-a716-446655440002"
+  },
+  "currency": "USD",
+  "storefront": "USA"
+}

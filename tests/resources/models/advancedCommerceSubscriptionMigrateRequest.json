@@ -1,0 +1,18 @@
+{
+  "requestInfo": {
+    "requestReferenceId": "550e8400-e29b-41d4-a716-446655440006"
+  },
+  "descriptors": {
+    "description": "description",
+    "displayName": "display name"
+  },
+  "items": [
+    {
+      "SKU": "sku",
+      "description": "description",
+      "displayName": "display name"
+    }
+  ],
+  "targetProductId": "targetProductId",
+  "taxCode": "taxCode"
+}
