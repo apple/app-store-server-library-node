@@ -1,5 +1,7 @@
 // Copyright (c) 2025 Apple Inc. Licensed under MIT License.
 
+import { BulletPoint } from "./BulletPoint"
+import { HeaderPosition } from "./HeaderPosition"
 import { UploadMessageImage } from "./UploadMessageImage"
 
 /**
@@ -33,4 +35,18 @@ export interface UploadMessageRequestBody {
      * {@link https://developer.apple.com/documentation/retentionmessaging/uploadmessageimage UploadMessageImage}
      **/
     image?: UploadMessageImage
+
+    /**
+     * The position of header text, which defaults to placing header text above the body.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/headerposition headerPosition}
+     **/
+    headerPosition?: HeaderPosition | string
+
+    /**
+     * An optional array of bullet points.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/bulletpoint BulletPoint}
+     **/
+    bulletPoints?: BulletPoint[]
 }

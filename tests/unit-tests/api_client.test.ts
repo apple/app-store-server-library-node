@@ -750,6 +750,7 @@ describe('The api client ', () => {
         expect(response.imageIdentifiers?.length).toBe(1)
         expect(response.imageIdentifiers?.[0].imageIdentifier).toBe("a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890")
         expect(response.imageIdentifiers?.[0].imageState).toBe("APPROVED")
+        expect(response.imageIdentifiers?.[0].imageSize).toBe("FULL_SIZE")
     })
 
     it('calls uploadMessage', async () => {
@@ -855,6 +856,170 @@ describe('The api client ', () => {
         });
 
         await client.deleteDefaultMessage("com.example.product", "en-US")
+    })
+
+    it('calls getDefaultMessage', async () => {
+        const client = getClientWithBody("tests/resources/models/getDefaultMessageResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("GET").toBe(method)
+            expect("/inApps/v1/messaging/default/com.example.product/en-US").toBe(path)
+            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect(requestBody).toBeUndefined()
+        });
+
+        const response = await client.getDefaultMessage("com.example.product", "en-US")
+
+        expect(response).toBeTruthy()
+        expect(response.messageIdentifier).toBe("a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890")
+    })
+
+    it('calls uploadImage with imageSize', async () => {
+        const client = getAppStoreServerAPIClient("", 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("PUT").toBe(method)
+            expect("/inApps/v1/messaging/image/a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890").toBe(path)
+            expect(parsedQueryParameters.get("imageSize")).toBe("FULL_SIZE")
+            expect(requestBody).toBeTruthy()
+            expect(requestBody).toBeInstanceOf(Buffer)
+            expect(Buffer.from([1, 2, 3])).toEqual(requestBody)
+        });
+
+        await client.uploadImage("a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890", Buffer.from([1, 2, 3]), "FULL_SIZE")
+    })
+
+    it('calls configureRealtimeURL', async () => {
+        const client = getAppStoreServerAPIClient("", 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("PUT").toBe(method)
+            expect("/inApps/v1/messaging/realtime/url").toBe(path)
+            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect(requestBody).toBeTruthy()
+            expect(typeof requestBody).toBe('string')
+
+            const body = JSON.parse(requestBody as string)
+            expect("https://example.com/realtime").toBe(body.realtimeURL)
+        });
+
+        await client.configureRealtimeURL({ realtimeURL: "https://example.com/realtime" })
+    })
+
+    it('calls deleteRealtimeURL', async () => {
+        const client = getAppStoreServerAPIClient("", 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("DELETE").toBe(method)
+            expect("/inApps/v1/messaging/realtime/url").toBe(path)
+            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect(requestBody).toBeUndefined()
+        });
+
+        await client.deleteRealtimeURL()
+    })
+
+    it('calls getRealtimeURL', async () => {
+        const client = getClientWithBody("tests/resources/models/getRealtimeUrlResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("GET").toBe(method)
+            expect("/inApps/v1/messaging/realtime/url").toBe(path)
+            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect(requestBody).toBeUndefined()
+        });
+
+        const response = await client.getRealtimeURL()
+
+        expect(response).toBeTruthy()
+        expect(response.realtimeURL).toBe("https://example.com/realtime")
+    })
+
+    it('calls uploadMessage with bullet points', async () => {
+        const client = getAppStoreServerAPIClient("", 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("PUT").toBe(method)
+            expect("/inApps/v1/messaging/message/a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890").toBe(path)
+            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect(requestBody).toBeTruthy()
+            expect(typeof requestBody).toBe('string')
+
+            const body = JSON.parse(requestBody as string)
+            expect("Header text").toBe(body.header)
+            expect("Body text").toBe(body.body)
+            expect("ABOVE_IMAGE").toBe(body.headerPosition)
+            expect(body.image).toBeDefined()
+            expect("b2c3d4e5-f6a7-8901-b2c3-d4e5f6a78901").toBe(body.image.imageIdentifier)
+            expect("Alt text").toBe(body.image.altText)
+            expect(body.bulletPoints).toBeDefined()
+            expect(body.bulletPoints.length).toBe(1)
+            expect("Bullet text").toBe(body.bulletPoints[0].text)
+            expect("c3d4e5f6-a7b8-9012-c3d4-e5f6a7b89012").toBe(body.bulletPoints[0].imageIdentifier)
+            expect("Bullet alt text").toBe(body.bulletPoints[0].altText)
+        });
+
+        const uploadMessageRequestBody = {
+            header: "Header text",
+            body: "Body text",
+            headerPosition: "ABOVE_IMAGE",
+            image: {
+                imageIdentifier: "b2c3d4e5-f6a7-8901-b2c3-d4e5f6a78901",
+                altText: "Alt text"
+            },
+            bulletPoints: [
+                {
+                    text: "Bullet text",
+                    imageIdentifier: "c3d4e5f6-a7b8-9012-c3d4-e5f6a7b89012",
+                    altText: "Bullet alt text"
+                }
+            ]
+        }
+        await client.uploadMessage("a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890", uploadMessageRequestBody)
+    })
+
+    it('calls initiatePerformanceTest', async () => {
+        const client = getClientWithBody("tests/resources/models/performanceTestResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("POST").toBe(method)
+            expect("/inApps/v1/messaging/performanceTest").toBe(path)
+            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect(requestBody).toBeTruthy()
+            expect(typeof requestBody).toBe('string')
+
+            const body = JSON.parse(requestBody as string)
+            expect("70000500092808").toBe(body.originalTransactionId)
+        });
+
+        const response = await client.initiatePerformanceTest({ originalTransactionId: "70000500092808" })
+
+        expect(response).toBeTruthy()
+        expect(response.requestId).toBe("c4b87a1d-2e3f-4a5b-9c6d-7e8f9a0b1c2d")
+        expect(response.config).toBeTruthy()
+        expect(response.config.maxConcurrentRequests).toBe(10)
+        expect(response.config.totalRequests).toBe(100)
+        expect(response.config.totalDuration).toBe(60000)
+        expect(response.config.responseTimeThreshold).toBe(500)
+        expect(response.config.successRateThreshold).toBe(95)
+    })
+
+    it('calls getPerformanceTestResults', async () => {
+        const client = getClientWithBody("tests/resources/models/performanceTestResultResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("GET").toBe(method)
+            expect("/inApps/v1/messaging/performanceTest/result/c4b87a1d-2e3f-4a5b-9c6d-7e8f9a0b1c2d").toBe(path)
+            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect(requestBody).toBeUndefined()
+        });
+
+        const response = await client.getPerformanceTestResults("c4b87a1d-2e3f-4a5b-9c6d-7e8f9a0b1c2d")
+
+        expect(response).toBeTruthy()
+        expect(response.config).toBeTruthy()
+        expect(response.config.maxConcurrentRequests).toBe(10)
+        expect(response.config.totalRequests).toBe(100)
+        expect(response.config.totalDuration).toBe(60000)
+        expect(response.config.responseTimeThreshold).toBe(500)
+        expect(response.config.successRateThreshold).toBe(95)
+        expect(response.target).toBe("https://example.com/retention")
+        expect(response.result).toBe("PASS")
+        expect(response.successRate).toBe(98)
+        expect(response.numPending).toBe(0)
+        expect(response.responseTimes).toBeTruthy()
+        expect(response.responseTimes.average).toBe(120)
+        expect(response.responseTimes.p50).toBe(100)
+        expect(response.responseTimes.p90).toBe(200)
+        expect(response.responseTimes.p95).toBe(250)
+        expect(response.responseTimes.p99).toBe(400)
+        expect(response.failures).toBeTruthy()
+        expect(response.failures["TIMED_OUT"]).toBe(1)
+        expect(response.failures["NO_RESPONSE"]).toBe(1)
     })
 
     it('calls getAppTransactionInfo', async () => {

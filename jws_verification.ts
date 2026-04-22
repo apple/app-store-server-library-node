@@ -401,7 +401,7 @@ export class SignedDataVerifier {
         const issueDate = this.parseX509Date(singleResponse.thisupdate)
         const nextDate = this.parseX509Date(singleResponse.nextupdate)
         
-        if (singleResponse.status.status !== 'good' || new Date().getTime() - MAX_SKEW < issueDate.getTime() || nextDate.getTime() < new Date().getTime() + MAX_SKEW) {
+        if (singleResponse.status.status !== 'good' || new Date().getTime() + MAX_SKEW < issueDate.getTime() || nextDate.getTime() < new Date().getTime() - MAX_SKEW) {
           throw new VerificationException(VerificationStatus.FAILURE)
         }
         // Success

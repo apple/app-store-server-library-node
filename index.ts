@@ -6,6 +6,7 @@ import { ConsumptionRequest } from './models/ConsumptionRequest';
 import { ConsumptionRequestV1 } from './models/ConsumptionRequestV1';
 import { UpdateAppAccountTokenRequest } from './models/UpdateAppAccountTokenRequest'
 import { DefaultConfigurationRequest } from './models/DefaultConfigurationRequest';
+import { DefaultConfigurationResponse, DefaultConfigurationResponseValidator } from './models/DefaultConfigurationResponse';
 import { Environment } from './models/Environment';
 import { ExtendRenewalDateRequest } from './models/ExtendRenewalDateRequest';
 import { ExtendRenewalDateResponse, ExtendRenewalDateResponseValidator } from './models/ExtendRenewalDateResponse';
@@ -21,7 +22,12 @@ import { SendTestNotificationResponse, SendTestNotificationResponseValidator } f
 import { StatusResponse, StatusResponseValidator } from './models/StatusResponse';
 import { TransactionHistoryRequest } from './models/TransactionHistoryRequest';
 import { TransactionInfoResponse, TransactionInfoResponseValidator } from './models/TransactionInfoResponse';
+import { PerformanceTestRequest } from './models/PerformanceTestRequest';
+import { PerformanceTestResponse, PerformanceTestResponseValidator } from './models/PerformanceTestResponse';
+import { PerformanceTestResultResponse, PerformanceTestResultResponseValidator } from './models/PerformanceTestResultResponse';
 import { UploadMessageRequestBody } from './models/UploadMessageRequestBody';
+import { RealtimeUrlRequest } from './models/RealtimeUrlRequest';
+import { RealtimeUrlResponse, RealtimeUrlResponseValidator } from './models/RealtimeUrlResponse';
 import { Validator } from './models/Validator';
 import { Status } from './models/Status';
 export { SignedDataVerifier, VerificationException, VerificationStatus } from './jws_verification'
@@ -32,6 +38,7 @@ export { AlternateProduct } from './models/AlternateProduct'
 export { AppData } from './models/AppData'
 export { AppTransactionInfoResponse } from './models/AppTransactionInfoResponse';
 export { AutoRenewStatus } from './models/AutoRenewStatus'
+export { BulletPoint } from './models/BulletPoint'
 export { CheckTestNotificationResponse } from './models/CheckTestNotificationResponse'
 export { ConsumptionRequest } from './models/ConsumptionRequest'
 export { ConsumptionRequestV1 } from './models/ConsumptionRequestV1'
@@ -40,6 +47,7 @@ export { ConsumptionStatus } from './models/ConsumptionStatus'
 export { Data } from './models/Data'
 export { DecodedRealtimeRequestBody } from './models/DecodedRealtimeRequestBody'
 export { DefaultConfigurationRequest } from './models/DefaultConfigurationRequest'
+export { DefaultConfigurationResponse } from './models/DefaultConfigurationResponse'
 export { DeliveryStatus } from './models/DeliveryStatus'
 export { DeliveryStatusV1 } from './models/DeliveryStatusV1'
 export { Environment } from './models/Environment'
@@ -51,10 +59,12 @@ export { GetImageListResponse } from './models/GetImageListResponse'
 export { GetImageListResponseItem } from './models/GetImageListResponseItem'
 export { GetMessageListResponse } from './models/GetMessageListResponse'
 export { GetMessageListResponseItem } from './models/GetMessageListResponseItem'
+export { HeaderPosition } from './models/HeaderPosition'
 export { SendAttemptResult } from './models/SendAttemptResult'
 export { SendAttemptItem } from './models/SendAttemptItem'
 export { HistoryResponse } from './models/HistoryResponse'
 export { ImageState } from './models/ImageState'
+export { ImageSize } from './models/ImageSize'
 export { InAppOwnershipType } from './models/InAppOwnershipType'
 export { JWSRenewalInfoDecodedPayload } from './models/JWSRenewalInfoDecodedPayload'
 export { JWSTransactionDecodedPayload } from './models/JWSTransactionDecodedPayload'
@@ -74,6 +84,12 @@ export { OfferType } from './models/OfferType'
 export { OfferDiscountType } from './models/OfferDiscountType'
 export { OrderLookupResponse } from './models/OrderLookupResponse'
 export { OrderLookupStatus } from './models/OrderLookupStatus'
+export { PerformanceTestConfig } from './models/PerformanceTestConfig'
+export { PerformanceTestRequest } from './models/PerformanceTestRequest'
+export { PerformanceTestResponse } from './models/PerformanceTestResponse'
+export { PerformanceTestResponseTimes } from './models/PerformanceTestResponseTimes'
+export { PerformanceTestResultResponse } from './models/PerformanceTestResultResponse'
+export { PerformanceTestStatus } from './models/PerformanceTestStatus'
 export { Platform } from './models/Platform'
 export { PlayTime } from './models/PlayTime'
 export { PriceIncreaseStatus } from './models/PriceIncreaseStatus'
@@ -82,6 +98,8 @@ export { PromotionalOfferSignatureV1 } from './models/PromotionalOfferSignatureV
 export { PurchasePlatform } from './models/PurchasePlatform'
 export { RealtimeRequestBody } from './models/RealtimeRequestBody'
 export { RealtimeResponseBody } from './models/RealtimeResponseBody'
+export { RealtimeUrlRequest } from './models/RealtimeUrlRequest'
+export { RealtimeUrlResponse } from './models/RealtimeUrlResponse'
 export { RefundHistoryResponse } from './models/RefundHistoryResponse'
 export { RefundPreference } from './models/RefundPreference'
 export { RefundPreferenceV1 } from './models/RefundPreferenceV1'
@@ -165,7 +183,7 @@ export class AppStoreServerAPIClient {
     private static PRODUCTION_URL = "https://api.storekit.itunes.apple.com";
     private static SANDBOX_URL = "https://api.storekit-sandbox.itunes.apple.com";
     private static LOCAL_TESTING_URL = "https://local-testing-base-url";
-    private static USER_AGENT = "app-store-server-library/node/2.0.0";
+    private static USER_AGENT = "app-store-server-library/node/3.0.0";
 
     private issuerId: string
     private keyId: string
@@ -490,11 +508,16 @@ export class AppStoreServerAPIClient {
      *
      * @param imageIdentifier A UUID you provide to uniquely identify the image you upload. Must be lowercase.
      * @param image The image file to upload.
+     * @param imageSize The size of the image you upload.
      * @throws APIException If a response was returned indicating the request could not be processed
      * {@link https://developer.apple.com/documentation/retentionmessaging/upload-image Upload Image}
      */
-    public async uploadImage(imageIdentifier: string, image: Buffer): Promise<void> {
-        await this.makeRequest("/inApps/v1/messaging/image/" + imageIdentifier, "PUT", {}, image, null, 'image/png');
+    public async uploadImage(imageIdentifier: string, image: Buffer, imageSize?: string): Promise<void> {
+        const queryParameters: { [key: string]: string[]} = {}
+        if (imageSize != null) {
+            queryParameters["imageSize"] = [imageSize]
+        }
+        await this.makeRequest("/inApps/v1/messaging/image/" + imageIdentifier, "PUT", queryParameters, image, null, 'image/png');
     }
 
     /**
@@ -576,6 +599,75 @@ export class AppStoreServerAPIClient {
      */
     public async deleteDefaultMessage(productId: string, locale: string): Promise<void> {
         await this.makeRequest("/inApps/v1/messaging/default/" + productId + "/" + locale, "DELETE", {}, null, null, undefined);
+    }
+
+    /**
+     * Gets the default message for a specific product in a specific locale, if it’s configured.
+     *
+     * @param productId The product identifier of the message.
+     * @param locale The locale of the message.
+     * @return The response body that contains the default configuration information.
+     * @throws APIException If a response was returned indicating the request could not be processed
+     * {@link https://developer.apple.com/documentation/retentionmessaging/get-default-message Get Default Message}
+     */
+    public async getDefaultMessage(productId: string, locale: string): Promise<DefaultConfigurationResponse> {
+        return await this.makeRequest("/inApps/v1/messaging/default/" + productId + "/" + locale, "GET", {}, null, new DefaultConfigurationResponseValidator(), undefined);
+    }
+
+    /**
+     * Configures the URL for your Get Retention Message endpoint in the sandbox and production environments.
+     *
+     * @param realtimeUrlRequest The request body that includes your endpoint’s URL.
+     * @throws APIException If a response was returned indicating the request could not be processed
+     * {@link https://developer.apple.com/documentation/retentionmessaging/configure-realtime-url Configure Realtime URL}
+     */
+    public async configureRealtimeURL(realtimeUrlRequest: RealtimeUrlRequest): Promise<void> {
+        await this.makeRequest("/inApps/v1/messaging/realtime/url", "PUT", {}, realtimeUrlRequest, null, 'application/json');
+    }
+
+    /**
+     * Deletes the URL for your Get Retention Message endpoint, in the sandbox or production environments.
+     *
+     * @throws APIException If a response was returned indicating the request could not be processed
+     * {@link https://developer.apple.com/documentation/retentionmessaging/delete-realtime-url Delete Realtime URL}
+     */
+    public async deleteRealtimeURL(): Promise<void> {
+        await this.makeRequest("/inApps/v1/messaging/realtime/url", "DELETE", {}, null, null, undefined);
+    }
+
+    /**
+     * Gets the URL for real-time messages that points to your Get Retention Message endpoint, which you previously configured.
+     *
+     * @return The response body that contains the URL for your Get Retention Message endpoint.
+     * @throws APIException If a response was returned indicating the request could not be processed
+     * {@link https://developer.apple.com/documentation/retentionmessaging/get-realtime-url Get Realtime URL}
+     */
+    public async getRealtimeURL(): Promise<RealtimeUrlResponse> {
+        return await this.makeRequest("/inApps/v1/messaging/realtime/url", "GET", {}, null, new RealtimeUrlResponseValidator(), undefined);
+    }
+
+    /**
+     * Initiates a performance test of your Get Retention Message endpoint in the sandbox environment.
+     *
+     * @param performanceTestRequest The request body which specifies a transaction identifier of an In-App Purchase to use for this test.
+     * @return The performance test response object.
+     * @throws APIException If a response was returned indicating the request could not be processed
+     * {@link https://developer.apple.com/documentation/retentionmessaging/initiate-performance-test Initiate Performance Test}
+     */
+    public async initiatePerformanceTest(performanceTestRequest: PerformanceTestRequest): Promise<PerformanceTestResponse> {
+        return await this.makeRequest("/inApps/v1/messaging/performanceTest", "POST", {}, performanceTestRequest, new PerformanceTestResponseValidator(), 'application/json');
+    }
+
+    /**
+     * Gets the results of the performance test for the specified identifier.
+     *
+     * @param requestId The ID of the performance test to return, which you receive in the PerformanceTestResponse when you call Initiate Performance Test.
+     * @return An object the API returns that describes the performance test results.
+     * @throws APIException If a response was returned indicating the request could not be processed
+     * {@link https://developer.apple.com/documentation/retentionmessaging/get-performance-test-results Get Performance Test Results}
+     */
+    public async getPerformanceTestResults(requestId: string): Promise<PerformanceTestResultResponse> {
+        return await this.makeRequest("/inApps/v1/messaging/performanceTest/result/" + requestId, "GET", {}, null, new PerformanceTestResultResponseValidator(), undefined);
     }
 
     /**
@@ -966,6 +1058,62 @@ export enum APIError {
     TRANSACTION_ID_IS_NOT_ORIGINAL_TRANSACTION_ID_ERROR = 4000187,
 
     /**
+     * An error the API returns that indicates the performance test request is invalid.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/invalidperformancetestrequesterror InvalidPerformanceTestRequestError}
+     */
+    INVALID_PERFORMANCE_TEST_REQUEST = 4000211,
+
+    /**
+     * An error that indicates the request ID is invalid.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/invalidrequestiderror InvalidRequestIdError}
+     */
+    INVALID_REQUEST_ID = 4000212,
+
+    /**
+     * An error that indicates an error with an existing test.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/existingperformancetestrunerror ExistingPerformanceTestRunError}
+     */
+    EXISTING_PERFORMANCE_TEST_RUN = 4000213,
+
+    /**
+     * An error that indicates the URL is invalid.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/badrequestreaaltimeurlerror BadRequestRealtimeUrlError}
+     */
+    BAD_REQUEST_REALTIME_URL = 4000215,
+
+    /**
+     * An error that indicates the image size provided is invalid.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/badrequestimagesizeerror BadRequestImageSizeError}
+     */
+    BAD_REQUEST_IMAGE_SIZE = 4000216,
+
+    /**
+     * An error that indicates there are too many bullet points.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/badrequesttoomanybulletpointserror BadRequestTooManyBulletPointsError}
+     */
+    BAD_REQUEST_TOO_MANY_BULLET_POINTS = 4000218,
+
+    /**
+     * An error that indicates the text for a bullet point is too long.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/badrequestbulletpointtexttoolongerror BadRequestBulletPointTextTooLongError}
+     */
+    BAD_REQUEST_BULLET_POINT_TEXT_TOO_LONG = 4000219,
+
+    /**
+     * An error that indicates that no image object is included, but the request indicates that the header should be placed above the image.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/badrequestaboveimageerequiresanimageerror BadRequestAboveImageRequiresAnImageError}
+     */
+    BAD_REQUEST_ABOVE_IMAGE_REQUIRES_AN_IMAGE = 4000224,
+
+    /**
      * An error that indicates the subscription doesn't qualify for a renewal-date extension due to its subscription state.
      * 
      * {@link https://developer.apple.com/documentation/appstoreserverapi/subscriptionextensionineligibleerror SubscriptionExtensionIneligibleError}
@@ -1020,6 +1168,13 @@ export enum APIError {
      * {@link https://developer.apple.com/documentation/retentionmessaging/imageinuseerror ImageInUseError}
      */
     IMAGE_IN_USE = 4030019,
+
+    /**
+     * An error that indicates that passing a performance test is required before you can set a URL for the production environment.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/forbiddennopassingtesterror ForbiddenNoPassingTestError}
+     */
+    FORBIDDEN_NO_PASSING_TEST = 4030026,
 
     /**
      * An error that indicates the App Store account wasn't found.
@@ -1106,11 +1261,32 @@ export enum APIError {
     MESSAGE_NOT_FOUND = 4040015,
 
     /**
+     * An error the API returns if the service can’t find the specified test run.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/performancetestrunnotfounderror PerformanceTestRunNotFoundError}
+     */
+    PERFORMANCE_TEST_RUN_NOT_FOUND = 4040018,
+
+    /**
      * An error response that indicates an app transaction doesn’t exist for the specified customer.
      * 
      * {@link https://developer.apple.com/documentation/appstoreserverapi/apptransactiondoesnotexisterror AppTransactionDoesNotExistError}
      */
     APP_TRANSACTION_DOES_NOT_EXIST_ERROR = 4040019,
+
+    /**
+     * An error that indicates a default message isn’t configured.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/defaultmessagenotfounderror DefaultMessageNotFoundError}
+     */
+    DEFAULT_MESSAGE_NOT_FOUND = 4040020,
+
+    /**
+     * An error that indicates that the URL for your endpoint isn’t configured.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/realtimeurlnotfounderror RealtimeUrlNotFoundError}
+     */
+    REALTIME_URL_NOT_FOUND = 4040021,
 
     /**
      * An error that indicates the image identifier already exists.
