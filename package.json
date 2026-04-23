@@ -12,12 +12,12 @@
   "types": "dist/index.d.ts",
   "dependencies": {
     "@types/jsonwebtoken": "^9.0.5",
-    "@types/jsrsasign": "^10.5.12",
+    "@types/jsrsasign": "^10.5.15",
     "@types/node": "^25.4.0",
     "@types/node-fetch": "^2.6.13",
     "base64url": "^3.0.1",
     "jsonwebtoken": "^9.0.2",
-    "jsrsasign": "^11.0.0",
+    "jsrsasign": "^11.1.1",
     "node-fetch": "^2.7.0"
   },
   "devDependencies": {
