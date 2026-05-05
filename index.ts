@@ -194,7 +194,7 @@ export class AppStoreServerAPIClient {
     private static PRODUCTION_URL = "https://api.storekit.apple.com";
     private static SANDBOX_URL = "https://api.storekit-sandbox.apple.com";
     private static LOCAL_TESTING_URL = "https://local-testing-base-url";
-    private static USER_AGENT = "app-store-server-library/node/3.0.0";
+    private static USER_AGENT = "app-store-server-library/node/3.1.0";
 
     private issuerId: string
     private keyId: string
