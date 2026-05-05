@@ -191,8 +191,8 @@ import { NotificationHistoryResponse, NotificationHistoryResponseValidator } fro
 import { URLSearchParams } from 'url';
 
 export class AppStoreServerAPIClient {
-    private static PRODUCTION_URL = "https://api.storekit.itunes.apple.com";
-    private static SANDBOX_URL = "https://api.storekit-sandbox.itunes.apple.com";
+    private static PRODUCTION_URL = "https://api.storekit.apple.com";
+    private static SANDBOX_URL = "https://api.storekit-sandbox.apple.com";
     private static LOCAL_TESTING_URL = "https://local-testing-base-url";
     private static USER_AGENT = "app-store-server-library/node/3.0.0";
 
