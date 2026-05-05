@@ -1092,4 +1092,15 @@ describe('The api client ', () => {
              expect(error.errorMessage).toBe("Transaction id not found.")
           }
       })
+
+    it('calls finishTransaction', async () => {
+        const client = getAppStoreServerAPIClient("", 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("POST").toBe(method)
+            expect("/inApps/v1/transactions/1234/finish").toBe(path)
+            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect(requestBody).toBeUndefined()
+        });
+
+        await client.finishTransaction("1234");
+    })
 })
