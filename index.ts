@@ -325,37 +325,37 @@ export class AppStoreServerAPIClient {
     /**
      * Get the statuses for all of a customer’s auto-renewable subscriptions in your app.
      *
-     * @param transactionId The identifier of a transaction that belongs to the customer, and which may be an original transaction identifier.
+     * @param anyTransactionId Any transactionId, originalTransactionId, or appTransactionId that belongs to the customer for your app.
      * @param status An optional filter that indicates the status of subscriptions to include in the response. Your query may specify more than one status query parameter.
      * @return A response that contains status information for all of a customer’s auto-renewable subscriptions in your app.
      * @throws APIException If a response was returned indicating the request could not be processed
      * {@link https://developer.apple.com/documentation/appstoreserverapi/get_all_subscription_statuses Get All Subscription Statuses}
      */
-    public async getAllSubscriptionStatuses(transactionId: string, status: Status[] | undefined = undefined): Promise<StatusResponse> {
+    public async getAllSubscriptionStatuses(anyTransactionId: string, status: Status[] | undefined = undefined): Promise<StatusResponse> {
         const queryParameters: { [key: string]: [string]} = {}
         if (status != null) {
             queryParameters["status"] = status.map(s => s.toString()) as [string];
         }
 
-        return await this.makeRequest("/inApps/v1/subscriptions/" + transactionId, "GET", queryParameters, null, new StatusResponseValidator(), undefined);
+        return await this.makeRequest("/inApps/v1/subscriptions/" + anyTransactionId, "GET", queryParameters, null, new StatusResponseValidator(), undefined);
     }
 
     /**
      * Get a paginated list of all of a customer’s refunded in-app purchases for your app.
      *
-     * @param transactionId The identifier of a transaction that belongs to the customer, and which may be an original transaction identifier.
+     * @param anyTransactionId Any transactionId, originalTransactionId, or appTransactionId that belongs to the customer for your app.
      * @param revision              A token you provide to get the next set of up to 20 transactions. All responses include a revision token. Use the revision token from the previous RefundHistoryResponse.
      * @return A response that contains status information for all of a customer’s auto-renewable subscriptions in your app.
      * @throws APIException If a response was returned indicating the request could not be processed
      * {@link https://developer.apple.com/documentation/appstoreserverapi/get_refund_history Get Refund History}
      */
-    public async getRefundHistory(transactionId: string, revision: string | null): Promise<RefundHistoryResponse> {
+    public async getRefundHistory(anyTransactionId: string, revision: string | null): Promise<RefundHistoryResponse> {
         const queryParameters: { [key: string]: [string]} = {}
         if (revision !== null) {
             queryParameters["revision"] = [revision];
         }
 
-        return await this.makeRequest("/inApps/v2/refund/lookup/" + transactionId, "GET", queryParameters, null, new RefundHistoryResponseValidator(), undefined);
+        return await this.makeRequest("/inApps/v2/refund/lookup/" + anyTransactionId, "GET", queryParameters, null, new RefundHistoryResponseValidator(), undefined);
     }
 
     /**
@@ -403,14 +403,14 @@ export class AppStoreServerAPIClient {
     /**
      * Get a customer’s in-app purchase transaction history for your app.
      *
-     * @param transactionId The identifier of a transaction that belongs to the customer, and which may be an original transaction identifier.
+     * @param anyTransactionId Any transactionId, originalTransactionId, or appTransactionId that belongs to the customer for your app.
      * @param revision              A token you provide to get the next set of up to 20 transactions. All responses include a revision token. Note: For requests that use the revision token, include the same query parameters from the initial request. Use the revision token from the previous HistoryResponse.
      * @param version The version of the Get Transaction History endpoint to use. V2 is recommended.
      * @return A response that contains the customer’s transaction history for an app.
      * @throws APIException If a response was returned indicating the request could not be processed
      * {@link https://developer.apple.com/documentation/appstoreserverapi/get_transaction_history Get Transaction History}
      */
-    public async getTransactionHistory(transactionId: string, revision: string | null, transactionHistoryRequest: TransactionHistoryRequest, version: GetTransactionHistoryVersion = GetTransactionHistoryVersion.V1): Promise<HistoryResponse> {
+    public async getTransactionHistory(anyTransactionId: string, revision: string | null, transactionHistoryRequest: TransactionHistoryRequest, version: GetTransactionHistoryVersion = GetTransactionHistoryVersion.V1): Promise<HistoryResponse> {
         const queryParameters: { [key: string]: string[]} = {}
         if (revision != null) {
             queryParameters["revision"] = [revision];
@@ -439,7 +439,7 @@ export class AppStoreServerAPIClient {
         if (transactionHistoryRequest.revoked !== undefined) {
             queryParameters["revoked"] = [transactionHistoryRequest.revoked.toString()];
         }
-        return await this.makeRequest("/inApps/" + version + "/history/" + transactionId, "GET", queryParameters, null, new HistoryResponseValidator(), undefined);
+        return await this.makeRequest("/inApps/" + version + "/history/" + anyTransactionId, "GET", queryParameters, null, new HistoryResponseValidator(), undefined);
     }
 
     /**
@@ -684,14 +684,25 @@ export class AppStoreServerAPIClient {
     /**
       * Get a customer's app transaction information for your app.
       *
-      * @param transactionId Any originalTransactionId, transactionId or appTransactionId that belongs to the customer for your app.
+      * @param anyTransactionId Any transactionId, originalTransactionId, or appTransactionId that belongs to the customer for your app.
       * @return A response that contains signed app transaction information for a customer.
       * @throws APIException If a response was returned indicating the request could not be processed
       * {@link https://developer.apple.com/documentation/appstoreserverapi/get-app-transaction-info Get App Transaction Info}
       */
-     public async getAppTransactionInfo(transactionId: string): Promise<AppTransactionInfoResponse> {
-         return await this.makeRequest("/inApps/v1/transactions/appTransactions/" + transactionId, "GET", {}, null, new AppTransactionInfoResponseValidator(), undefined);
+     public async getAppTransactionInfo(anyTransactionId: string): Promise<AppTransactionInfoResponse> {
+         return await this.makeRequest("/inApps/v1/transactions/appTransactions/" + anyTransactionId, "GET", {}, null, new AppTransactionInfoResponseValidator(), undefined);
      }
+
+    /**
+     * Notifies the App Store server that your system has finished processing the customer's transaction.
+     *
+     * @param transactionId The transaction identifier of the transaction to mark as finished.
+     * @throws APIException If a response was returned indicating the request could not be processed
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/finish-transaction Finish Transaction}
+     */
+    public async finishTransaction(transactionId: string): Promise<void> {
+        await this.makeRequest("/inApps/v1/transactions/" + transactionId + "/finish", "POST", {}, null, null, undefined);
+    }
 
     private createBearerToken(): string {
         const payload = {
