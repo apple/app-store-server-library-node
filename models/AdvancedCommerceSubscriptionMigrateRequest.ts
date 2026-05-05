@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Apple Inc. Licensed under MIT License.
 
-import { AdvancedCommerceValidationUtils } from '../advanced_commerce_validation_utils'
+import { HelperValidationUtils } from '../helper_validation_utils'
 import { AdvancedCommerceRequest } from './AdvancedCommerceRequest'
 import { AdvancedCommerceRequestInfoValidator } from './AdvancedCommerceRequestInfo'
 import { AdvancedCommerceSubscriptionMigrateDescriptors, AdvancedCommerceSubscriptionMigrateDescriptorsValidator } from './AdvancedCommerceSubscriptionMigrateDescriptors'
@@ -64,7 +64,7 @@ export class AdvancedCommerceSubscriptionMigrateRequestValidator implements Vali
         if (!(AdvancedCommerceSubscriptionMigrateRequestValidator.descriptorsValidator.validate(obj['descriptors']))) {
             return false
         }
-        if (!AdvancedCommerceValidationUtils.validateItems(obj['items'])) {
+        if (!HelperValidationUtils.validateItems(obj['items'])) {
             return false
         }
         for (const item of obj['items']) {
@@ -73,7 +73,7 @@ export class AdvancedCommerceSubscriptionMigrateRequestValidator implements Vali
             }
         }
         if (typeof obj['renewalItems'] !== 'undefined') {
-            if (!AdvancedCommerceValidationUtils.validateItems(obj['renewalItems'])) {
+            if (!HelperValidationUtils.validateItems(obj['renewalItems'])) {
                 return false
             }
             for (const item of obj['renewalItems']) {

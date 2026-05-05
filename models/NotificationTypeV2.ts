@@ -28,6 +28,9 @@ export enum NotificationTypeV2 {
     EXTERNAL_PURCHASE_TOKEN = "EXTERNAL_PURCHASE_TOKEN",
     ONE_TIME_CHARGE = "ONE_TIME_CHARGE",
     RESCIND_CONSENT = "RESCIND_CONSENT",
+    METADATA_UPDATE = "METADATA_UPDATE",
+    MIGRATION = "MIGRATION",
+    PRICE_CHANGE = "PRICE_CHANGE",
 }
 
 export class NotificationTypeV2Validator extends StringValidator {}

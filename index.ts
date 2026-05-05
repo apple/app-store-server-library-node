@@ -32,7 +32,6 @@ import { Validator } from './models/Validator';
 import { Status } from './models/Status';
 export { SignedDataVerifier, VerificationException, VerificationStatus } from './jws_verification'
 export { ReceiptUtility } from './receipt_utility'
-export { AdvancedCommerceValidationUtils } from './advanced_commerce_validation_utils'
 export { AccountTenure } from "./models/AccountTenure"
 export { AlternateProduct } from './models/AlternateProduct'
 export { AppData } from './models/AppData'
@@ -172,6 +171,18 @@ export { AdvancedCommerceOfferReason } from './models/AdvancedCommerceOfferReaso
 export { AdvancedCommerceRefundReason } from './models/AdvancedCommerceRefundReason'
 export { AdvancedCommerceRefundType } from './models/AdvancedCommerceRefundType'
 export { AdvancedCommerceDescriptors } from './models/AdvancedCommerceDescriptors'
+export { AdvancedCommerceInfo } from './models/AdvancedCommerceInfo'
+export { AdvancedCommercePriceIncreaseInfo } from './models/AdvancedCommercePriceIncreaseInfo'
+export { AdvancedCommercePriceIncreaseInfoStatus } from './models/AdvancedCommercePriceIncreaseInfoStatus'
+export { AdvancedCommerceRefund } from './models/AdvancedCommerceRefund'
+export { AdvancedCommerceRenewalInfo } from './models/AdvancedCommerceRenewalInfo'
+export { AdvancedCommerceRenewalItem } from './models/AdvancedCommerceRenewalItem'
+export { AdvancedCommerceTransactionInfo } from './models/AdvancedCommerceTransactionInfo'
+export { AdvancedCommerceTransactionItem } from './models/AdvancedCommerceTransactionItem'
+export { BillingPlanType } from './models/BillingPlanType'
+export { RenewalBillingPlanType } from './models/RenewalBillingPlanType'
+export { RenewalCommitmentInfo } from './models/RenewalCommitmentInfo'
+export { TransactionCommitmentInfo } from './models/TransactionCommitmentInfo'
 
 import jsonwebtoken = require('jsonwebtoken');
 import { AppTransactionInfoResponse, AppTransactionInfoResponseValidator } from './models/AppTransactionInfoResponse';

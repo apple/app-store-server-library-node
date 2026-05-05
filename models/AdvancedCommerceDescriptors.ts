@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Apple Inc. Licensed under MIT License.
 
-import { AdvancedCommerceValidationUtils } from '../advanced_commerce_validation_utils'
+import { HelperValidationUtils } from '../helper_validation_utils'
 import { Validator } from './Validator'
 
 /**
@@ -26,11 +26,11 @@ export interface AdvancedCommerceDescriptors {
 
 export class AdvancedCommerceDescriptorsValidator implements Validator<AdvancedCommerceDescriptors> {
     validate(obj: any): obj is AdvancedCommerceDescriptors {
-        if (!AdvancedCommerceValidationUtils.validateDescription(obj['description'])) {
+        if (!HelperValidationUtils.validateDescription(obj['description'])) {
             return false
         }
 
-        if (!AdvancedCommerceValidationUtils.validateDisplayName(obj['displayName'])) {
+        if (!HelperValidationUtils.validateDisplayName(obj['displayName'])) {
             return false
         }
 

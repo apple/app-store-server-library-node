@@ -1,5 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
+import { AdvancedCommerceRenewalInfo, AdvancedCommerceRenewalInfoValidator } from "./AdvancedCommerceRenewalInfo"
 import { AutoRenewStatus, AutoRenewStatusValidator } from "./AutoRenewStatus"
 import { DecodedSignedData } from "./DecodedSignedData"
 import { Environment, EnvironmentValidator } from "./Environment"
@@ -7,6 +8,8 @@ import { ExpirationIntent, ExpirationIntentValidator } from "./ExpirationIntent"
 import { OfferDiscountType, OfferDiscountTypeValidator } from "./OfferDiscountType"
 import { OfferType, OfferTypeValidator } from "./OfferType"
 import { PriceIncreaseStatus, PriceIncreaseStatusValidator } from "./PriceIncreaseStatus"
+import { RenewalBillingPlanType, RenewalBillingPlanTypeValidator } from "./RenewalBillingPlanType"
+import { RenewalCommitmentInfo, RenewalCommitmentInfoValidator } from "./RenewalCommitmentInfo"
 import { Validator } from "./Validator"
 
 /**
@@ -162,6 +165,23 @@ export interface JWSRenewalInfoDecodedPayload extends DecodedSignedData {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/offerPeriod offerPeriod}
      **/
     offerPeriod?: string
+
+    /**
+     * Renewal information that is present only for Advanced Commerce SKUs.
+     *
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommercerenewalinfo advancedCommerceRenewalInfo}
+     **/
+    advancedCommerceInfo?: AdvancedCommerceRenewalInfo
+
+    /**
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/renewalcommitmentinfo RenewalCommitmentInfo}
+     **/
+    commitmentInfo?: RenewalCommitmentInfo
+
+    /**
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/renewalbillingplantype renewalBillingPlanType}
+     **/
+    renewalBillingPlanType?: RenewalBillingPlanType | string
 }
 
 
@@ -172,6 +192,9 @@ export class JWSRenewalInfoDecodedPayloadValidator implements Validator<JWSRenew
     static readonly autoRenewStatusValidator = new AutoRenewStatusValidator()
     static readonly expirationIntentValidator = new ExpirationIntentValidator()
     static readonly offerDiscountTypeValidator = new OfferDiscountTypeValidator()
+    static readonly renewalBillingPlanTypeValidator = new RenewalBillingPlanTypeValidator()
+    static readonly advancedCommerceRenewalInfoValidator = new AdvancedCommerceRenewalInfoValidator()
+    static readonly renewalCommitmentInfoValidator = new RenewalCommitmentInfoValidator()
     validate(obj: any): obj is JWSRenewalInfoDecodedPayload {
         if ((typeof obj['expirationIntent'] !== 'undefined') && !(JWSRenewalInfoDecodedPayloadValidator.expirationIntentValidator.validate(obj['expirationIntent']))) {
             return false
@@ -241,6 +264,15 @@ export class JWSRenewalInfoDecodedPayloadValidator implements Validator<JWSRenew
             return false
         }
         if ((typeof obj['offerPeriod'] !== 'undefined') && !(typeof obj['offerPeriod'] === "string" || obj['offerPeriod'] instanceof String)) {
+            return false
+        }
+        if ((typeof obj['advancedCommerceInfo'] !== 'undefined') && !(JWSRenewalInfoDecodedPayloadValidator.advancedCommerceRenewalInfoValidator.validate(obj['advancedCommerceInfo']))) {
+            return false
+        }
+        if ((typeof obj['commitmentInfo'] !== 'undefined') && !(JWSRenewalInfoDecodedPayloadValidator.renewalCommitmentInfoValidator.validate(obj['commitmentInfo']))) {
+            return false
+        }
+        if ((typeof obj['renewalBillingPlanType'] !== 'undefined') && !(JWSRenewalInfoDecodedPayloadValidator.renewalBillingPlanTypeValidator.validate(obj['renewalBillingPlanType']))) {
             return false
         }
         return true

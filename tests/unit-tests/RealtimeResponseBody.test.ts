@@ -5,6 +5,8 @@ import { Message } from "../../models/Message";
 import { AlternateProduct } from "../../models/AlternateProduct";
 import { PromotionalOffer } from "../../models/PromotionalOffer";
 import { PromotionalOfferSignatureV1 } from "../../models/PromotionalOfferSignatureV1";
+import { AdvancedCommerceInfo } from "../../models/AdvancedCommerceInfo";
+import { BillingPlanType } from "../../models/BillingPlanType";
 
 describe('RealtimeResponseBody', () => {
     it('should serialize RealtimeResponseBody with Message', () => {
@@ -44,7 +46,8 @@ describe('RealtimeResponseBody', () => {
         const productId = "com.example.alternate.product"
         const alternateProduct: AlternateProduct = {
             messageIdentifier: messageId,
-            productId: productId
+            productId: productId,
+            billingPlanType: BillingPlanType.MONTHLY
         }
         const responseBody: RealtimeResponseBody = {
             alternateProduct: alternateProduct
@@ -60,6 +63,7 @@ describe('RealtimeResponseBody', () => {
         expect(jsonObj.alternateProduct).toHaveProperty("productId")
         expect(jsonObj.alternateProduct.messageIdentifier).toBe("b2c3d4e5-f6a7-8901-b2c3-d4e5f6a78901")
         expect(jsonObj.alternateProduct.productId).toBe("com.example.alternate.product")
+        expect(jsonObj.alternateProduct.billingPlanType).toBe("MONTHLY")
         expect(jsonObj).not.toHaveProperty("message")
         expect(jsonObj).not.toHaveProperty("promotionalOffer")
 
@@ -71,6 +75,7 @@ describe('RealtimeResponseBody', () => {
         expect(deserialized.alternateProduct).toBeDefined()
         expect(deserialized.alternateProduct?.messageIdentifier).toBe(messageId)
         expect(deserialized.alternateProduct?.productId).toBe(productId)
+        expect(deserialized.alternateProduct?.billingPlanType).toBe(BillingPlanType.MONTHLY)
         expect(deserialized.promotionalOffer).toBeUndefined()
     })
 
@@ -184,6 +189,37 @@ describe('RealtimeResponseBody', () => {
         expect(deserializedV1?.keyId).toBe("keyId123")
         expect(deserializedV1?.appAccountToken).toBe(appAccountToken)
         expect(deserializedV1?.encodedSignature).toBe("base64encodedSignature")
+    })
+
+    it('should serialize RealtimeResponseBody with AdvancedCommerceInfo', () => {
+        const messageId = "a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890"
+        const acData = "eyJhbGciOiJFUzI1NiJ9.base64data"
+        const acInfo: AdvancedCommerceInfo = {
+            messageIdentifier: messageId,
+            advancedCommerceData: acData
+        }
+        const responseBody: RealtimeResponseBody = {
+            advancedCommerceInfo: acInfo
+        }
+
+        const json = JSON.stringify(responseBody)
+        const jsonObj = JSON.parse(json)
+
+        expect(jsonObj).toHaveProperty("advancedCommerceInfo")
+        expect(jsonObj.advancedCommerceInfo.messageIdentifier).toBe("a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890")
+        expect(jsonObj.advancedCommerceInfo.advancedCommerceData).toBe(acData)
+        expect(jsonObj).not.toHaveProperty("message")
+        expect(jsonObj).not.toHaveProperty("alternateProduct")
+        expect(jsonObj).not.toHaveProperty("promotionalOffer")
+
+        const deserialized: RealtimeResponseBody = JSON.parse(json)
+
+        expect(deserialized.message).toBeUndefined()
+        expect(deserialized.alternateProduct).toBeUndefined()
+        expect(deserialized.promotionalOffer).toBeUndefined()
+        expect(deserialized.advancedCommerceInfo).toBeDefined()
+        expect(deserialized.advancedCommerceInfo?.messageIdentifier).toBe(messageId)
+        expect(deserialized.advancedCommerceInfo?.advancedCommerceData).toBe(acData)
     })
 
     it('should serialize RealtimeResponseBody with correct field names', () => {

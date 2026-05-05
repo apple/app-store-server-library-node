@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Apple Inc. Licensed under MIT License.
 
-import { AdvancedCommerceValidationUtils } from '../advanced_commerce_validation_utils'
+import { HelperValidationUtils } from '../helper_validation_utils'
 import { AbstractAdvancedCommerceBaseItem } from './AbstractAdvancedCommerceBaseItem'
 import { Validator } from './Validator'
 
@@ -14,7 +14,7 @@ export interface AdvancedCommerceSubscriptionModifyRemoveItem extends AbstractAd
 
 export class AdvancedCommerceSubscriptionModifyRemoveItemValidator implements Validator<AdvancedCommerceSubscriptionModifyRemoveItem> {
     validate(obj: any): obj is AdvancedCommerceSubscriptionModifyRemoveItem {
-        if (!AdvancedCommerceValidationUtils.validateSku(obj['SKU'])) {
+        if (!HelperValidationUtils.validateSku(obj['SKU'])) {
             return false
         }
         return true

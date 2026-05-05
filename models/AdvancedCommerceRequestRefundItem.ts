@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Apple Inc. Licensed under MIT License.
 
-import { AdvancedCommerceValidationUtils } from '../advanced_commerce_validation_utils'
+import { HelperValidationUtils } from '../helper_validation_utils'
 import { AbstractAdvancedCommerceBaseItem } from './AbstractAdvancedCommerceBaseItem'
 import { AdvancedCommerceRefundReason, AdvancedCommerceRefundReasonValidator } from './AdvancedCommerceRefundReason'
 import { AdvancedCommerceRefundType, AdvancedCommerceRefundTypeValidator } from './AdvancedCommerceRefundType'
@@ -39,7 +39,7 @@ export class AdvancedCommerceRequestRefundItemValidator implements Validator<Adv
     static readonly refundTypeValidator = new AdvancedCommerceRefundTypeValidator()
 
     validate(obj: any): obj is AdvancedCommerceRequestRefundItem {
-        if (!AdvancedCommerceValidationUtils.validateSku(obj['SKU'])) {
+        if (!HelperValidationUtils.validateSku(obj['SKU'])) {
             return false
         }
 

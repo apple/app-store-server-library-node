@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Apple Inc. Licensed under MIT License.
 
-import { AdvancedCommerceValidationUtils } from '../advanced_commerce_validation_utils'
+import { HelperValidationUtils } from '../helper_validation_utils'
 import { AbstractAdvancedCommerceInAppRequest } from './AbstractAdvancedCommerceInAppRequest'
 import { AdvancedCommerceRequestInfoValidator } from './AdvancedCommerceRequestInfo'
 import { AdvancedCommerceSubscriptionReactivateItem, AdvancedCommerceSubscriptionReactivateItemValidator } from './AdvancedCommerceSubscriptionReactivateItem'
@@ -47,7 +47,7 @@ export class AdvancedCommerceSubscriptionReactivateInAppRequestValidator impleme
             return false
         }
         if (typeof obj['items'] !== 'undefined') {
-            if (!AdvancedCommerceValidationUtils.validateItems(obj['items'])) {
+            if (!HelperValidationUtils.validateItems(obj['items'])) {
                 return false
             }
             for (const item of obj['items']) {

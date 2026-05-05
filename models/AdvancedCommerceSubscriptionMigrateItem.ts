@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Apple Inc. Licensed under MIT License.
 
-import { AdvancedCommerceValidationUtils } from '../advanced_commerce_validation_utils'
+import { HelperValidationUtils } from '../helper_validation_utils'
 import { AbstractAdvancedCommerceItem } from './AbstractAdvancedCommerceItem'
 import { Validator } from './Validator'
 
@@ -14,15 +14,15 @@ export interface AdvancedCommerceSubscriptionMigrateItem extends AbstractAdvance
 
 export class AdvancedCommerceSubscriptionMigrateItemValidator implements Validator<AdvancedCommerceSubscriptionMigrateItem> {
     validate(obj: any): obj is AdvancedCommerceSubscriptionMigrateItem {
-        if (!AdvancedCommerceValidationUtils.validateSku(obj['SKU'])) {
+        if (!HelperValidationUtils.validateSku(obj['SKU'])) {
             return false
         }
 
-        if (!AdvancedCommerceValidationUtils.validateDescription(obj['description'])) {
+        if (!HelperValidationUtils.validateDescription(obj['description'])) {
             return false
         }
 
-        if (!AdvancedCommerceValidationUtils.validateDisplayName(obj['displayName'])) {
+        if (!HelperValidationUtils.validateDisplayName(obj['displayName'])) {
             return false
         }
 

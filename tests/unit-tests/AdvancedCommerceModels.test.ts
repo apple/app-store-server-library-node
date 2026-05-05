@@ -7,7 +7,7 @@ import { AdvancedCommerceRefundType } from "../../models/AdvancedCommerceRefundT
 import { AdvancedCommerceOfferPeriod } from "../../models/AdvancedCommerceOfferPeriod"
 import { AdvancedCommerceOfferReason } from "../../models/AdvancedCommerceOfferReason"
 import { AdvancedCommerceEffective } from "../../models/AdvancedCommerceEffective"
-import { AdvancedCommerceValidationUtils } from "../../advanced_commerce_validation_utils"
+import { HelperValidationUtils } from "../../helper_validation_utils"
 import { AdvancedCommerceDescriptors } from "../../models/AdvancedCommerceDescriptors"
 import { AdvancedCommerceOneTimeChargeItem } from "../../models/AdvancedCommerceOneTimeChargeItem"
 import { AdvancedCommerceSubscriptionCreateItem } from "../../models/AdvancedCommerceSubscriptionCreateItem"
@@ -42,6 +42,9 @@ import { AdvancedCommerceSubscriptionReactivateItem } from "../../models/Advance
 import { AdvancedCommerceSubscriptionChangeMetadataItem } from "../../models/AdvancedCommerceSubscriptionChangeMetadataItem"
 import { AdvancedCommerceRequestInfo } from "../../models/AdvancedCommerceRequestInfo"
 import { AdvancedCommerceSubscriptionMigrateResponse } from "../../models/AdvancedCommerceSubscriptionMigrateResponse"
+import { AdvancedCommercePriceIncreaseInfoStatus } from "../../models/AdvancedCommercePriceIncreaseInfoStatus"
+import { BillingPlanType } from "../../models/BillingPlanType"
+import { RenewalBillingPlanType } from "../../models/RenewalBillingPlanType"
 import * as fs from 'fs'
 
 describe('AdvancedCommerceModels', () => {
@@ -97,86 +100,86 @@ describe('AdvancedCommerceModels', () => {
     })
 
     it('should validate description with valid input', () => {
-        expect(AdvancedCommerceValidationUtils.validateDescription("Valid description")).toBe(true)
+        expect(HelperValidationUtils.validateDescription("Valid description")).toBe(true)
     })
 
     it('should validate description at max length', () => {
-        expect(AdvancedCommerceValidationUtils.validateDescription("A".repeat(45))).toBe(true)
+        expect(HelperValidationUtils.validateDescription("A".repeat(45))).toBe(true)
     })
 
     it('should reject description exceeding max length', () => {
-        expect(AdvancedCommerceValidationUtils.validateDescription("A".repeat(46))).toBe(false)
+        expect(HelperValidationUtils.validateDescription("A".repeat(46))).toBe(false)
     })
 
     it('should reject null description', () => {
-        expect(AdvancedCommerceValidationUtils.validateDescription(null)).toBe(false)
+        expect(HelperValidationUtils.validateDescription(null)).toBe(false)
     })
 
     it('should validate displayName with valid input', () => {
-        expect(AdvancedCommerceValidationUtils.validateDisplayName("Valid Name")).toBe(true)
+        expect(HelperValidationUtils.validateDisplayName("Valid Name")).toBe(true)
     })
 
     it('should validate displayName at max length', () => {
-        expect(AdvancedCommerceValidationUtils.validateDisplayName("A".repeat(30))).toBe(true)
+        expect(HelperValidationUtils.validateDisplayName("A".repeat(30))).toBe(true)
     })
 
     it('should reject displayName exceeding max length', () => {
-        expect(AdvancedCommerceValidationUtils.validateDisplayName("A".repeat(31))).toBe(false)
+        expect(HelperValidationUtils.validateDisplayName("A".repeat(31))).toBe(false)
     })
 
     it('should reject null displayName', () => {
-        expect(AdvancedCommerceValidationUtils.validateDisplayName(null)).toBe(false)
+        expect(HelperValidationUtils.validateDisplayName(null)).toBe(false)
     })
 
     it('should validate SKU with valid input', () => {
-        expect(AdvancedCommerceValidationUtils.validateSku("valid.sku.123")).toBe(true)
+        expect(HelperValidationUtils.validateSku("valid.sku.123")).toBe(true)
     })
 
     it('should validate SKU at max length', () => {
-        expect(AdvancedCommerceValidationUtils.validateSku("A".repeat(128))).toBe(true)
+        expect(HelperValidationUtils.validateSku("A".repeat(128))).toBe(true)
     })
 
     it('should reject SKU exceeding max length', () => {
-        expect(AdvancedCommerceValidationUtils.validateSku("A".repeat(129))).toBe(false)
+        expect(HelperValidationUtils.validateSku("A".repeat(129))).toBe(false)
     })
 
     it('should reject null SKU', () => {
-        expect(AdvancedCommerceValidationUtils.validateSku(null)).toBe(false)
+        expect(HelperValidationUtils.validateSku(null)).toBe(false)
     })
 
     it('should validate periodCount with valid values', () => {
-        expect(AdvancedCommerceValidationUtils.validatePeriodCount(1)).toBe(true)
-        expect(AdvancedCommerceValidationUtils.validatePeriodCount(6)).toBe(true)
-        expect(AdvancedCommerceValidationUtils.validatePeriodCount(12)).toBe(true)
+        expect(HelperValidationUtils.validatePeriodCount(1)).toBe(true)
+        expect(HelperValidationUtils.validatePeriodCount(6)).toBe(true)
+        expect(HelperValidationUtils.validatePeriodCount(12)).toBe(true)
     })
 
     it('should reject periodCount below minimum', () => {
-        expect(AdvancedCommerceValidationUtils.validatePeriodCount(0)).toBe(false)
+        expect(HelperValidationUtils.validatePeriodCount(0)).toBe(false)
     })
 
     it('should reject periodCount above maximum', () => {
-        expect(AdvancedCommerceValidationUtils.validatePeriodCount(13)).toBe(false)
+        expect(HelperValidationUtils.validatePeriodCount(13)).toBe(false)
     })
 
     it('should reject null periodCount', () => {
-        expect(AdvancedCommerceValidationUtils.validatePeriodCount(null)).toBe(false)
+        expect(HelperValidationUtils.validatePeriodCount(null)).toBe(false)
     })
 
     it('should validate items with non-empty array', () => {
         const validList = [{ SKU: "sku1", description: "desc", displayName: "name", price: 1000 }]
-        expect(AdvancedCommerceValidationUtils.validateItems(validList)).toBe(true)
+        expect(HelperValidationUtils.validateItems(validList)).toBe(true)
     })
 
     it('should reject null items', () => {
-        expect(AdvancedCommerceValidationUtils.validateItems(null)).toBe(false)
+        expect(HelperValidationUtils.validateItems(null)).toBe(false)
     })
 
     it('should reject empty items array', () => {
-        expect(AdvancedCommerceValidationUtils.validateItems([])).toBe(false)
+        expect(HelperValidationUtils.validateItems([])).toBe(false)
     })
 
     it('should reject items array with null element', () => {
-        expect(AdvancedCommerceValidationUtils.validateItems([null] as any)).toBe(false)
+        expect(HelperValidationUtils.validateItems([null] as any)).toBe(false)
     })
 
     it('should deserialize AdvancedCommerceDescriptors from JSON', () => {
@@ -495,5 +498,21 @@ describe('AdvancedCommerceModels', () => {
 
         expect(response.signedRenewalInfo).toBe("signed_renewal_info_value")
         expect(response.signedTransactionInfo).toBe("signed_transaction_info_value")
+    })
+
+    it('should test AdvancedCommercePriceIncreaseInfoStatus enum values', () => {
+        expect(AdvancedCommercePriceIncreaseInfoStatus.SCHEDULED).toBe("SCHEDULED")
+        expect(AdvancedCommercePriceIncreaseInfoStatus.PENDING).toBe("PENDING")
+        expect(AdvancedCommercePriceIncreaseInfoStatus.ACCEPTED).toBe("ACCEPTED")
+    })
+
+    it('should test BillingPlanType enum values', () => {
+        expect(BillingPlanType.BILLED_UPFRONT).toBe("BILLED_UPFRONT")
+        expect(BillingPlanType.MONTHLY).toBe("MONTHLY")
+    })
+
+    it('should test RenewalBillingPlanType enum values', () => {
+        expect(RenewalBillingPlanType.BILLED_UPFRONT).toBe("BILLED_UPFRONT")
+        expect(RenewalBillingPlanType.MONTHLY).toBe("MONTHLY")
     })
 })
