@@ -18,6 +18,12 @@ import { Type } from "../../models/Type";
 import { ConsumptionRequestReason } from "../../models/ConsumptionRequestReason";
 import { OfferDiscountType } from "../../models/OfferDiscountType";
 import { JWSTransactionDecodedPayloadValidator } from "../../models/JWSTransactionDecodedPayload";
+import { AdvancedCommercePeriod } from "../../models/AdvancedCommercePeriod";
+import { AdvancedCommercePriceIncreaseInfoStatus } from "../../models/AdvancedCommercePriceIncreaseInfoStatus";
+import { AdvancedCommerceRefundReason } from "../../models/AdvancedCommerceRefundReason";
+import { AdvancedCommerceRefundType } from "../../models/AdvancedCommerceRefundType";
+import { BillingPlanType } from "../../models/BillingPlanType";
+import { RenewalBillingPlanType } from "../../models/RenewalBillingPlanType";
 
 
 describe('Testing decoding of signed data', () => {
@@ -66,6 +72,34 @@ describe('Testing decoding of signed data', () => {
         expect("71134").toBe(renewalInfo.appTransactionId)
         expect("P1Y").toBe(renewalInfo.offerPeriod)
         expect("7e3fb20b-4cdb-47cc-936d-99d65f608138").toBe(renewalInfo.appAccountToken)
+        expect(renewalInfo.advancedCommerceInfo).toBeDefined()
+        const acInfo = renewalInfo.advancedCommerceInfo!
+        expect("token-abc-123").toBe(acInfo.consistencyToken)
+        expect(acInfo.descriptors).toBeDefined()
+        expect("Premium Plan").toBe(acInfo.descriptors!.description)
+        expect("Premium").toBe(acInfo.descriptors!.displayName)
+        expect(AdvancedCommercePeriod.P1M).toBe(acInfo.period)
+        expect("ref-12345").toBe(acInfo.requestReferenceId)
+        expect("TAX_CODE_1").toBe(acInfo.taxCode)
+        expect(acInfo.items).toBeDefined()
+        expect(1).toBe(acInfo.items!.length)
+        const renewalItem = acInfo.items![0]
+        expect("com.example.sku.premium").toBe(renewalItem.SKU)
+        expect("Premium feature").toBe(renewalItem.description)
+        expect("Premium Feature").toBe(renewalItem.displayName)
+        expect(9990).toBe(renewalItem.price)
+        expect(renewalItem.priceIncreaseInfo).toBeDefined()
+        expect(["com.example.sku.1", "com.example.sku.2"]).toStrictEqual(renewalItem.priceIncreaseInfo!.dependentSKUs)
+        expect(12990).toBe(renewalItem.priceIncreaseInfo!.price)
+        expect(AdvancedCommercePriceIncreaseInfoStatus.PENDING).toBe(renewalItem.priceIncreaseInfo!.status)
+        expect(renewalInfo.commitmentInfo).toBeDefined()
+        const commitment = renewalInfo.commitmentInfo!
+        expect("com.example.product.commitment").toBe(commitment.commitmentAutoRenewProductId)
+        expect(AutoRenewStatus.ON).toBe(commitment.commitmentAutoRenewStatus)
+        expect(RenewalBillingPlanType.MONTHLY).toBe(commitment.commitmentRenewalBillingPlanType)
+        expect(1698149500000).toBe(commitment.commitmentRenewalDate)
+        expect(9990).toBe(commitment.commitmentRenewalPrice)
+        expect(RenewalBillingPlanType.MONTHLY).toBe(renewalInfo.renewalBillingPlanType)
     })
     it('should decode a transaction info', async () => {
         const signedTransaction = createSignedDataFromJson("tests/resources/models/signedTransaction.json")
@@ -100,6 +134,39 @@ describe('Testing decoding of signed data', () => {
         expect(OfferDiscountType.PAY_AS_YOU_GO).toBe(transaction.offerDiscountType)
         expect("71134").toBe(transaction.appTransactionId)
         expect("P1Y").toBe(transaction.offerPeriod)
+        expect(transaction.advancedCommerceInfo).toBeDefined()
+        const info = transaction.advancedCommerceInfo!
+        expect(info.descriptors).toBeDefined()
+        expect("Premium Plan").toBe(info.descriptors!.description)
+        expect("Premium").toBe(info.descriptors!.displayName)
+        expect(1500).toBe(info.estimatedTax)
+        expect(AdvancedCommercePeriod.P1M).toBe(info.period)
+        expect("ref-12345").toBe(info.requestReferenceId)
+        expect("TAX_CODE_1").toBe(info.taxCode)
+        expect(8490).toBe(info.taxExclusivePrice)
+        expect("0.15").toBe(info.taxRate)
+        expect(info.items).toBeDefined()
+        expect(1).toBe(info.items!.length)
+        const acItem = info.items![0]
+        expect("com.example.sku.premium").toBe(acItem.SKU)
+        expect("Premium feature").toBe(acItem.description)
+        expect("Premium Feature").toBe(acItem.displayName)
+        expect(9990).toBe(acItem.price)
+        expect(1698149200000).toBe(acItem.revocationDate)
+        expect(acItem.refunds).toBeDefined()
+        expect(1).toBe(acItem.refunds!.length)
+        const refund = acItem.refunds![0]
+        expect(5000).toBe(refund.refundAmount)
+        expect(1698149100000).toBe(refund.refundDate)
+        expect(AdvancedCommerceRefundReason.FULFILLMENT_ISSUE).toBe(refund.refundReason)
+        expect(AdvancedCommerceRefundType.PRORATED).toBe(refund.refundType)
+        expect(BillingPlanType.MONTHLY).toBe(transaction.billingPlanType)
+        expect(transaction.commitmentInfo).toBeDefined()
+        const txnCommitment = transaction.commitmentInfo!
+        expect(3).toBe(txnCommitment.billingPeriodNumber)
+        expect(1698150000000).toBe(txnCommitment.commitmentExpiresDate)
+        expect(119880).toBe(txnCommitment.commitmentPrice)
+        expect(12).toBe(txnCommitment.totalBillingPeriods)
     })
     it('should decode a transaction with revocation', async () => {
         const signedTransaction = createSignedDataFromJson("tests/resources/models/signedTransactionWithRevocation.json")

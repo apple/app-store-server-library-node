@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Apple Inc. Licensed under MIT License.
 
-import { AdvancedCommerceValidationUtils } from '../advanced_commerce_validation_utils'
+import { HelperValidationUtils } from '../helper_validation_utils'
 import { AbstractAdvancedCommerceBaseItem } from './AbstractAdvancedCommerceBaseItem'
 import { Validator } from './Validator'
 
@@ -26,21 +26,21 @@ export class AdvancedCommerceSubscriptionPriceChangeItemValidator implements Val
         if (!(typeof obj['SKU'] === "string" || obj['SKU'] instanceof String)) {
             return false
         }
-        if (!AdvancedCommerceValidationUtils.validateSku(obj['SKU'])) {
+        if (!HelperValidationUtils.validateSku(obj['SKU'])) {
             return false
         }
         if (!(typeof obj['price'] === "number")) {
             return false
         }
         if (typeof obj['dependentSKUs'] !== 'undefined') {
-            if (!AdvancedCommerceValidationUtils.validateItems(obj['dependentSKUs'])) {
+            if (!HelperValidationUtils.validateItems(obj['dependentSKUs'])) {
                 return false
             }
             for (const sku of obj['dependentSKUs']) {
                 if (!(typeof sku === "string" || sku instanceof String)) {
                     return false
                 }
-                if (!AdvancedCommerceValidationUtils.validateSku(sku)) {
+                if (!HelperValidationUtils.validateSku(sku)) {
                     return false
                 }
             }

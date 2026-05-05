@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Apple Inc. Licensed under MIT License.
 
-import { AdvancedCommerceValidationUtils } from '../advanced_commerce_validation_utils'
+import { HelperValidationUtils } from '../helper_validation_utils'
 import { AdvancedCommerceRequest } from './AdvancedCommerceRequest'
 import { AdvancedCommerceRequestInfoValidator } from './AdvancedCommerceRequestInfo'
 import { AdvancedCommerceSubscriptionPriceChangeItem, AdvancedCommerceSubscriptionPriceChangeItemValidator } from './AdvancedCommerceSubscriptionPriceChangeItem'
@@ -45,7 +45,7 @@ export class AdvancedCommerceSubscriptionPriceChangeRequestValidator implements 
         if ((typeof obj['currency'] !== 'undefined') && !(typeof obj['currency'] === "string" || obj['currency'] instanceof String)) {
             return false
         }
-        if (!AdvancedCommerceValidationUtils.validateItems(obj['items'])) {
+        if (!HelperValidationUtils.validateItems(obj['items'])) {
             return false
         }
         for (const item of obj['items']) {

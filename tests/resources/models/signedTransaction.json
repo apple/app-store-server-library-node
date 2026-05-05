@@ -26,5 +26,41 @@
   "currency": "USD",
   "offerDiscountType": "PAY_AS_YOU_GO",
   "appTransactionId": "71134",
-  "offerPeriod": "P1Y"
+  "offerPeriod": "P1Y",
+  "advancedCommerceInfo": {
+    "descriptors": {
+      "description": "Premium Plan",
+      "displayName": "Premium"
+    },
+    "estimatedTax": 1500,
+    "items": [
+      {
+        "SKU": "com.example.sku.premium",
+        "description": "Premium feature",
+        "displayName": "Premium Feature",
+        "price": 9990,
+        "refunds": [
+          {
+            "refundAmount": 5000,
+            "refundDate": 1698149100000,
+            "refundReason": "FULFILLMENT_ISSUE",
+            "refundType": "PRORATED"
+          }
+        ],
+        "revocationDate": 1698149200000
+      }
+    ],
+    "period": "P1M",
+    "requestReferenceId": "ref-12345",
+    "taxCode": "TAX_CODE_1",
+    "taxExclusivePrice": 8490,
+    "taxRate": "0.15"
+  },
+  "billingPlanType": "MONTHLY",
+  "commitmentInfo": {
+    "billingPeriodNumber": 3,
+    "commitmentExpiresDate": 1698150000000,
+    "commitmentPrice": 119880,
+    "totalBillingPeriods": 12
+  }
 }

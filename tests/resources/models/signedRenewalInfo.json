@@ -22,5 +22,39 @@
   ],
   "appTransactionId": "71134",
   "offerPeriod": "P1Y",
-  "appAccountToken": "7e3fb20b-4cdb-47cc-936d-99d65f608138"
+  "appAccountToken": "7e3fb20b-4cdb-47cc-936d-99d65f608138",
+  "advancedCommerceInfo": {
+    "consistencyToken": "token-abc-123",
+    "descriptors": {
+      "description": "Premium Plan",
+      "displayName": "Premium"
+    },
+    "items": [
+      {
+        "SKU": "com.example.sku.premium",
+        "description": "Premium feature",
+        "displayName": "Premium Feature",
+        "price": 9990,
+        "priceIncreaseInfo": {
+          "dependentSKUs": [
+            "com.example.sku.1",
+            "com.example.sku.2"
+          ],
+          "price": 12990,
+          "status": "PENDING"
+        }
+      }
+    ],
+    "period": "P1M",
+    "requestReferenceId": "ref-12345",
+    "taxCode": "TAX_CODE_1"
+  },
+  "commitmentInfo": {
+    "commitmentAutoRenewProductId": "com.example.product.commitment",
+    "commitmentAutoRenewStatus": 1,
+    "commitmentRenewalBillingPlanType": "MONTHLY",
+    "commitmentRenewalDate": 1698149500000,
+    "commitmentRenewalPrice": 9990
+  },
+  "renewalBillingPlanType": "MONTHLY"
 }

@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Apple Inc. Licensed under MIT License.
 
-import { AdvancedCommerceValidationUtils } from '../advanced_commerce_validation_utils'
+import { HelperValidationUtils } from '../helper_validation_utils'
 import { AdvancedCommerceEffective, AdvancedCommerceEffectiveValidator } from './AdvancedCommerceEffective'
 import { Validator } from './Validator'
 
@@ -40,11 +40,11 @@ export class AdvancedCommerceSubscriptionChangeMetadataDescriptorsValidator impl
             return false
         }
 
-        if (typeof obj['description'] !== 'undefined' && !AdvancedCommerceValidationUtils.validateDescription(obj['description'])) {
+        if (typeof obj['description'] !== 'undefined' && !HelperValidationUtils.validateDescription(obj['description'])) {
             return false
         }
 
-        if (typeof obj['displayName'] !== 'undefined' && !AdvancedCommerceValidationUtils.validateDisplayName(obj['displayName'])) {
+        if (typeof obj['displayName'] !== 'undefined' && !HelperValidationUtils.validateDisplayName(obj['displayName'])) {
             return false
         }
 

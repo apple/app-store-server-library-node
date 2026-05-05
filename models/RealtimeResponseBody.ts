@@ -1,5 +1,6 @@
 // Copyright (c) 2025 Apple Inc. Licensed under MIT License.
 
+import { AdvancedCommerceInfo } from "./AdvancedCommerceInfo"
 import { AlternateProduct } from "./AlternateProduct"
 import { Message } from "./Message"
 import { PromotionalOffer } from "./PromotionalOffer"
@@ -31,4 +32,11 @@ export interface RealtimeResponseBody {
      * {@link https://developer.apple.com/documentation/retentionmessaging/promotionaloffer promotionalOffer}
      **/
     promotionalOffer?: PromotionalOffer
+
+    /**
+     * A retention offer or switch plan option.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/advancedcommerceinfo advancedCommerceInfo}
+     **/
+    advancedCommerceInfo?: AdvancedCommerceInfo
 }

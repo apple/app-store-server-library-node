@@ -1,9 +1,6 @@
 // Copyright (c) 2026 Apple Inc. Licensed under MIT License.
 
-/**
- * Utility class for validating Advanced Commerce API field constraints.
- */
-export class AdvancedCommerceValidationUtils {
+export class HelperValidationUtils {
 
     public static readonly MAXIMUM_DESCRIPTION_LENGTH = 45
     public static readonly MAXIMUM_DISPLAY_NAME_LENGTH = 30
@@ -18,7 +15,7 @@ export class AdvancedCommerceValidationUtils {
      * @return Whether the description is valid
      */
     public static validateDescription(description: any): boolean {
-        return (typeof description === 'string' || description instanceof String) && description.length <= AdvancedCommerceValidationUtils.MAXIMUM_DESCRIPTION_LENGTH
+        return (typeof description === 'string' || description instanceof String) && description.length <= HelperValidationUtils.MAXIMUM_DESCRIPTION_LENGTH
     }
 
     /**
@@ -28,7 +25,7 @@ export class AdvancedCommerceValidationUtils {
      * @return Whether the display name is valid
      */
     public static validateDisplayName(displayName: any): boolean {
-        return (typeof displayName === 'string' || displayName instanceof String) && displayName.length <= AdvancedCommerceValidationUtils.MAXIMUM_DISPLAY_NAME_LENGTH
+        return (typeof displayName === 'string' || displayName instanceof String) && displayName.length <= HelperValidationUtils.MAXIMUM_DISPLAY_NAME_LENGTH
     }
 
     /**
@@ -38,7 +35,7 @@ export class AdvancedCommerceValidationUtils {
      * @return Whether the SKU is valid
      */
     public static validateSku(sku: any): boolean {
-        return (typeof sku === 'string' || sku instanceof String) && sku.length <= AdvancedCommerceValidationUtils.MAXIMUM_SKU_LENGTH
+        return (typeof sku === 'string' || sku instanceof String) && sku.length <= HelperValidationUtils.MAXIMUM_SKU_LENGTH
     }
 
     /**
@@ -49,8 +46,8 @@ export class AdvancedCommerceValidationUtils {
      */
     public static validatePeriodCount(periodCount: any): boolean {
         return typeof periodCount === 'number' &&
-            periodCount >= AdvancedCommerceValidationUtils.MIN_PERIOD &&
-            periodCount <= AdvancedCommerceValidationUtils.MAX_PERIOD
+            periodCount >= HelperValidationUtils.MIN_PERIOD &&
+            periodCount <= HelperValidationUtils.MAX_PERIOD
     }
 
     /**

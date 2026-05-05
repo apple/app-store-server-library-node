@@ -1,5 +1,7 @@
 // Copyright (c) 2025 Apple Inc. Licensed under MIT License.
 
+import { BillingPlanType } from "./BillingPlanType"
+
 /**
  * A switch-plan message and product ID you provide in a real-time response to your Get Retention Message endpoint.
  *
@@ -20,4 +22,9 @@ export interface AlternateProduct {
      * {@link https://developer.apple.com/documentation/retentionmessaging/productid productId}
      **/
     productId?: string
+
+    /**
+     * {@link https://developer.apple.com/documentation/retentionmessaging/billingplantype billingPlanType}
+     **/
+    billingPlanType?: BillingPlanType | string
 }

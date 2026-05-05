@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Apple Inc. Licensed under MIT License.
 
-import { AdvancedCommerceValidationUtils } from '../advanced_commerce_validation_utils'
+import { HelperValidationUtils } from '../helper_validation_utils'
 import { AbstractAdvancedCommerceInAppRequest } from './AbstractAdvancedCommerceInAppRequest'
 import { AdvancedCommerceDescriptors, AdvancedCommerceDescriptorsValidator } from './AdvancedCommerceDescriptors'
 import { AdvancedCommerceSubscriptionCreateItem, AdvancedCommerceSubscriptionCreateItemValidator } from './AdvancedCommerceSubscriptionCreateItem'
@@ -76,7 +76,7 @@ export class AdvancedCommerceSubscriptionCreateRequestValidator implements Valid
         if (!(AdvancedCommerceSubscriptionCreateRequestValidator.descriptorsValidator.validate(obj['descriptors']))) {
             return false
         }
-        if (!AdvancedCommerceValidationUtils.validateItems(obj['items'])) {
+        if (!HelperValidationUtils.validateItems(obj['items'])) {
             return false
         }
         for (const item of obj['items']) {

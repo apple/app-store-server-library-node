@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Apple Inc. Licensed under MIT License.
 
-import { AdvancedCommerceValidationUtils } from '../advanced_commerce_validation_utils'
+import { HelperValidationUtils } from '../helper_validation_utils'
 import { AbstractAdvancedCommerceInAppRequest } from './AbstractAdvancedCommerceInAppRequest'
 import { AdvancedCommerceRequestInfoValidator } from './AdvancedCommerceRequestInfo'
 import { AdvancedCommerceSubscriptionModifyAddItem, AdvancedCommerceSubscriptionModifyAddItemValidator } from './AdvancedCommerceSubscriptionModifyAddItem'
@@ -90,7 +90,7 @@ export class AdvancedCommerceSubscriptionModifyInAppRequestValidator implements 
             return false
         }
         if (typeof obj['addItems'] !== 'undefined') {
-            if (!AdvancedCommerceValidationUtils.validateItems(obj['addItems'])) {
+            if (!HelperValidationUtils.validateItems(obj['addItems'])) {
                 return false
             }
             for (const item of obj['addItems']) {
@@ -100,7 +100,7 @@ export class AdvancedCommerceSubscriptionModifyInAppRequestValidator implements 
             }
         }
         if (typeof obj['changeItems'] !== 'undefined') {
-            if (!AdvancedCommerceValidationUtils.validateItems(obj['changeItems'])) {
+            if (!HelperValidationUtils.validateItems(obj['changeItems'])) {
                 return false
             }
             for (const item of obj['changeItems']) {
@@ -119,7 +119,7 @@ export class AdvancedCommerceSubscriptionModifyInAppRequestValidator implements 
             return false
         }
         if (typeof obj['removeItems'] !== 'undefined') {
-            if (!AdvancedCommerceValidationUtils.validateItems(obj['removeItems'])) {
+            if (!HelperValidationUtils.validateItems(obj['removeItems'])) {
                 return false
             }
             for (const item of obj['removeItems']) {

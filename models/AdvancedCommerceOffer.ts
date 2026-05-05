@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Apple Inc. Licensed under MIT License.
 
-import { AdvancedCommerceValidationUtils } from '../advanced_commerce_validation_utils'
+import { HelperValidationUtils } from '../helper_validation_utils'
 import { AdvancedCommerceOfferPeriod, AdvancedCommerceOfferPeriodValidator } from './AdvancedCommerceOfferPeriod'
 import { AdvancedCommerceOfferReason, AdvancedCommerceOfferReasonValidator } from './AdvancedCommerceOfferReason'
 import { Validator } from './Validator'
@@ -43,7 +43,7 @@ export class AdvancedCommerceOfferValidator implements Validator<AdvancedCommerc
             return false
         }
 
-        if (!AdvancedCommerceValidationUtils.validatePeriodCount(obj['periodCount'])) {
+        if (!HelperValidationUtils.validatePeriodCount(obj['periodCount'])) {
             return false
         }
 

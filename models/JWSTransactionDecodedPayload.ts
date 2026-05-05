@@ -1,5 +1,7 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
+import { AdvancedCommerceTransactionInfo, AdvancedCommerceTransactionInfoValidator } from "./AdvancedCommerceTransactionInfo"
+import { BillingPlanType, BillingPlanTypeValidator } from "./BillingPlanType"
 import { DecodedSignedData } from "./DecodedSignedData"
 import { Environment, EnvironmentValidator } from "./Environment"
 import { InAppOwnershipType, InAppOwnershipTypeValidator } from "./InAppOwnershipType"
@@ -7,6 +9,7 @@ import { OfferDiscountType, OfferDiscountTypeValidator } from "./OfferDiscountTy
 import { OfferType, OfferTypeValidator } from "./OfferType"
 import { RevocationType, RevocationTypeValidator } from "./RevocationType"
 import { RevocationReason, RevocationReasonValidator } from "./RevocationReason"
+import { TransactionCommitmentInfo, TransactionCommitmentInfoValidator } from "./TransactionCommitmentInfo"
 import { TransactionReason, TransactionReasonValidator } from "./TransactionReason"
 import { Type, TypeValidator } from "./Type"
 import { Validator } from "./Validator"
@@ -227,6 +230,23 @@ export interface JWSTransactionDecodedPayload extends DecodedSignedData {
      * {@link https://developer.apple.com/documentation/appstoreservernotifications/revocationpercentage revocationPercentage}
      **/
     revocationPercentage?: number
+
+    /**
+     * Transaction information that is present only for Advanced Commerce SKUs.
+     *
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommercetransactioninfo advancedCommerceTransactionInfo}
+     **/
+    advancedCommerceInfo?: AdvancedCommerceTransactionInfo
+
+    /**
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/billingplantype billingPlanType}
+     **/
+    billingPlanType?: BillingPlanType | string
+
+    /**
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/transactioncommitmentinfo TransactionCommitmentInfo}
+     **/
+    commitmentInfo?: TransactionCommitmentInfo
 }
 
 
@@ -239,6 +259,9 @@ export class JWSTransactionDecodedPayloadValidator implements Validator<JWSTrans
     static readonly typeValidator = new TypeValidator()
     static readonly transactionReasonValidator = new TransactionReasonValidator()
     static readonly offerDiscountTypeValidator = new OfferDiscountTypeValidator()
+    static readonly billingPlanTypeValidator = new BillingPlanTypeValidator()
+    static readonly advancedCommerceTransactionInfoValidator = new AdvancedCommerceTransactionInfoValidator()
+    static readonly transactionCommitmentInfoValidator = new TransactionCommitmentInfoValidator()
     validate(obj: any): obj is JWSTransactionDecodedPayload {
         if ((typeof obj['originalTransactionId'] !== 'undefined') && !(typeof obj['originalTransactionId'] === "string" || obj['originalTransactionId'] instanceof String)) {
             return false
@@ -328,6 +351,15 @@ export class JWSTransactionDecodedPayloadValidator implements Validator<JWSTrans
             return false
         }
         if ((typeof obj['revocationPercentage'] !== 'undefined') && !(typeof obj['revocationPercentage'] === "number")) {
+            return false
+        }
+        if ((typeof obj['advancedCommerceInfo'] !== 'undefined') && !(JWSTransactionDecodedPayloadValidator.advancedCommerceTransactionInfoValidator.validate(obj['advancedCommerceInfo']))) {
+            return false
+        }
+        if ((typeof obj['billingPlanType'] !== 'undefined') && !(JWSTransactionDecodedPayloadValidator.billingPlanTypeValidator.validate(obj['billingPlanType']))) {
+            return false
+        }
+        if ((typeof obj['commitmentInfo'] !== 'undefined') && !(JWSTransactionDecodedPayloadValidator.transactionCommitmentInfoValidator.validate(obj['commitmentInfo']))) {
             return false
         }
         return true
