@@ -506,6 +506,54 @@ describe('AdvancedCommerceModels', () => {
         expect(AdvancedCommercePriceIncreaseInfoStatus.ACCEPTED).toBe("ACCEPTED")
     })
 
+    it('should verify OneTimeChargeCreateRequest operation and version after deserialization', () => {
+        const json = fs.readFileSync('tests/resources/models/advancedCommerceOneTimeChargeCreateRequest.json', 'utf8')
+        const request = JSON.parse(json)
+
+        request.operation = "CREATE_ONE_TIME_CHARGE"
+        request.version = "1"
+
+        const serialized = JSON.parse(JSON.stringify(request))
+        expect(serialized['operation']).toBe("CREATE_ONE_TIME_CHARGE")
+        expect(serialized['version']).toBe("1")
+    })
+
+    it('should verify SubscriptionCreateRequest operation and version after deserialization', () => {
+        const json = fs.readFileSync('tests/resources/models/advancedCommerceSubscriptionCreateRequest.json', 'utf8')
+        const request = JSON.parse(json)
+
+        request.operation = "CREATE_SUBSCRIPTION"
+        request.version = "1"
+
+        const serialized = JSON.parse(JSON.stringify(request))
+        expect(serialized['operation']).toBe("CREATE_SUBSCRIPTION")
+        expect(serialized['version']).toBe("1")
+    })
+
+    it('should verify SubscriptionModifyInAppRequest operation and version after deserialization', () => {
+        const json = fs.readFileSync('tests/resources/models/advancedCommerceSubscriptionModifyInAppRequest.json', 'utf8')
+        const request = JSON.parse(json)
+
+        request.operation = "MODIFY_SUBSCRIPTION"
+        request.version = "1"
+
+        const serialized = JSON.parse(JSON.stringify(request))
+        expect(serialized['operation']).toBe("MODIFY_SUBSCRIPTION")
+        expect(serialized['version']).toBe("1")
+    })
+
+    it('should verify SubscriptionReactivateInAppRequest operation and version after deserialization', () => {
+        const json = fs.readFileSync('tests/resources/models/advancedCommerceSubscriptionReactivateInAppRequest.json', 'utf8')
+        const request = JSON.parse(json)
+
+        request.operation = "REACTIVATE_SUBSCRIPTION"
+        request.version = "1"
+
+        const serialized = JSON.parse(JSON.stringify(request))
+        expect(serialized['operation']).toBe("REACTIVATE_SUBSCRIPTION")
+        expect(serialized['version']).toBe("1")
+    })
+
     it('should test BillingPlanType enum values', () => {
         expect(BillingPlanType.BILLED_UPFRONT).toBe("BILLED_UPFRONT")
         expect(BillingPlanType.MONTHLY).toBe("MONTHLY")
