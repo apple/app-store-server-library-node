@@ -23,4 +23,12 @@ describe('Receipt Utility Tets', () => {
         const extracted_transaction_id = receipt_utility.extractTransactionIdFromTransactionReceipt(receipt)
         expect(extracted_transaction_id).toBe("33993399")
     })
+    it('should parse an indefinite length xcode receipt without throwing a too short ASN.1 value error', async () => {
+        // Regression test for the "too short ASN.1 value" bounds check added to jsrsasign getChildIdx in 11.1.2.
+        // Xcode receipts use indefinite length encoding, and the parse must succeed across jsrsasign versions.
+        const receipt = readFile('tests/resources/xcode/xcode-app-receipt-with-transaction')
+        const receipt_utility = new ReceiptUtility()
+        expect(() => receipt_utility.extractTransactionIdFromAppReceipt(receipt)).not.toThrow()
+        expect(receipt_utility.extractTransactionIdFromAppReceipt(receipt)).toBe("0")
+    })
 })

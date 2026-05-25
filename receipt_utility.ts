@@ -22,9 +22,12 @@ export class ReceiptUtility {
         ASN1HEX.getVblen = function(s, idx) {
             const c = ASN1HEX.getL(s, idx)
             const oldResult = prevGetVblenFunction(s, idx)
-            // Round up to the remaining length in the string, measured in bytes (2 hex values per byte)
+            // Round up to the remaining length in the string, measured in bytes (2 hex values per byte).
+            // The value starts after the tag and length octets, so measure from the value index rather
+            // than the tag index. jsrsasign 11.1.2 added a "c + getVblen * 2 > s.length" bounds check in
+            // getChildIdx; measuring from idx overshoots by the header length and trips that check.
             if (oldResult === 0 && c === '80') {
-                return (s.length - idx) / 2
+                return (s.length - ASN1HEX.getVidx(s, idx)) / 2
             }
             return oldResult
         }
