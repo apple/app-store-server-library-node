@@ -195,6 +195,7 @@ export class AppStoreServerAPIClient {
     private static SANDBOX_URL = "https://api.storekit-sandbox.apple.com";
     private static LOCAL_TESTING_URL = "https://local-testing-base-url";
     private static USER_AGENT = "app-store-server-library/node/3.1.0";
+    private static REQUEST_TIMEOUT_MS = 30000;
 
     private issuerId: string
     private keyId: string
@@ -293,7 +294,8 @@ export class AppStoreServerAPIClient {
         return await fetch(this.urlBase + path + '?' + parsedQueryParameters, {
             method: method,
             body: requestBody,
-            headers: headers
+            headers: headers,
+            timeout: AppStoreServerAPIClient.REQUEST_TIMEOUT_MS
         });
     }
 
