@@ -113,6 +113,25 @@ if (transactionId != null) {
 }
 ```
 
+### App Receipt Verification Usage
+
+```typescript
+import { AppReceipt, AppReceiptVerifier, Environment } from "@apple/app-store-server-library"
+
+const bundleId = "com.example"
+const appleRootCAs: Buffer[] = loadRootCAs() // Specific implementation may vary
+const enableOnlineChecks = true
+const environment = Environment.SANDBOX
+const verifier = new AppReceiptVerifier(appleRootCAs, enableOnlineChecks, environment, bundleId)
+
+const appReceipt = "MI..."
+const receipt: AppReceipt = await verifier.verifyAndDecodeAppReceipt(appReceipt)
+console.log(receipt)
+
+const transactionId = await verifier.verifyAndExtractTransactionId(appReceipt)
+console.log(transactionId)
+```
+
 ### Promotional Offer Signature Creation
 
 ```typescript

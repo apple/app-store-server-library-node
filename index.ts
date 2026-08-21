@@ -32,9 +32,11 @@ import { Validator } from './models/Validator';
 import { Status } from './models/Status';
 export { SignedDataVerifier, VerificationException, VerificationStatus } from './jws_verification'
 export { ReceiptUtility } from './receipt_utility'
+export { AppReceiptVerifier } from './app_receipt_verification'
 export { AccountTenure } from "./models/AccountTenure"
 export { AlternateProduct } from './models/AlternateProduct'
 export { AppData } from './models/AppData'
+export { AppReceipt } from './models/AppReceipt'
 export { AppTransactionInfoResponse } from './models/AppTransactionInfoResponse';
 export { AutoRenewStatus } from './models/AutoRenewStatus'
 export { BulletPoint } from './models/BulletPoint'
@@ -65,6 +67,7 @@ export { HistoryResponse } from './models/HistoryResponse'
 export { ImageState } from './models/ImageState'
 export { ImageSize } from './models/ImageSize'
 export { InAppOwnershipType } from './models/InAppOwnershipType'
+export { InAppPurchaseReceipt } from './models/InAppPurchaseReceipt'
 export { JWSRenewalInfoDecodedPayload } from './models/JWSRenewalInfoDecodedPayload'
 export { JWSTransactionDecodedPayload } from './models/JWSTransactionDecodedPayload'
 export { LastTransactionsItem } from './models/LastTransactionsItem'

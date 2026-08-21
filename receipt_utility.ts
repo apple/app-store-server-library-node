@@ -11,6 +11,7 @@ export class ReceiptUtility {
     /**
      * Extracts a transaction id from an encoded App Receipt. Throws if the receipt does not match the expected format.
      * *NO validation* is performed on the receipt, and any data returned should only be used to call the App Store Server API.
+     * To verify the receipt's signature before extraction, use {@link AppReceiptVerifier.verifyAndExtractTransactionId}.
      * @param appReceipt The unmodified app receipt
      * @returns A transaction id from the array of in-app purchases, null if the receipt contains no in-app purchases
      */
