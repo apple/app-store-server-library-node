@@ -67,17 +67,26 @@ export class ReceiptCreator {
      * @param embeddedCertificates How many certificates of the chain, starting at the leaf, to embed in the container
      * @param signingTime The CMS signing time attribute, which an old receipt signed by a since expired
      *                    certificate needs set to its original signing time
+     * @param digest The digest the signer names and signs with, e.g. one Apple does not use
+     * @param paddingCertificates Unrelated certificates embedded on top of the chain, as a receipt bloated to
+     *                            make chain assembly expensive carries
      */
-    signReceipt(payload: Buffer, embeddedCertificates: number = this.chain.length, signingTime: Date = new Date()): Buffer {
+    signReceipt(payload: Buffer, embeddedCertificates: number = this.chain.length, signingTime: Date = new Date(), digest: string = "sha256", paddingCertificates: number = 0): Buffer {
+        const certificates = this.chain.slice(0, embeddedCertificates)
+        for (let i = 0; i < paddingCertificates; i++) {
+            const keyPair = rsaKeyPair()
+            // Carries the intermediate's subject name, so it stays a candidate at every step of chain assembly
+            certificates.push(certificate("Test WWDR CA", keyPair.publicKey, "Test WWDR CA", keyPair.privateKey, true, undefined, daysAgo(3650), inOneYear()))
+        }
         const signedData = new KJUR.asn1.cms.SignedData({
             econtent: {
                 type: "data",
                 content: { hex: payload.toString('hex') }
             },
-            certs: this.chain.slice(0, embeddedCertificates),
+            certs: certificates,
             sinfos: [{
                 id: { type: "isssn", cert: this.chain[0] },
-                hashalg: "sha256",
+                hashalg: digest,
                 sattrs: {
                     array: [
                         { attr: "contentType" },
@@ -85,7 +94,7 @@ export class ReceiptCreator {
                         { attr: "messageDigest" }
                     ]
                 },
-                sigalg: SIGNATURE_ALGORITHM,
+                sigalg: digest.toUpperCase() + "withRSA",
                 signkey: this.signingKey
             }]
         } as any)
@@ -123,6 +132,16 @@ export class ReceiptCreator {
 
     static attributeSet(): AttributeSet {
         return new AttributeSet()
+    }
+
+    /**
+     * A payload whose single attribute declares an integer type wider than any value a receipt carries, the
+     * shape a receipt takes when it is built to make integer decoding expensive rather than to be read.
+     */
+    static payloadWithOversizedAttributeType(byteLength: number): Buffer {
+        const wideType = derTlvHex(0x02, "01" + "00".repeat(byteLength - 1))
+        const attribute = derTlvHex(0x30, wideType + derTlvHex(0x02, "01") + derTlvHex(0x04, ""))
+        return Buffer.from(derTlvHex(0x31, attribute), 'hex')
     }
 
     /** The extra OCTET STRING wrapper Xcode-generated receipts put around the payload. */

@@ -42,6 +42,11 @@ const DIGEST_ALGORITHMS: { [index: string]: string } = {
 // Leaf, intermediate and root, the same chain length the JWS x5c header claim carries
 const EXPECTED_CHAIN_LENGTH = 3;
 
+// Bounds on what is decoded before the receipt has been verified, so that a hostile receipt cannot make
+// parsing expensive: an integer wide enough to hold any receipt value, and the certificates a chain can hold
+const MAXIMUM_INTEGER_BYTES = 8;
+const MAXIMUM_EMBEDDED_CERTIFICATES = 10;
+
 const BASE64_REGEX = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/
 // RFC 3339, the format receipt date attributes carry
 const RFC_3339_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/
@@ -166,6 +171,12 @@ export class AppReceiptVerifier {
      * receipt signing leaf OID and validates to the caller-supplied Apple roots.
      */
     protected async verifyChain(signedData: SignedDataContent, effectiveDate: Date): Promise<KeyObject> {
+        // The embedded certificates are attacker-supplied and are ordered into a chain below, before anything
+        // about the receipt has been verified, so a receipt carrying more of them than a chain can hold is
+        // rejected here rather than assembled.
+        if (signedData.certificates.length > MAXIMUM_EMBEDDED_CERTIFICATES) {
+            throw new VerificationException(VerificationStatus.INVALID_CHAIN_LENGTH)
+        }
         const embedded = signedData.certificates.map(certificate => new X509Certificate(certificate))
         const leaf = embedded.find(certificate => matchesSignerIdentifier(certificate, signedData.signerInfo))
         if (leaf === undefined) {
@@ -546,19 +557,23 @@ function decodeDate(der: Buffer): number | undefined {
     return parsed.getTime()
 }
 
-/** Non-negative and within the safe integer range; real receipts carry 7-byte integers. */
+/**
+ * Non-negative and within the safe integer range; real receipts carry 7-byte integers. The width is rejected
+ * before the value is accumulated rather than after, because attribute types reach this before anything about
+ * the receipt has been verified.
+ */
 function integerValue(node: Asn1Node): number {
-    if (node.contents.length === 0 || node.contents[0] >= 0x80) {
+    if (node.contents.length === 0 || node.contents.length > MAXIMUM_INTEGER_BYTES || node.contents[0] >= 0x80) {
         throw new VerificationException(VerificationStatus.VERIFICATION_FAILURE, new Error("Receipt integer out of range"))
     }
-    let value = 0n
+    let value = 0
     for (const byte of node.contents) {
-        value = value * 256n + BigInt(byte)
+        value = value * 256 + byte
     }
-    if (value > BigInt(Number.MAX_SAFE_INTEGER)) {
+    if (value > Number.MAX_SAFE_INTEGER) {
         throw new VerificationException(VerificationStatus.VERIFICATION_FAILURE, new Error("Receipt integer out of range"))
     }
-    return Number(value)
+    return value
 }
 
 // A minimal DER/BER reader. jsrsasign's ASN1HEX only walks definite length encoding, while genuine Xcode

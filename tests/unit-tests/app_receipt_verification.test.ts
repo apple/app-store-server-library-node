@@ -302,6 +302,47 @@ describe('App Receipt Verification Checks', () => {
         expect(await verifier.verifyAndExtractTransactionId(readFile('tests/resources/xcode/xcode-app-receipt-empty'))).toBeNull()
     })
 
+    // The embedded certificates are attacker-supplied and are ordered into a chain before anything about the
+    // receipt has been verified, so a receipt carrying more of them than a chain can hold is rejected
+    it('should fail to verify a receipt embedding more certificates than a chain can hold', async () => {
+        const padded = receiptCreator.signReceipt(receiptPayload("ProductionSandbox", BUNDLE_ID, RECEIPT_CREATION_DATE), 3, new Date(), "sha256", 30)
+        const verifier = getReceiptVerifier(receiptCreator, Environment.SANDBOX, BUNDLE_ID, false)
+        await expectVerificationFailure(verifier.verifyAndDecodeAppReceipt(encode(padded)), VerificationStatus.INVALID_CHAIN_LENGTH)
+    })
+
+    // Attribute types are decoded before the receipt has been verified, so an integer wider than any value a
+    // receipt carries is rejected on its width rather than accumulated and then range checked
+    it('should fail to verify a receipt declaring an oversized attribute type', async () => {
+        const oversized = receiptCreator.signReceipt(ReceiptCreator.payloadWithOversizedAttributeType(100_000))
+        const verifier = getReceiptVerifier(receiptCreator, Environment.SANDBOX, BUNDLE_ID, false)
+        await expectVerificationFailure(verifier.verifyAndDecodeAppReceipt(encode(oversized)), VerificationStatus.VERIFICATION_FAILURE)
+    })
+
+    // A correctly signed receipt still fails when the signer names a digest outside the allowlist, so the
+    // accepted algorithms never widen to whatever a signer proposes
+    it('should fail to verify a receipt signed with a digest Apple does not use', async () => {
+        const sha512Receipt = receiptCreator.signReceipt(receiptPayload("ProductionSandbox", BUNDLE_ID, RECEIPT_CREATION_DATE), 3, new Date(), "sha512")
+        const verifier = getReceiptVerifier(receiptCreator, Environment.SANDBOX, BUNDLE_ID, false)
+        await expectVerificationFailure(verifier.verifyAndDecodeAppReceipt(encode(sha512Receipt)), VerificationStatus.VERIFICATION_FAILURE)
+    })
+
+    // As with an Xcode receipt, LocalTesting data is not signed by the App Store
+    it('should decode a LocalTesting receipt', async () => {
+        const receipt = xcodeCreator.signReceipt(receiptPayload("LocalTesting", BUNDLE_ID, RECEIPT_CREATION_DATE))
+        const verifier = getReceiptVerifier(xcodeCreator, Environment.LOCAL_TESTING, BUNDLE_ID, false)
+        const decoded = await verifier.verifyAndDecodeAppReceipt(encode(receipt))
+
+        expect(decoded.receiptType).toBe("LocalTesting")
+        expect(decoded.bundleId).toBe(BUNDLE_ID)
+    })
+
+    // Skipping the signature checks must not skip the app identity check
+    it('should fail to verify a LocalTesting receipt with the wrong bundle id', async () => {
+        const receipt = xcodeCreator.signReceipt(receiptPayload("LocalTesting", BUNDLE_ID, RECEIPT_CREATION_DATE))
+        const verifier = getReceiptVerifier(xcodeCreator, Environment.LOCAL_TESTING, "com.example.other", false)
+        await expectVerificationFailure(verifier.verifyAndDecodeAppReceipt(encode(receipt)), VerificationStatus.INVALID_APP_IDENTIFIER)
+    })
+
     it('should extract a transaction id from a verified receipt', async () => {
         const transactionId = await getReceiptVerifier(receiptCreator, Environment.SANDBOX, BUNDLE_ID, false).verifyAndExtractTransactionId(encode(sandboxReceipt))
         expect(transactionId).toBe(CONSUMABLE_TRANSACTION_ID)
