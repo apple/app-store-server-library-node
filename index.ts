@@ -271,22 +271,28 @@ export class AppStoreServerAPIClient {
             return responseBody
         }
 
+        const responseHeaders: { [key: string]: string[] } = {}
+        for (const [key, values] of Object.entries(response.headers.raw())) {
+            const lowercasedKey = key.toLowerCase()
+            responseHeaders[lowercasedKey] = (responseHeaders[lowercasedKey] ?? []).concat(values)
+        }
+
         try {
             const responseBody = await response.json()
             const errorCode = responseBody['errorCode']
             const errorMessage = responseBody['errorMessage']
 
             if (errorCode) {
-                throw new APIException(response.status, errorCode, errorMessage)
+                throw new APIException(response.status, errorCode, errorMessage, responseHeaders)
             }
 
-            throw new APIException(response.status)
+            throw new APIException(response.status, null, null, responseHeaders)
         } catch (e) {
             if (e instanceof APIException) {
                 throw e
             }
 
-            throw new APIException(response.status)
+            throw new APIException(response.status, null, null, responseHeaders)
         }
     }
 
@@ -719,13 +725,43 @@ export class APIException extends Error {
     public httpStatusCode: number
     public apiError: number | APIError | null
     public errorMessage: string | null
+    /**
+     * The response headers, keyed by lowercased header name.
+     */
+    public headers: { [key: string]: string[] }
+    /**
+     * A UNIX time, in milliseconds, that informs you when you can next send a request.
+     *
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/identifying-rate-limits Identifying rate limits}
+     */
+    public retryAfter: number | null
 
-    constructor(httpStatusCode: number, apiError: number | null = null, errorMessage: string | null = null) {
+    constructor(httpStatusCode: number, apiError: number | null = null, errorMessage: string | null = null, headers: { [key: string]: string[] } = {}) {
         super()
         this.httpStatusCode = httpStatusCode
         this.apiError = apiError
         this.errorMessage = errorMessage
+        this.headers = headers
+        this.retryAfter = parseRetryAfter(headers['retry-after'])
     }
+}
+
+function parseRetryAfter(retryAfterValues: string[] | undefined): number | null {
+    const rawRetryAfter = retryAfterValues?.[0]
+
+    if (rawRetryAfter === undefined) {
+        return null
+    }
+
+    const trimmedRetryAfter = rawRetryAfter.trim()
+
+    if (!/^[0-9]+$/.test(trimmedRetryAfter)) {
+        return null
+    }
+
+    const retryAfter = Number(trimmedRetryAfter)
+
+    return Number.isSafeInteger(retryAfter) ? retryAfter : null
 }
 
 /**
