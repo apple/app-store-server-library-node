@@ -204,6 +204,22 @@ describe('Testing decoding of signed data', () => {
         expect(RevocationType.REFUND_PRORATED).toBe(transaction.revocationType)
         expect(50000).toBe(transaction.revocationPercentage)
     })
+    /**
+     * The payload of a JWS is always UTF-8 encoded, so decoding it must not depend on the default charset of the runtime.
+     * The expected values below are written as escape sequences so that this test does not depend on the encoding
+     * used to compile it either.
+     */
+    it('should decode non-ASCII data independently of the default charset', async () => {
+        const signedTransaction = createSignedDataFromJson("tests/resources/models/signedTransactionWithNonAsciiData.json")
+
+        const transaction = await getDefaultSignedPayloadVerifier().verifyAndDecodeTransaction(signedTransaction)
+
+        const advancedCommerceInfo = transaction.advancedCommerceInfo!
+        expect("Abonnement Caf\u00e9 \u2014 5,99 \u20ac par mois").toBe(advancedCommerceInfo.descriptors!.description)
+        expect("Caf\u00e9 Premium").toBe(advancedCommerceInfo.descriptors!.displayName)
+        expect("\u30d7\u30ec\u30df\u30a2\u30e0\u6a5f\u80fd").toBe(advancedCommerceInfo.items![0].description)
+        expect("\u30d7\u30ec\u30df\u30a2\u30e0").toBe(advancedCommerceInfo.items![0].displayName)
+    })
     it('should decode a signed notification', async () => {
         const signedNotification = createSignedDataFromJson("tests/resources/models/signedNotification.json")
 
