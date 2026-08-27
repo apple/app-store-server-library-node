@@ -9,6 +9,7 @@ import { PriceIncreaseStatus } from "../../models/PriceIncreaseStatus";
 import { PurchasePlatform } from "../../models/PurchasePlatform";
 import { Status } from "../../models/Status";
 import { Subtype } from "../../models/Subtype";
+import { TokenType } from "../../models/TokenType";
 import { createSignedDataFromJson, getDefaultSignedPayloadVerifier } from "../util"
 import { InAppOwnershipType } from "../../models/InAppOwnershipType";
 import { RevocationReason } from "../../models/RevocationReason";
@@ -294,6 +295,8 @@ describe('Testing decoding of signed data', () => {
         expect(1698148950000).toBe(notification.externalPurchaseToken!.tokenCreationDate)
         expect(55555).toBe(notification.externalPurchaseToken!.appAppleId)
         expect("com.example").toBe(notification.externalPurchaseToken!.bundleId)
+        expect(TokenType.ACQUISITION).toBe(notification.externalPurchaseToken!.tokenType)
+        expect(1698149000000).toBe(notification.externalPurchaseToken!.tokenExpirationDate)
     })
 
     it('should decode a signed sandbox external purchase token notification', async () => {
@@ -319,6 +322,8 @@ describe('Testing decoding of signed data', () => {
         expect(1698148950000).toBe(notification.externalPurchaseToken!.tokenCreationDate)
         expect(55555).toBe(notification.externalPurchaseToken!.appAppleId)
         expect("com.example").toBe(notification.externalPurchaseToken!.bundleId)
+        expect(TokenType.ACQUISITION).toBe(notification.externalPurchaseToken!.tokenType)
+        expect(1698149000000).toBe(notification.externalPurchaseToken!.tokenExpirationDate)
     })
 
     it('should decode a signed RESCIND_CONSENT notification', async () => {
