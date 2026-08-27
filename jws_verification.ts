@@ -83,7 +83,7 @@ export class SignedDataVerifier {
      * Verifies and decodes a signedTransaction obtained from the App Store Server API, an App Store Server Notification, or from a device
      * See {@link https://developer.apple.com/documentation/appstoreserverapi/jwstransaction JWSTransaction}
      *
-     * @param signedTransaction The signedTransaction field
+     * @param signedTransactionInfo The signedTransaction field
      * @return The decoded transaction info after verification
      * @throws VerificationException Thrown if the data could not be verified
      */
