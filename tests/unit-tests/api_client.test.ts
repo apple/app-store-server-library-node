@@ -32,12 +32,14 @@ class AppStoreServerAPIClientForTest extends AppStoreServerAPIClient {
     private callback: callbackType
     private body: string
     private statusCode: number
+    private responseHeaders: { [key: string]: string }
 
-    public constructor(signingKey: string, keyId: string, issuerId: string, bundleId: string, environment: Environment, callback: callbackType, body: string, statusCode: number) {
+    public constructor(signingKey: string, keyId: string, issuerId: string, bundleId: string, environment: Environment, callback: callbackType, body: string, statusCode: number, responseHeaders: { [key: string]: string } = {}) {
         super(signingKey, keyId, issuerId, bundleId, environment)
         this.callback = callback
         this.body = body
         this.statusCode = statusCode
+        this.responseHeaders = responseHeaders
     }
     protected async makeFetchRequest(path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }): Promise<Response> {
         // Check Content-Type based on body type
@@ -60,19 +62,20 @@ class AppStoreServerAPIClientForTest extends AppStoreServerAPIClient {
         expect(headers['User-Agent']).toMatch(/^app-store-server-library\/node\/.+/)
         this.callback(path, parsedQueryParameters, method, requestBody, headers)
         return Promise.resolve(new Response(this.body, {
-            status: this.statusCode
+            status: this.statusCode,
+            headers: this.responseHeaders
         }))
     }
 }
 
-function getClientWithBody(path: string, callback: callbackType, statusCode: number = 200): AppStoreServerAPIClient {
+function getClientWithBody(path: string, callback: callbackType, statusCode: number = 200, responseHeaders: { [key: string]: string } = {}): AppStoreServerAPIClient {
     const body = readFile(path)
-    return getAppStoreServerAPIClient(body, statusCode, callback)
+    return getAppStoreServerAPIClient(body, statusCode, callback, responseHeaders)
 }
 
-function getAppStoreServerAPIClient(body: string, statusCode: number, callback: callbackType): AppStoreServerAPIClient {
+function getAppStoreServerAPIClient(body: string, statusCode: number, callback: callbackType, responseHeaders: { [key: string]: string } = {}): AppStoreServerAPIClient {
     const key = getSigningKey()
-    return new AppStoreServerAPIClientForTest(key, "keyId", "issuerId", "bundleId", Environment.LOCAL_TESTING, callback, body, statusCode)
+    return new AppStoreServerAPIClientForTest(key, "keyId", "issuerId", "bundleId", Environment.LOCAL_TESTING, callback, body, statusCode, responseHeaders)
 }
 
 function getSigningKey(): string {
@@ -542,7 +545,7 @@ describe('The api client ', () => {
              expect(parsedQueryParameters.entries.length).toBe(0)
              expect(requestBody).toBeUndefined()
          }, 429);
- 
+
          try {
             const transactionInfoResponse = await client.getTransactionInfo("1234");
             fail('this test call is expected to throw')
@@ -551,7 +554,45 @@ describe('The api client ', () => {
             expect(error.httpStatusCode).toBe(429)
             expect(error.apiError).toBe(APIError.RATE_LIMIT_EXCEEDED)
             expect(error.errorMessage).toBe("Rate limit exceeded.")
+            expect(error.retryAfter).toBeNull()
          }
+     })
+
+     it('calls getTransactionInfo but receives a rate limit exceeded error with a Retry-After header', async () => {
+        const client = getClientWithBody("tests/resources/models/apiTooManyRequestsException.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+             expect("GET").toBe(method)
+             expect("/inApps/v1/transactions/1234").toBe(path)
+         }, 429, { 'Retry-After': '1698148900000' });
+
+         try {
+            await client.getTransactionInfo("1234");
+            fail('this test call is expected to throw')
+         } catch (e) {
+            let error = e as APIException
+            expect(error.httpStatusCode).toBe(429)
+            expect(error.apiError).toBe(APIError.RATE_LIMIT_EXCEEDED)
+            expect(error.retryAfter).toBe(1698148900000)
+            expect(error.headers['retry-after']).toEqual(['1698148900000'])
+         }
+     })
+
+     it('calls getTransactionInfo but receives a rate limit exceeded error with a malformed Retry-After header', async () => {
+        const rawRetryAfterValues = ['', ' ', 'not-a-number', '1698148900000.0', '+1698148900000', '-1698148900000', '1698148900000abc', '99999999999999999999', 'Wed, 21 Oct 2015 07:28:00 GMT']
+
+        for (const rawRetryAfter of rawRetryAfterValues) {
+            const client = getClientWithBody("tests/resources/models/apiTooManyRequestsException.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            }, 429, { 'Retry-After': rawRetryAfter });
+
+            try {
+                await client.getTransactionInfo("1234");
+                fail('this test call is expected to throw')
+            } catch (e) {
+                let error = e as APIException
+                expect(error.httpStatusCode).toBe(429)
+                expect(error.retryAfter).toBeNull()
+                expect(error.headers['retry-after']).toEqual([rawRetryAfter])
+            }
+        }
      })
 
      it('calls getTransactionInfo but receives an unknown/new error code', async () => {
