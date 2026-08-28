@@ -24,7 +24,7 @@ export class ReceiptUtility {
             const oldResult = prevGetVblenFunction(s, idx)
             // Round up to the remaining length in the string, measured in bytes (2 hex values per byte)
             if (oldResult === 0 && c === '80') {
-                return (s.length - idx) / 2
+                return (s.length - ASN1HEX.getVidx(s, idx)) / 2
             }
             return oldResult
         }
