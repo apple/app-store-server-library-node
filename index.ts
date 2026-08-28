@@ -306,6 +306,12 @@ export class AppStoreServerAPIClient {
         });
     }
 
+    private encodePathSegment(value: string): string {
+        const encodedValue = encodeURIComponent(value)
+        // WHATWG URL parsing normalizes encoded dot-only segments, so encode them one more time.
+        return encodedValue === "." || encodedValue === ".." ? encodedValue.replace(/\./g, "%252E") : encodedValue
+    }
+
     /**
      * Uses a subscription’s product identifier to extend the renewal date for all of its eligible active subscribers.
      *
@@ -328,7 +334,7 @@ export class AppStoreServerAPIClient {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/extend_a_subscription_renewal_date Extend a Subscription Renewal Date}
      */
     public async extendSubscriptionRenewalDate(originalTransactionId: string, extendRenewalDateRequest: ExtendRenewalDateRequest): Promise<ExtendRenewalDateResponse> {
-        return await this.makeRequest<ExtendRenewalDateResponse>("/inApps/v1/subscriptions/extend/" + originalTransactionId, "PUT", {}, extendRenewalDateRequest, new ExtendRenewalDateResponseValidator(), 'application/json');
+        return await this.makeRequest<ExtendRenewalDateResponse>("/inApps/v1/subscriptions/extend/" + this.encodePathSegment(originalTransactionId), "PUT", {}, extendRenewalDateRequest, new ExtendRenewalDateResponseValidator(), 'application/json');
     }
 
     /**
@@ -346,7 +352,7 @@ export class AppStoreServerAPIClient {
             queryParameters["status"] = status.map(s => s.toString()) as [string];
         }
 
-        return await this.makeRequest("/inApps/v1/subscriptions/" + anyTransactionId, "GET", queryParameters, null, new StatusResponseValidator(), undefined);
+        return await this.makeRequest("/inApps/v1/subscriptions/" + this.encodePathSegment(anyTransactionId), "GET", queryParameters, null, new StatusResponseValidator(), undefined);
     }
 
     /**
@@ -364,7 +370,7 @@ export class AppStoreServerAPIClient {
             queryParameters["revision"] = [revision];
         }
 
-        return await this.makeRequest("/inApps/v2/refund/lookup/" + anyTransactionId, "GET", queryParameters, null, new RefundHistoryResponseValidator(), undefined);
+        return await this.makeRequest("/inApps/v2/refund/lookup/" + this.encodePathSegment(anyTransactionId), "GET", queryParameters, null, new RefundHistoryResponseValidator(), undefined);
     }
 
     /**
@@ -377,7 +383,7 @@ export class AppStoreServerAPIClient {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/get_status_of_subscription_renewal_date_extensions Get Status of Subscription Renewal Date Extensions}
      */
     public async getStatusOfSubscriptionRenewalDateExtensions(requestIdentifier: string, productId: string): Promise<MassExtendRenewalDateStatusResponse> {
-        return await this.makeRequest("/inApps/v1/subscriptions/extend/mass/" + productId + "/" + requestIdentifier, "GET", {}, null, new MassExtendRenewalDateStatusResponseValidator(), undefined);
+        return await this.makeRequest("/inApps/v1/subscriptions/extend/mass/" + this.encodePathSegment(productId) + "/" + this.encodePathSegment(requestIdentifier), "GET", {}, null, new MassExtendRenewalDateStatusResponseValidator(), undefined);
     }
 
     /**
@@ -389,7 +395,7 @@ export class AppStoreServerAPIClient {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/get_test_notification_status Get Test Notification Status}
      */
     public async getTestNotificationStatus(testNotificationToken: string): Promise<CheckTestNotificationResponse> {
-        return await this.makeRequest("/inApps/v1/notifications/test/" + testNotificationToken, "GET", {}, null, new CheckTestNotificationResponseValidator(), undefined);
+        return await this.makeRequest("/inApps/v1/notifications/test/" + this.encodePathSegment(testNotificationToken), "GET", {}, null, new CheckTestNotificationResponseValidator(), undefined);
     }
 
     /**
@@ -448,7 +454,7 @@ export class AppStoreServerAPIClient {
         if (transactionHistoryRequest.revoked !== undefined) {
             queryParameters["revoked"] = [transactionHistoryRequest.revoked.toString()];
         }
-        return await this.makeRequest("/inApps/" + version + "/history/" + anyTransactionId, "GET", queryParameters, null, new HistoryResponseValidator(), undefined);
+        return await this.makeRequest("/inApps/" + this.encodePathSegment(version) + "/history/" + this.encodePathSegment(anyTransactionId), "GET", queryParameters, null, new HistoryResponseValidator(), undefined);
     }
 
     /**
@@ -460,7 +466,7 @@ export class AppStoreServerAPIClient {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/get_transaction_info Get Transaction Info}
      */
     public async getTransactionInfo(transactionId: string): Promise<TransactionInfoResponse> {
-        return await this.makeRequest("/inApps/v1/transactions/" + transactionId, "GET", {}, null, new TransactionInfoResponseValidator(), undefined);
+        return await this.makeRequest("/inApps/v1/transactions/" + this.encodePathSegment(transactionId), "GET", {}, null, new TransactionInfoResponseValidator(), undefined);
     }
 
     /**
@@ -472,7 +478,7 @@ export class AppStoreServerAPIClient {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/look_up_order_id Look Up Order ID}
      */
     public async lookUpOrderId(orderId: string): Promise<OrderLookupResponse> {
-        return await this.makeRequest("/inApps/v1/lookup/" + orderId, "GET", {}, null, new OrderLookupResponseValidator(), undefined);
+        return await this.makeRequest("/inApps/v1/lookup/" + this.encodePathSegment(orderId), "GET", {}, null, new OrderLookupResponseValidator(), undefined);
     }
 
     /**
@@ -496,7 +502,7 @@ export class AppStoreServerAPIClient {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/send-consumption-information-v1 Send Consumption Information}
      */
     public async sendConsumptionData(transactionId: string, consumptionRequest: ConsumptionRequestV1): Promise<void> {
-        await this.makeRequest("/inApps/v1/transactions/consumption/" + transactionId, "PUT", {}, consumptionRequest, null, 'application/json');
+        await this.makeRequest("/inApps/v1/transactions/consumption/" + this.encodePathSegment(transactionId), "PUT", {}, consumptionRequest, null, 'application/json');
     }
 
     /**
@@ -508,7 +514,7 @@ export class AppStoreServerAPIClient {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/send-consumption-information Send Consumption Information}
      */
     public async sendConsumptionInformation(transactionId: string, consumptionRequest: ConsumptionRequest): Promise<void> {
-        await this.makeRequest("/inApps/v2/transactions/consumption/" + transactionId, "PUT", {}, consumptionRequest, null, 'application/json');
+        await this.makeRequest("/inApps/v2/transactions/consumption/" + this.encodePathSegment(transactionId), "PUT", {}, consumptionRequest, null, 'application/json');
     }
 
     /**
@@ -520,7 +526,7 @@ export class AppStoreServerAPIClient {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/set-app-account-token Set App Account Token}
      */
     public async setAppAccountToken(originalTransactionId: string, updateAppAccountTokenRequest: UpdateAppAccountTokenRequest): Promise<void> {
-        await this.makeRequest("/inApps/v1/transactions/" + originalTransactionId + "/appAccountToken", "PUT", {}, updateAppAccountTokenRequest, null, 'application/json');
+        await this.makeRequest("/inApps/v1/transactions/" + this.encodePathSegment(originalTransactionId) + "/appAccountToken", "PUT", {}, updateAppAccountTokenRequest, null, 'application/json');
     }
 
     /**
@@ -537,7 +543,7 @@ export class AppStoreServerAPIClient {
         if (imageSize != null) {
             queryParameters["imageSize"] = [imageSize]
         }
-        await this.makeRequest("/inApps/v1/messaging/image/" + imageIdentifier, "PUT", queryParameters, image, null, 'image/png');
+        await this.makeRequest("/inApps/v1/messaging/image/" + this.encodePathSegment(imageIdentifier), "PUT", queryParameters, image, null, 'image/png');
     }
 
     /**
@@ -548,7 +554,7 @@ export class AppStoreServerAPIClient {
      * {@link https://developer.apple.com/documentation/retentionmessaging/delete-image Delete Image}
      */
     public async deleteImage(imageIdentifier: string): Promise<void> {
-        await this.makeRequest("/inApps/v1/messaging/image/" + imageIdentifier, "DELETE", {}, null, null, undefined);
+        await this.makeRequest("/inApps/v1/messaging/image/" + this.encodePathSegment(imageIdentifier), "DELETE", {}, null, null, undefined);
     }
 
     /**
@@ -571,7 +577,7 @@ export class AppStoreServerAPIClient {
      * {@link https://developer.apple.com/documentation/retentionmessaging/upload-message Upload Message}
      */
     public async uploadMessage(messageIdentifier: string, uploadMessageRequestBody: UploadMessageRequestBody): Promise<void> {
-        await this.makeRequest("/inApps/v1/messaging/message/" + messageIdentifier, "PUT", {}, uploadMessageRequestBody, null, 'application/json');
+        await this.makeRequest("/inApps/v1/messaging/message/" + this.encodePathSegment(messageIdentifier), "PUT", {}, uploadMessageRequestBody, null, 'application/json');
     }
 
     /**
@@ -582,7 +588,7 @@ export class AppStoreServerAPIClient {
      * {@link https://developer.apple.com/documentation/retentionmessaging/delete-message Delete Message}
      */
     public async deleteMessage(messageIdentifier: string): Promise<void> {
-        await this.makeRequest("/inApps/v1/messaging/message/" + messageIdentifier, "DELETE", {}, null, null, undefined);
+        await this.makeRequest("/inApps/v1/messaging/message/" + this.encodePathSegment(messageIdentifier), "DELETE", {}, null, null, undefined);
     }
 
     /**
@@ -606,7 +612,7 @@ export class AppStoreServerAPIClient {
      * {@link https://developer.apple.com/documentation/retentionmessaging/configure-default-message Configure Default Message}
      */
     public async configureDefaultMessage(productId: string, locale: string, defaultConfigurationRequest: DefaultConfigurationRequest): Promise<void> {
-        await this.makeRequest("/inApps/v1/messaging/default/" + productId + "/" + locale, "PUT", {}, defaultConfigurationRequest, null, 'application/json');
+        await this.makeRequest("/inApps/v1/messaging/default/" + this.encodePathSegment(productId) + "/" + this.encodePathSegment(locale), "PUT", {}, defaultConfigurationRequest, null, 'application/json');
     }
 
     /**
@@ -618,7 +624,7 @@ export class AppStoreServerAPIClient {
      * {@link https://developer.apple.com/documentation/retentionmessaging/delete-default-message Delete Default Message}
      */
     public async deleteDefaultMessage(productId: string, locale: string): Promise<void> {
-        await this.makeRequest("/inApps/v1/messaging/default/" + productId + "/" + locale, "DELETE", {}, null, null, undefined);
+        await this.makeRequest("/inApps/v1/messaging/default/" + this.encodePathSegment(productId) + "/" + this.encodePathSegment(locale), "DELETE", {}, null, null, undefined);
     }
 
     /**
@@ -631,7 +637,7 @@ export class AppStoreServerAPIClient {
      * {@link https://developer.apple.com/documentation/retentionmessaging/get-default-message Get Default Message}
      */
     public async getDefaultMessage(productId: string, locale: string): Promise<DefaultConfigurationResponse> {
-        return await this.makeRequest("/inApps/v1/messaging/default/" + productId + "/" + locale, "GET", {}, null, new DefaultConfigurationResponseValidator(), undefined);
+        return await this.makeRequest("/inApps/v1/messaging/default/" + this.encodePathSegment(productId) + "/" + this.encodePathSegment(locale), "GET", {}, null, new DefaultConfigurationResponseValidator(), undefined);
     }
 
     /**
@@ -687,7 +693,7 @@ export class AppStoreServerAPIClient {
      * {@link https://developer.apple.com/documentation/retentionmessaging/get-performance-test-results Get Performance Test Results}
      */
     public async getPerformanceTestResults(requestId: string): Promise<PerformanceTestResultResponse> {
-        return await this.makeRequest("/inApps/v1/messaging/performanceTest/result/" + requestId, "GET", {}, null, new PerformanceTestResultResponseValidator(), undefined);
+        return await this.makeRequest("/inApps/v1/messaging/performanceTest/result/" + this.encodePathSegment(requestId), "GET", {}, null, new PerformanceTestResultResponseValidator(), undefined);
     }
 
     /**
@@ -699,7 +705,7 @@ export class AppStoreServerAPIClient {
       * {@link https://developer.apple.com/documentation/appstoreserverapi/get-app-transaction-info Get App Transaction Info}
       */
      public async getAppTransactionInfo(anyTransactionId: string): Promise<AppTransactionInfoResponse> {
-         return await this.makeRequest("/inApps/v1/transactions/appTransactions/" + anyTransactionId, "GET", {}, null, new AppTransactionInfoResponseValidator(), undefined);
+         return await this.makeRequest("/inApps/v1/transactions/appTransactions/" + this.encodePathSegment(anyTransactionId), "GET", {}, null, new AppTransactionInfoResponseValidator(), undefined);
      }
 
     /**
@@ -710,7 +716,7 @@ export class AppStoreServerAPIClient {
      * {@link https://developer.apple.com/documentation/appstoreserverapi/finish-transaction Finish Transaction}
      */
     public async finishTransaction(transactionId: string): Promise<void> {
-        await this.makeRequest("/inApps/v1/transactions/" + transactionId + "/finish", "POST", {}, null, null, undefined);
+        await this.makeRequest("/inApps/v1/transactions/" + this.encodePathSegment(transactionId) + "/finish", "POST", {}, null, null, undefined);
     }
 
     private createBearerToken(): string {

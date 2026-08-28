@@ -913,6 +913,54 @@ describe('The api client ', () => {
         expect(response.messageIdentifier).toBe("a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890")
     })
 
+    it('encodes caller-controlled values as URL path segments', async () => {
+        async function assertPath(expectedPath: string, expectedMethod: string, invoke: (client: AppStoreServerAPIClient) => Promise<void>) {
+            const client = getAppStoreServerAPIClient("", 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+                expect(expectedMethod).toBe(method)
+                expect(expectedPath).toBe(path)
+                expect(new URL("https://example.test" + path).pathname).toBe(expectedPath)
+            })
+
+            await invoke(client)
+        }
+
+        await assertPath(
+            "/inApps/v1/messaging/default/product%2Fwith-slash/en-US",
+            "DELETE",
+            client => client.deleteDefaultMessage("product/with-slash", "en-US")
+        )
+        await assertPath(
+            "/inApps/v1/messaging/message/message%3Fquery%23fragment",
+            "DELETE",
+            client => client.deleteMessage("message?query#fragment")
+        )
+        await assertPath(
+            "/inApps/v1/messaging/image/image%2Fwith-slash",
+            "DELETE",
+            client => client.deleteImage("image/with-slash")
+        )
+        await assertPath(
+            "/inApps/v1/messaging/image/%252E%252E",
+            "DELETE",
+            client => client.deleteImage("..")
+        )
+        await assertPath(
+            "/inApps/v1/messaging/message/%252E",
+            "DELETE",
+            client => client.deleteMessage(".")
+        )
+        await assertPath(
+            "/inApps/v1/transactions/id%3Fstatus%3D1%23fragment/finish",
+            "POST",
+            client => client.finishTransaction("id?status=1#fragment")
+        )
+        await assertPath(
+            "/inApps/v1/messaging/default/com.example.product/en-US",
+            "DELETE",
+            client => client.deleteDefaultMessage("com.example.product", "en-US")
+        )
+    })
+
     it('calls uploadImage with imageSize', async () => {
         const client = getAppStoreServerAPIClient("", 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("PUT").toBe(method)
