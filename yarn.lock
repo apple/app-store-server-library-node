@@ -2515,10 +2515,10 @@ jsonwebtoken@^9.0.2:
     ms "^2.1.1"
     semver "^7.5.4"
 
-jsrsasign@^11.0.0:
-  version "11.1.1"
-  resolved "https://registry.yarnpkg.com/jsrsasign/-/jsrsasign-11.1.1.tgz#a6a213e52b835fd6292fae9903a165921578fc13"
-  integrity sha512-6w95OOXH8DNeGxakqLndBEqqwQ6A70zGaky1oxfg8WVLWOnghTfJsc5Tknx+Z88MHSb1bGLcqQHImOF8Lk22XA==
+jsrsasign@^11.1.5:
+  version "11.1.5"
+  resolved "https://registry.yarnpkg.com/jsrsasign/-/jsrsasign-11.1.5.tgz#7bd0b3ae320ba6738169bde0691a18f8ce1af29a"
+  integrity sha512-i6mAjey0/4UQmlOaNS2vROl8EkWV8Ei436reJAby2OPQ3lF6uXSs1VYpnM8hndmmCMFIzNc04Uw2GF+0JVLFbg==
 
 jwa@^2.0.1:
   version "2.0.1"
