@@ -8,6 +8,8 @@
       "externalPurchaseId": "b2158121-7af9-49d4-9561-1f588205523e",
       "tokenCreationDate": 1698148950000,
       "appAppleId": 55555,
-      "bundleId": "com.example"
+      "bundleId": "com.example",
+      "tokenType": "ACQUISITION",
+      "tokenExpirationDate": 1698149000000
     }
   }

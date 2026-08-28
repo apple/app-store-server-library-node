@@ -25,6 +25,8 @@ export enum Subtype {
     SUMMARY = "SUMMARY",
     FAILURE = "FAILURE",
     UNREPORTED = "UNREPORTED",
+    ACTIVE_TOKEN_REMINDER = "ACTIVE_TOKEN_REMINDER",
+    CREATED = "CREATED",
 }
 
 export class SubtypeValidator extends StringValidator {}

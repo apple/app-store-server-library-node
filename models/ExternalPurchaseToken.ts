@@ -1,5 +1,6 @@
 // Copyright (c) 2024 Apple Inc. Licensed under MIT License.
 
+import { TokenType, TokenTypeValidator } from "./TokenType"
 import { Validator } from "./Validator"
 
 /**
@@ -36,10 +37,25 @@ export interface ExternalPurchaseToken {
      * {@link https://developer.apple.com/documentation/appstoreservernotifications/bundleid bundleId}
      **/
     bundleId?: string
+
+    /**
+     * The type of an external purchase custom link token.
+     *
+     * {@link https://developer.apple.com/documentation/appstoreservernotifications/tokentype tokenType}
+     **/
+    tokenType?: TokenType | string
+
+    /**
+     * The field of a custom link token that contains the UNIX date, in milliseconds, when the token expires.
+     *
+     * {@link https://developer.apple.com/documentation/appstoreservernotifications/tokenexpirationdate tokenExpirationDate}
+     **/
+    tokenExpirationDate?: number
 }
 
 
 export class ExternalPurchaseTokenValidator implements Validator<ExternalPurchaseToken> {
+    static readonly tokenTypeValidator = new TokenTypeValidator()
     validate(obj: any): obj is ExternalPurchaseToken {
         if ((typeof obj['externalPurchaseId'] !== 'undefined') && !(typeof obj['externalPurchaseId'] === "string" || obj['externalPurchaseId'] instanceof String)) {
             return false
@@ -51,6 +67,12 @@ export class ExternalPurchaseTokenValidator implements Validator<ExternalPurchas
             return false
         }
         if ((typeof obj['bundleId'] !== 'undefined') && !(typeof obj['bundleId'] === "string" || obj['bundleId'] instanceof String)) {
+            return false
+        }
+        if ((typeof obj['tokenType'] !== 'undefined') && !(ExternalPurchaseTokenValidator.tokenTypeValidator.validate(obj['tokenType']))) {
+            return false
+        }
+        if ((typeof obj['tokenExpirationDate'] !== 'undefined') && !(typeof obj['tokenExpirationDate'] === "number")) {
             return false
         }
         return true
