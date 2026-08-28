@@ -1,0 +1,23 @@
+{
+  "transactionId":"23456",
+  "originalTransactionId":"12345",
+  "bundleId":"com.example",
+  "productId":"com.example.product",
+  "purchaseDate":1698148900000,
+  "signedDate":1698148900000,
+  "environment":"LocalTesting",
+  "advancedCommerceInfo": {
+    "descriptors": {
+      "description": "Abonnement Café — 5,99 € par mois",
+      "displayName": "Café Premium"
+    },
+    "items": [
+      {
+        "SKU": "com.example.sku.premium",
+        "description": "プレミアム機能",
+        "displayName": "プレミアム",
+        "price": 9990
+      }
+    ]
+  }
+}
