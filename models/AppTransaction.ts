@@ -138,7 +138,7 @@ export class AppTransactionValidator implements Validator<AppTransaction> {
         if ((typeof obj['preorderDate'] !== 'undefined') && !(typeof obj['preorderDate'] === "number")) {
             return false
         }
-        if ((typeof obj['environment'] !== 'undefined') && !(AppTransactionValidator.environmentValidator.validate(obj['environment']))) {
+        if ((typeof obj['receiptType'] !== 'undefined') && !(AppTransactionValidator.environmentValidator.validate(obj['receiptType']))) {
             return false
         }
         if ((typeof obj['appTransactionId'] !== 'undefined') && !(typeof obj['appTransactionId'] === "string" || obj['appTransactionId'] instanceof String)) {
