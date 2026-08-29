@@ -23,8 +23,6 @@ import { RefundPreferenceV1 } from "../../models/RefundPreferenceV1";
 import { APIError, APIException, AppStoreServerAPIClient, ExtendReasonCode, ExtendRenewalDateRequest, GetTransactionHistoryVersion, MassExtendRenewalDateRequest, NotificationHistoryRequest, NotificationHistoryResponseItem, Order, OrderLookupStatus, ProductType, SendAttemptResult, TransactionHistoryRequest } from "../../index";
 import { Response } from "node-fetch";
 
-import jsonwebtoken = require('jsonwebtoken');
-
 type callbackType = (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => void
 
 class AppStoreServerAPIClientForTest extends AppStoreServerAPIClient {
@@ -55,7 +53,8 @@ class AppStoreServerAPIClientForTest extends AppStoreServerAPIClient {
         expect('application/json').toBe(headers['Accept'])
         expect(headers['Authorization']).toMatch(/^Bearer .+/)
         const token = headers['Authorization'].substring(7)
-        const decodedToken = jsonwebtoken.decode(token) as jsonwebtoken.JwtPayload
+        const parts = token.split('.')
+        const decodedToken = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'))
         expect(decodedToken['bid']).toBe('bundleId')
         expect(decodedToken['aud']).toBe('appstoreconnect-v1')
         expect(decodedToken['iss']).toBe('issuerId')

@@ -1,7 +1,6 @@
 // Copyright (c) 2025 Apple Inc. Licensed under MIT License.
 
-import jsonwebtoken = require('jsonwebtoken');
-import { randomUUID } from 'crypto';
+import { randomUUID, sign } from 'crypto';
 
 class BaseSignatureCreator {
     private audience: string
@@ -18,13 +17,28 @@ class BaseSignatureCreator {
         this.signingKey = signingKey
     }
 
-    protected internalCreateSignature(featureSpecificClaims: { [key: string]: any }) {
-        var claims = featureSpecificClaims
+    protected internalCreateSignature(featureSpecificClaims: { [key: string]: any }): string {
+        const claims = { ...featureSpecificClaims }
         
         claims['bid'] = this.bundleId
         claims['nonce'] = randomUUID()
+        claims['iss'] = this.issuerId
+        claims['aud'] = this.audience
+        claims['iat'] = Math.floor(Date.now() / 1000)
 
-        return jsonwebtoken.sign(claims, this.signingKey, { algorithm: 'ES256', keyid: this.keyId, issuer: this.issuerId, audience: this.audience})
+        const header = {
+            alg: 'ES256',
+            kid: this.keyId,
+            typ: 'JWT'
+        }
+        const headerB64 = Buffer.from(JSON.stringify(header)).toString('base64url')
+        const payloadB64 = Buffer.from(JSON.stringify(claims)).toString('base64url')
+        const signingInput = `${headerB64}.${payloadB64}`
+        const signature = sign('SHA256', Buffer.from(signingInput), {
+            key: this.signingKey,
+            dsaEncoding: 'ieee-p1363'
+        }).toString('base64url')
+        return `${signingInput}.${signature}`
     }
 }
 

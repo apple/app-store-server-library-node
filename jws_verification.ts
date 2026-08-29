@@ -1,8 +1,5 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import jsonwebtoken = require('jsonwebtoken');
-
-import base64url from 'base64url';
 import { KeyObject, X509Certificate, createHash, verify } from 'crypto';
 import { KJUR, X509, ASN1HEX } from 'jsrsasign';
 import fetch, { Headers } from 'node-fetch';
@@ -205,7 +202,12 @@ export class SignedDataVerifier {
       let certificateChain;
       let decodedJWT
       try {
-        decodedJWT = jsonwebtoken.decode(jwt)
+        const parts = jwt.split('.')
+        if (parts.length !== 3) {
+          throw new Error("Invalid JWT format")
+        }
+        const payloadJson = Buffer.from(parts[1], 'base64url').toString('utf8')
+        decodedJWT = JSON.parse(payloadJson)
         if (!validator.validate(decodedJWT)) {
           throw new VerificationException(VerificationStatus.FAILURE)
         }
@@ -215,8 +217,8 @@ export class SignedDataVerifier {
           return decodedJWT
         }
         try {
-          const header = jwt.split('.')[0]
-          const decodedHeader = base64url.decode(header)
+          const header = parts[0]
+          const decodedHeader = Buffer.from(header, 'base64url').toString('utf8')
           const headerObj = JSON.parse(decodedHeader)
           const chain: string[] = headerObj['x5c'] ?? []
           if (chain.length != 3) {
@@ -231,11 +233,15 @@ export class SignedDataVerifier {
         }
         const effectiveDate = this.enableOnlineChecks ? new Date() : signedDateExtractor(decodedJWT)
         const publicKey = await this.verifyCertificateChain(this.rootCertificates, certificateChain[0], certificateChain[1], effectiveDate);
-        const encodedKey = publicKey.export({
-          type: "spki",
-          format: "pem"
-        });
-        jsonwebtoken.verify(jwt, encodedKey) as T
+        const signingInput = Buffer.from(`${parts[0]}.${parts[1]}`)
+        const signature = Buffer.from(parts[2], 'base64url')
+        const isSignatureValid = verify('SHA256', signingInput, {
+          key: publicKey,
+          dsaEncoding: 'ieee-p1363'
+        }, signature)
+        if (!isSignatureValid) {
+          throw new VerificationException(VerificationStatus.VERIFICATION_FAILURE)
+        }
         return decodedJWT
       } catch (error) {
         if (error instanceof VerificationException) {

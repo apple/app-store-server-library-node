@@ -185,7 +185,7 @@ export { RenewalBillingPlanType } from './models/RenewalBillingPlanType'
 export { RenewalCommitmentInfo } from './models/RenewalCommitmentInfo'
 export { TransactionCommitmentInfo } from './models/TransactionCommitmentInfo'
 
-import jsonwebtoken = require('jsonwebtoken');
+import { sign } from 'crypto';
 import { AppTransactionInfoResponse, AppTransactionInfoResponseValidator } from './models/AppTransactionInfoResponse';
 import { NotificationHistoryRequest } from './models/NotificationHistoryRequest';
 import { NotificationHistoryResponse, NotificationHistoryResponseValidator } from './models/NotificationHistoryResponse';
@@ -714,10 +714,27 @@ export class AppStoreServerAPIClient {
     }
 
     private createBearerToken(): string {
+        const now = Math.floor(Date.now() / 1000);
         const payload = {
-            bid: this.bundleId
-        }
-        return jsonwebtoken.sign(payload, this.signingKey, { algorithm: 'ES256', keyid: this.keyId, issuer: this.issuerId, audience: 'appstoreconnect-v1', expiresIn: '5m'});
+            bid: this.bundleId,
+            iss: this.issuerId,
+            aud: 'appstoreconnect-v1',
+            iat: now,
+            exp: now + 300
+        };
+        const header = {
+            alg: 'ES256',
+            kid: this.keyId,
+            typ: 'JWT'
+        };
+        const headerB64 = Buffer.from(JSON.stringify(header)).toString('base64url');
+        const payloadB64 = Buffer.from(JSON.stringify(payload)).toString('base64url');
+        const signingInput = `${headerB64}.${payloadB64}`;
+        const signature = sign('SHA256', Buffer.from(signingInput), {
+            key: this.signingKey,
+            dsaEncoding: 'ieee-p1363'
+        }).toString('base64url');
+        return `${signingInput}.${signature}`;
     }
 }
 
