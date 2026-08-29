@@ -262,7 +262,12 @@ export class SignedDataVerifier {
       if (this.enableOnlineChecks) {
         this.verifiedPublicKeyCache[cacheKey] = new CacheValue(leaf.publicKey, new Date().getTime() + CACHE_TIME_LIMIT)
         if (Object.keys(this.verifiedPublicKeyCache).length > MAXIMUM_CACHE_SIZE) {
-          for (let key in Object.keys(this.verifiedPublicKeyCache)) {
+          // `for...in` over Object.keys(...) iterates the *indices* of that
+          // array ("0", "1", ...), not the cache's own keys, so
+          // this.verifiedPublicKeyCache[key] was always undefined here and
+          // .cacheExpiry threw a TypeError the moment the cache grew past
+          // MAXIMUM_CACHE_SIZE. Iterate the cache's keys directly instead.
+          for (const key of Object.keys(this.verifiedPublicKeyCache)) {
             if (this.verifiedPublicKeyCache[key].cacheExpiry < new Date().getTime()) {
               delete this.verifiedPublicKeyCache[key]
             }
