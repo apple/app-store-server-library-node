@@ -1144,4 +1144,19 @@ describe('The api client ', () => {
 
         await client.finishTransaction("1234");
     })
+
+    it('supports configuring http/https agent', () => {
+        const http = require('http');
+        const customAgent = new http.Agent();
+        const key = readFile('tests/resources/certs/testSigningKey.p8');
+        const client = new AppStoreServerAPIClient(key, 'keyId', 'issuerId', 'bundleId', Environment.SANDBOX, customAgent);
+        expect(client.getAgent()).toBe(customAgent);
+
+        const anotherAgent = new http.Agent();
+        client.setAgent(anotherAgent);
+        expect(client.getAgent()).toBe(anotherAgent);
+
+        client.setAgent(undefined);
+        expect(client.getAgent()).toBeUndefined();
+    });
 })
