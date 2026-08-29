@@ -2,7 +2,6 @@
 
 import { AdvancedCommerceInAppRequest, AdvancedCommerceInAppSignatureCreator, IntroductoryOfferEligibilitySignatureCreator, PromotionalOfferV2SignatureCreator } from "../../jws_signature_creator";
 import { readFile } from "../util"
-import jsonwebtoken = require('jsonwebtoken');
 
 interface TestInAppRequest extends AdvancedCommerceInAppRequest {
     testValue: string
