@@ -186,10 +186,12 @@ export { RenewalCommitmentInfo } from './models/RenewalCommitmentInfo'
 export { TransactionCommitmentInfo } from './models/TransactionCommitmentInfo'
 
 import jsonwebtoken = require('jsonwebtoken');
+import * as http from 'http';
+import * as https from 'https';
 import { AppTransactionInfoResponse, AppTransactionInfoResponseValidator } from './models/AppTransactionInfoResponse';
 import { NotificationHistoryRequest } from './models/NotificationHistoryRequest';
 import { NotificationHistoryResponse, NotificationHistoryResponseValidator } from './models/NotificationHistoryResponse';
-import { URLSearchParams } from 'url';
+import { URLSearchParams, URL } from 'url';
 
 export class AppStoreServerAPIClient {
     private static PRODUCTION_URL = "https://api.storekit.apple.com";
@@ -203,6 +205,7 @@ export class AppStoreServerAPIClient {
     private signingKey: string
     private bundleId: string
     private urlBase: string
+    private agent?: http.Agent | https.Agent | ((parsedUrl: URL) => http.Agent | https.Agent)
 
     /**
      * Create an App Store Server API client
@@ -211,12 +214,14 @@ export class AppStoreServerAPIClient {
      * @param issuerId Your issuer ID from the Keys page in App Store Connect
      * @param bundleId Your app’s bundle ID
      * @param environment The environment to target
+     * @param agent An optional HTTP/HTTPS agent to use for network requests (e.g. for proxy support)
      */
-    public constructor(signingKey: string, keyId: string, issuerId: string, bundleId: string, environment: Environment) {
+    public constructor(signingKey: string, keyId: string, issuerId: string, bundleId: string, environment: Environment, agent?: http.Agent | https.Agent | ((parsedUrl: URL) => http.Agent | https.Agent)) {
         this.issuerId = issuerId
         this.keyId = keyId
         this.bundleId = bundleId
         this.signingKey = signingKey
+        this.agent = agent
         switch(environment) {
             case Environment.XCODE:
                 throw new Error("Xcode is not a supported environment for an AppStoreServerAPIClient")
@@ -230,6 +235,21 @@ export class AppStoreServerAPIClient {
                 this.urlBase = AppStoreServerAPIClient.SANDBOX_URL
                 break
         }
+    }
+
+    /**
+     * Sets the HTTP/HTTPS agent used for network requests.
+     * @param agent The agent or agent factory function to use.
+     */
+    public setAgent(agent?: http.Agent | https.Agent | ((parsedUrl: URL) => http.Agent | https.Agent)): void {
+        this.agent = agent
+    }
+
+    /**
+     * Gets the HTTP/HTTPS agent used for network requests.
+     */
+    public getAgent(): http.Agent | https.Agent | ((parsedUrl: URL) => http.Agent | https.Agent) | undefined {
+        return this.agent
     }
 
     protected async makeRequest<T>(path: string, method: string, queryParameters: { [key: string]: string[]}, body: object | Buffer | null, validator: Validator<T> | null, contentType?: string): Promise<T> {
@@ -302,7 +322,8 @@ export class AppStoreServerAPIClient {
             method: method,
             body: requestBody,
             headers: headers,
-            timeout: AppStoreServerAPIClient.REQUEST_TIMEOUT_MS
+            timeout: AppStoreServerAPIClient.REQUEST_TIMEOUT_MS,
+            agent: this.agent
         });
     }
 
