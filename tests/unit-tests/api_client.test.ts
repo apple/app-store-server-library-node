@@ -307,6 +307,45 @@ describe('The api client ', () => {
         expect(expectedNotificationHistory).toStrictEqual(notificationHistoryResponse.notificationHistory)
     })
 
+    it.each([
+        { field: 'signedPayload', item: { signedPayload: 123 } },
+        { field: 'sendAttempts', item: { sendAttempts: 'not-an-array' } },
+        { field: 'attemptDate', item: { sendAttempts: [{ attemptDate: 'not-a-number' }] } },
+        { field: 'sendAttemptResult', item: { sendAttempts: [{ sendAttemptResult: 123 }] } },
+        {
+            field: 'later send attempt',
+            item: { sendAttempts: [{ sendAttemptResult: 'SUCCESS' }, { attemptDate: 'not-a-number' }] }
+        }
+    ])('rejects notification history with invalid $field', async ({ item }) => {
+        const body = { notificationHistory: [{ signedPayload: 'valid_payload' }, item] }
+        const client = getAppStoreServerAPIClient(JSON.stringify(body), 200, () => {})
+
+        await expect(client.getNotificationHistory(null, {})).rejects.toThrow('Unexpected response body format')
+    })
+
+    it.each([
+        { description: 'omitted history', body: {} },
+        { description: 'empty history', body: { notificationHistory: [] } },
+        { description: 'omitted item fields', body: { notificationHistory: [{}] } },
+        {
+            description: 'omitted send attempts',
+            body: { notificationHistory: [{ signedPayload: 'signed_payload' }] }
+        },
+        { description: 'empty send attempts', body: { notificationHistory: [{ sendAttempts: [] }] } },
+        {
+            description: 'omitted send attempt fields',
+            body: { notificationHistory: [{ sendAttempts: [{}] }] }
+        },
+        {
+            description: 'an unknown send attempt result',
+            body: { notificationHistory: [{ sendAttempts: [{ sendAttemptResult: 'FUTURE_RESULT' }] }] }
+        }
+    ])('accepts notification history with $description', async ({ body }) => {
+        const client = getAppStoreServerAPIClient(JSON.stringify(body), 200, () => {})
+
+        await expect(client.getNotificationHistory(null, {})).resolves.toStrictEqual(body)
+    })
+
     it('calls getTransactionHistory V1', async () => {
        const client = getClientWithBody("tests/resources/models/transactionHistoryResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("GET").toBe(method)
