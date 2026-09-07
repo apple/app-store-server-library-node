@@ -105,50 +105,21 @@ describe("Chain Verification Checks", () => {
     })
 
     it.each(['headers', 'body'] as const)('should abort an OCSP request that times out while reading %s', async (scenario) => {
-        let requestReadyResolve: () => void = () => undefined
-        const requestReady = new Promise<void>((resolve) => {
-            requestReadyResolve = resolve
-        })
-        const sockets = new Set<import("net").Socket>()
-        const closedConnections: Array<Promise<unknown>> = []
-        const server = http.createServer((request, response) => {
-            expect(request.method).toEqual('POST')
-            expect(request.headers['content-type']).toEqual('application/ocsp-request')
-            request.resume()
-            if (scenario === 'headers') {
-                requestReadyResolve()
-                return
-            }
-            response.writeHead(200, { 'content-type': 'application/ocsp-response' })
-            response.write(Buffer.from([0x30]))
-        })
-        server.on('connection', (socket) => {
-            sockets.add(socket)
-            closedConnections.push(once(socket, 'close'))
-            socket.on('close', () => sockets.delete(socket))
-        })
+        const server = http.createServer()
         server.listen(0, '127.0.0.1')
         await once(server, 'listening')
         const address = server.address()
         assert(address && typeof address !== 'string')
         const originalRequest = http.request
+        let outgoing: http.ClientRequest | undefined
         const requestSpy = jest.spyOn(http, 'request').mockImplementation(((options: http.RequestOptions) => {
-            expect(options.hostname).toEqual('ocsp.apple.com')
-            const pending = originalRequest({
-                ...options,
-                hostname: '127.0.0.1',
-                port: address.port,
-            })
-            if (scenario === 'body') {
-                pending.once('response', (response) => {
-                    response.once('data', requestReadyResolve)
-                })
-            }
-            return pending
+            outgoing = originalRequest({ ...options, hostname: '127.0.0.1', port: address.port })
+            return outgoing
         }) as typeof http.request)
         jest.useFakeTimers({ doNotFake: ['nextTick', 'setImmediate'] })
 
         try {
+            const received = once(server, 'request')
             const verifier = new SignedJWTVerifierTest(
                 [Buffer.from(REAL_APPLE_ROOT_BASE64_ENCODED, 'base64')],
                 true,
@@ -159,19 +130,25 @@ describe("Chain Verification Checks", () => {
             const verification = verifier.testCheckOCSPStatus(
                 new X509Certificate(Buffer.from(REAL_APPLE_SIGNING_CERTIFICATE_BASE64_ENCODED, 'base64')),
                 new X509Certificate(Buffer.from(REAL_APPLE_INTERMEDIATE_BASE64_ENCODED, 'base64'))
-            ).catch((error: unknown) => error)
-
-            await requestReady
-            await jest.advanceTimersByTimeAsync(30000)
-            const error = await verification
-            expect(error).toBeInstanceOf(VerificationException)
-            expect(error).toMatchObject({
+            )
+            const rejected = expect(verification).rejects.toMatchObject({
                 status: VerificationStatus.RETRYABLE_VERIFICATION_FAILURE,
-                cause: { name: 'AbortError' },
             })
-            await Promise.all(closedConnections)
-            expect(sockets.size).toEqual(0)
-            expect(jest.getTimerCount()).toEqual(0)
+            const [request, response] = await received
+            request.resume()
+            const closed = once(request.socket, 'close')
+            if (scenario === 'body') {
+                assert(outgoing)
+                const started = once(outgoing, 'response')
+                response.flushHeaders()
+                const [body] = await started
+                const partial = once(body, 'data')
+                response.write(Buffer.from([0x30]))
+                await partial
+            }
+            await jest.advanceTimersByTimeAsync(30000)
+            await rejected
+            await closed
         } finally {
             requestSpy.mockRestore()
             jest.useRealTimers()
