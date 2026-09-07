@@ -16,6 +16,7 @@ import { DecodedSignedData } from './models/DecodedSignedData';
 import { AppTransaction, AppTransactionValidator } from './models/AppTransaction';
 
 const MAX_SKEW = 60000
+const OCSP_REQUEST_TIMEOUT_MS = 30000
 
 const MAXIMUM_CACHE_SIZE = 32 // There are unlikely to be more than a couple keys at once
 const CACHE_TIME_LIMIT = 15 * 60 * 1_000 // 15 minutes
@@ -312,26 +313,35 @@ export class SignedDataVerifier {
       headers.append('Content-Type', 'application/ocsp-request')
 
       let response
+      let responseBuffer: Buffer
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), OCSP_REQUEST_TIMEOUT_MS)
       try {
         response = await fetch(matchResult[1], {
           headers: headers,
           method: 'POST',
           body: Buffer.from(request.getEncodedHex(), 'hex'),
-          timeout: 30000
+          signal: controller.signal
         })
 
         if (!response.ok) {
           throw new VerificationException(VerificationStatus.RETRYABLE_VERIFICATION_FAILURE)
         }
+        responseBuffer = await response.buffer()
       } catch (error) {
         if (error instanceof VerificationException) {
           throw error
         }
+        if (response && !controller.signal.aborted) {
+          throw error
+        }
         // Network errors
         throw new VerificationException(VerificationStatus.RETRYABLE_VERIFICATION_FAILURE, error instanceof Error ? error : undefined)
+      } finally {
+        clearTimeout(timeout)
+        controller.abort()
       }
 
-      const responseBuffer = await response.buffer()
       const parsedResponse = new (KJUR.asn1.ocsp as any).OCSPParser().getOCSPResponse(responseBuffer.toString('hex'))
       // The issuer could also be the signer
       const jsrassignX509Issuer = new X509()
