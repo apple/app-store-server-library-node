@@ -186,6 +186,18 @@ export { RenewalCommitmentInfo } from './models/RenewalCommitmentInfo'
 export { TransactionCommitmentInfo } from './models/TransactionCommitmentInfo'
 
 import jsonwebtoken = require('jsonwebtoken');
+import { AdvancedCommerceRequestRefundRequest } from './models/AdvancedCommerceRequestRefundRequest';
+import { AdvancedCommerceRequestRefundResponse, AdvancedCommerceRequestRefundResponseValidator } from './models/AdvancedCommerceRequestRefundResponse';
+import { AdvancedCommerceSubscriptionCancelRequest } from './models/AdvancedCommerceSubscriptionCancelRequest';
+import { AdvancedCommerceSubscriptionCancelResponse, AdvancedCommerceSubscriptionCancelResponseValidator } from './models/AdvancedCommerceSubscriptionCancelResponse';
+import { AdvancedCommerceSubscriptionChangeMetadataRequest } from './models/AdvancedCommerceSubscriptionChangeMetadataRequest';
+import { AdvancedCommerceSubscriptionChangeMetadataResponse, AdvancedCommerceSubscriptionChangeMetadataResponseValidator } from './models/AdvancedCommerceSubscriptionChangeMetadataResponse';
+import { AdvancedCommerceSubscriptionMigrateRequest } from './models/AdvancedCommerceSubscriptionMigrateRequest';
+import { AdvancedCommerceSubscriptionMigrateResponse, AdvancedCommerceSubscriptionMigrateResponseValidator } from './models/AdvancedCommerceSubscriptionMigrateResponse';
+import { AdvancedCommerceSubscriptionPriceChangeRequest } from './models/AdvancedCommerceSubscriptionPriceChangeRequest';
+import { AdvancedCommerceSubscriptionPriceChangeResponse, AdvancedCommerceSubscriptionPriceChangeResponseValidator } from './models/AdvancedCommerceSubscriptionPriceChangeResponse';
+import { AdvancedCommerceSubscriptionRevokeRequest } from './models/AdvancedCommerceSubscriptionRevokeRequest';
+import { AdvancedCommerceSubscriptionRevokeResponse, AdvancedCommerceSubscriptionRevokeResponseValidator } from './models/AdvancedCommerceSubscriptionRevokeResponse';
 import { AppTransactionInfoResponse, AppTransactionInfoResponseValidator } from './models/AppTransactionInfoResponse';
 import { NotificationHistoryRequest } from './models/NotificationHistoryRequest';
 import { NotificationHistoryResponse, NotificationHistoryResponseValidator } from './models/NotificationHistoryResponse';
@@ -711,6 +723,84 @@ export class AppStoreServerAPIClient {
      */
     public async finishTransaction(transactionId: string): Promise<void> {
         await this.makeRequest("/inApps/v1/transactions/" + transactionId + "/finish", "POST", {}, null, null, undefined);
+    }
+
+    /**
+     * Increase or decrease the price of an auto-renewable subscription, a bundle, or individual items within a subscription at the next renewal.
+     *
+     * @param transactionId A transaction identifier of the auto-renewable subscription that is subject to the price change.
+     * @param subscriptionPriceChangeRequest The request body that contains the details of the price change.
+     * @return A response that contains signed JWS renewal and JWS transaction information after a subscription price change request.
+     * @throws APIException If a response was returned indicating the request could not be processed
+     * {@link https://developer.apple.com/documentation/advancedcommerceapi/change-subscription-price Change Subscription Price}
+     */
+    public async changeSubscriptionPrice(transactionId: string, subscriptionPriceChangeRequest: AdvancedCommerceSubscriptionPriceChangeRequest): Promise<AdvancedCommerceSubscriptionPriceChangeResponse> {
+        return await this.makeRequest("/advancedCommerce/v1/subscription/changePrice/" + transactionId, "POST", {}, subscriptionPriceChangeRequest, new AdvancedCommerceSubscriptionPriceChangeResponseValidator(), 'application/json');
+    }
+
+    /**
+     * Turn off automatic renewal to cancel a customer's auto-renewable subscription.
+     *
+     * @param transactionId The transaction identifier of the auto-renewable subscription to cancel.
+     * @param subscriptionCancelRequest The request body that includes information about the subscription to cancel.
+     * @return The response body for a successful subscription cancellation.
+     * @throws APIException If a response was returned indicating the request could not be processed
+     * {@link https://developer.apple.com/documentation/advancedcommerceapi/cancel-a-subscription Cancel a Subscription}
+     */
+    public async cancelSubscription(transactionId: string, subscriptionCancelRequest: AdvancedCommerceSubscriptionCancelRequest): Promise<AdvancedCommerceSubscriptionCancelResponse> {
+        return await this.makeRequest("/advancedCommerce/v1/subscription/cancel/" + transactionId, "POST", {}, subscriptionCancelRequest, new AdvancedCommerceSubscriptionCancelResponseValidator(), 'application/json');
+    }
+
+    /**
+     * Immediately cancel a customer's subscription and all the items that are included in the subscription, and request a full or prorated refund.
+     *
+     * @param transactionId The transaction identifier of the auto-renewable subscription to revoke.
+     * @param subscriptionRevokeRequest The request body you provide to terminate a subscription and all its items immediately.
+     * @return The response body for a successful revoke-subscription request.
+     * @throws APIException If a response was returned indicating the request could not be processed
+     * {@link https://developer.apple.com/documentation/advancedcommerceapi/revoke-subscription Revoke Subscription}
+     */
+    public async revokeSubscription(transactionId: string, subscriptionRevokeRequest: AdvancedCommerceSubscriptionRevokeRequest): Promise<AdvancedCommerceSubscriptionRevokeResponse> {
+        return await this.makeRequest("/advancedCommerce/v1/subscription/revoke/" + transactionId, "POST", {}, subscriptionRevokeRequest, new AdvancedCommerceSubscriptionRevokeResponseValidator(), 'application/json');
+    }
+
+    /**
+     * Request a refund for a one-time charge or subscription transaction.
+     *
+     * @param transactionId The transaction identifier for which you request a refund.
+     * @param requestRefundRequest The request body for requesting a refund for a transaction.
+     * @return The response body for a transaction refund request.
+     * @throws APIException If a response was returned indicating the request could not be processed
+     * {@link https://developer.apple.com/documentation/advancedcommerceapi/request-transaction-refund Request Transaction Refund}
+     */
+    public async requestTransactionRefund(transactionId: string, requestRefundRequest: AdvancedCommerceRequestRefundRequest): Promise<AdvancedCommerceRequestRefundResponse> {
+        return await this.makeRequest("/advancedCommerce/v1/transaction/requestRefund/" + transactionId, "POST", {}, requestRefundRequest, new AdvancedCommerceRequestRefundResponseValidator(), 'application/json');
+    }
+
+    /**
+     * Update the SKU, display name, and description associated with a subscription, without affecting the subscription's billing or its service.
+     *
+     * @param transactionId The transaction identifier of the auto-renewable subscription to get changes to its metadata.
+     * @param subscriptionChangeMetadataRequest The request body that contains the metadata changes.
+     * @return The response body for a successful subscription metadata change.
+     * @throws APIException If a response was returned indicating the request could not be processed
+     * {@link https://developer.apple.com/documentation/advancedcommerceapi/change-subscription-metadata Change Subscription Metadata}
+     */
+    public async changeSubscriptionMetadata(transactionId: string, subscriptionChangeMetadataRequest: AdvancedCommerceSubscriptionChangeMetadataRequest): Promise<AdvancedCommerceSubscriptionChangeMetadataResponse> {
+        return await this.makeRequest("/advancedCommerce/v1/subscription/changeMetadata/" + transactionId, "POST", {}, subscriptionChangeMetadataRequest, new AdvancedCommerceSubscriptionChangeMetadataResponseValidator(), 'application/json');
+    }
+
+    /**
+     * Migrate a subscription that a customer purchased through Apple In-App Purchase to a subscription you manage using the Advanced Commerce API.
+     *
+     * @param transactionId The transaction identifier of the auto-renewable subscription to migrate.
+     * @param subscriptionMigrateRequest The request body that contains the details for the migration.
+     * @return A response that contains signed renewal and transaction information after a subscription successfully migrates to the Advanced Commerce API.
+     * @throws APIException If a response was returned indicating the request could not be processed
+     * {@link https://developer.apple.com/documentation/advancedcommerceapi/migrate-subscription-to-advanced-commerce-api Migrate a Subscription to Advanced Commerce API}
+     */
+    public async migrateSubscriptionToAdvancedCommerceAPI(transactionId: string, subscriptionMigrateRequest: AdvancedCommerceSubscriptionMigrateRequest): Promise<AdvancedCommerceSubscriptionMigrateResponse> {
+        return await this.makeRequest("/advancedCommerce/v1/subscription/migrate/" + transactionId, "POST", {}, subscriptionMigrateRequest, new AdvancedCommerceSubscriptionMigrateResponseValidator(), 'application/json');
     }
 
     private createBearerToken(): string {
