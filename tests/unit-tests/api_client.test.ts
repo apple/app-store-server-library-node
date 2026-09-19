@@ -1,6 +1,9 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
 import { AccountTenure } from "../../models/AccountTenure";
+import { AdvancedCommerceEffective } from "../../models/AdvancedCommerceEffective";
+import { AdvancedCommerceRefundReason } from "../../models/AdvancedCommerceRefundReason";
+import { AdvancedCommerceRefundType } from "../../models/AdvancedCommerceRefundType";
 import { ConsumptionRequest } from "../../models/ConsumptionRequest";
 import { ConsumptionRequestV1 } from "../../models/ConsumptionRequestV1";
 import { UpdateAppAccountTokenRequest } from "../../models/UpdateAppAccountTokenRequest";
@@ -20,7 +23,7 @@ import { readFile } from "../util"
 import { InAppOwnershipType } from "../../models/InAppOwnershipType";
 import { RefundPreference } from "../../models/RefundPreference";
 import { RefundPreferenceV1 } from "../../models/RefundPreferenceV1";
-import { APIError, APIException, AppStoreServerAPIClient, ExtendReasonCode, ExtendRenewalDateRequest, GetTransactionHistoryVersion, MassExtendRenewalDateRequest, NotificationHistoryRequest, NotificationHistoryResponseItem, Order, OrderLookupStatus, ProductType, SendAttemptResult, TransactionHistoryRequest } from "../../index";
+import { AdvancedCommerceRequestRefundRequest, AdvancedCommerceSubscriptionCancelRequest, AdvancedCommerceSubscriptionChangeMetadataRequest, AdvancedCommerceSubscriptionMigrateRequest, AdvancedCommerceSubscriptionPriceChangeRequest, AdvancedCommerceSubscriptionRevokeRequest, APIError, APIException, AppStoreServerAPIClient, ExtendReasonCode, ExtendRenewalDateRequest, GetTransactionHistoryVersion, MassExtendRenewalDateRequest, NotificationHistoryRequest, NotificationHistoryResponseItem, Order, OrderLookupStatus, ProductType, SendAttemptResult, TransactionHistoryRequest } from "../../index";
 import { Response } from "node-fetch";
 
 import jsonwebtoken = require('jsonwebtoken');
@@ -1143,5 +1146,234 @@ describe('The api client ', () => {
         });
 
         await client.finishTransaction("1234");
+    })
+
+    it('calls changeSubscriptionPrice', async () => {
+        const client = getClientWithBody("tests/resources/models/advancedCommerceSubscriptionPriceChangeResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("POST").toBe(method)
+            expect("/advancedCommerce/v1/subscription/changePrice/4124214").toBe(path)
+            expect(parsedQueryParameters.entries.length).toBe(0)
+
+            expect(requestBody).toBeTruthy()
+            const body = JSON.parse(requestBody as string)
+            expect("7c80bb86-f892-4b21-a919-1357811d6c4f").toBe(body.requestInfo.requestReferenceId)
+            expect("USD").toBe(body.currency)
+            expect("USA").toBe(body.storefront)
+            expect("AD_FREE_1M").toBe(body.items[0].SKU)
+            expect(12990).toBe(body.items[0].price)
+            expect(["ADVANCED_FEATURES_1M"]).toStrictEqual(body.items[0].dependentSKUs)
+        });
+
+        const subscriptionPriceChangeRequest: AdvancedCommerceSubscriptionPriceChangeRequest = {
+            requestInfo: {
+                requestReferenceId: "7c80bb86-f892-4b21-a919-1357811d6c4f"
+            },
+            items: [
+                {
+                    SKU: "AD_FREE_1M",
+                    price: 12990,
+                    dependentSKUs: ["ADVANCED_FEATURES_1M"]
+                }
+            ],
+            currency: "USD",
+            storefront: "USA"
+        }
+
+        const response = await client.changeSubscriptionPrice("4124214", subscriptionPriceChangeRequest);
+
+        expect(response).toBeTruthy()
+        expect("signed_renewal_info").toBe(response.signedRenewalInfo)
+        expect("signed_transaction_info").toBe(response.signedTransactionInfo)
+    })
+
+    it('calls cancelSubscription', async () => {
+        const client = getClientWithBody("tests/resources/models/advancedCommerceSubscriptionCancelResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("POST").toBe(method)
+            expect("/advancedCommerce/v1/subscription/cancel/4124214").toBe(path)
+            expect(parsedQueryParameters.entries.length).toBe(0)
+
+            expect(requestBody).toBeTruthy()
+            const body = JSON.parse(requestBody as string)
+            expect("932c6903-0ab8-4469-9f21-015f6fab013c").toBe(body.requestInfo.requestReferenceId)
+            expect("USA").toBe(body.storefront)
+        });
+
+        const subscriptionCancelRequest: AdvancedCommerceSubscriptionCancelRequest = {
+            requestInfo: {
+                requestReferenceId: "932c6903-0ab8-4469-9f21-015f6fab013c"
+            },
+            storefront: "USA"
+        }
+
+        const response = await client.cancelSubscription("4124214", subscriptionCancelRequest);
+
+        expect(response).toBeTruthy()
+        expect("signed_renewal_info").toBe(response.signedRenewalInfo)
+        expect("signed_transaction_info").toBe(response.signedTransactionInfo)
+    })
+
+    it('calls revokeSubscription', async () => {
+        const client = getClientWithBody("tests/resources/models/advancedCommerceSubscriptionRevokeResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("POST").toBe(method)
+            expect("/advancedCommerce/v1/subscription/revoke/4124214").toBe(path)
+            expect(parsedQueryParameters.entries.length).toBe(0)
+
+            expect(requestBody).toBeTruthy()
+            const body = JSON.parse(requestBody as string)
+            expect("932c6903-0ab8-4469-9f21-015f6fab013c").toBe(body.requestInfo.requestReferenceId)
+            expect("UNINTENDED_PURCHASE").toBe(body.refundReason)
+            expect(true).toBe(body.refundRiskingPreference)
+            expect("PRORATED").toBe(body.refundType)
+            expect("USA").toBe(body.storefront)
+        });
+
+        const subscriptionRevokeRequest: AdvancedCommerceSubscriptionRevokeRequest = {
+            requestInfo: {
+                requestReferenceId: "932c6903-0ab8-4469-9f21-015f6fab013c"
+            },
+            refundReason: AdvancedCommerceRefundReason.UNINTENDED_PURCHASE,
+            refundRiskingPreference: true,
+            refundType: AdvancedCommerceRefundType.PRORATED,
+            storefront: "USA"
+        }
+
+        const response = await client.revokeSubscription("4124214", subscriptionRevokeRequest);
+
+        expect(response).toBeTruthy()
+        expect("signed_renewal_info").toBe(response.signedRenewalInfo)
+        expect("signed_transaction_info").toBe(response.signedTransactionInfo)
+    })
+
+    it('calls requestTransactionRefund', async () => {
+        const client = getClientWithBody("tests/resources/models/advancedCommerceRequestRefundResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("POST").toBe(method)
+            expect("/advancedCommerce/v1/transaction/requestRefund/4124214").toBe(path)
+            expect(parsedQueryParameters.entries.length).toBe(0)
+
+            expect(requestBody).toBeTruthy()
+            const body = JSON.parse(requestBody as string)
+            expect("932c6903-0ab8-4469-9f21-015f6fab013c").toBe(body.requestInfo.requestReferenceId)
+            expect(true).toBe(body.refundRiskingPreference)
+            expect("USD").toBe(body.currency)
+            expect("USA").toBe(body.storefront)
+            expect("AD_FREE_1M").toBe(body.items[0].SKU)
+            expect("UNSATISFIED_WITH_PURCHASE").toBe(body.items[0].refundReason)
+            expect("FULL").toBe(body.items[0].refundType)
+            expect(true).toBe(body.items[0].revoke)
+        });
+
+        const requestRefundRequest: AdvancedCommerceRequestRefundRequest = {
+            requestInfo: {
+                requestReferenceId: "932c6903-0ab8-4469-9f21-015f6fab013c"
+            },
+            items: [
+                {
+                    SKU: "AD_FREE_1M",
+                    refundReason: AdvancedCommerceRefundReason.UNSATISFIED_WITH_PURCHASE,
+                    refundType: AdvancedCommerceRefundType.FULL,
+                    revoke: true
+                }
+            ],
+            refundRiskingPreference: true,
+            currency: "USD",
+            storefront: "USA"
+        }
+
+        const response = await client.requestTransactionRefund("4124214", requestRefundRequest);
+
+        expect(response).toBeTruthy()
+        expect("signed_transaction_info_value").toBe(response.signedTransactionInfo)
+    })
+
+    it('calls changeSubscriptionMetadata', async () => {
+        const client = getClientWithBody("tests/resources/models/advancedCommerceSubscriptionChangeMetadataResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("POST").toBe(method)
+            expect("/advancedCommerce/v1/subscription/changeMetadata/4124214").toBe(path)
+            expect(parsedQueryParameters.entries.length).toBe(0)
+
+            expect(requestBody).toBeTruthy()
+            const body = JSON.parse(requestBody as string)
+            expect("932c6903-0ab8-4469-9f21-015f6fab013c").toBe(body.requestInfo.requestReferenceId)
+            expect("NEXT_BILL_CYCLE").toBe(body.descriptors.effective)
+            expect("Remove ads and unlock advanced features.").toBe(body.descriptors.description)
+            expect("Ad-free package").toBe(body.descriptors.displayName)
+            expect("AD_FREE_1M").toBe(body.items[0].currentSKU)
+            expect("NEXT_BILL_CYCLE").toBe(body.items[0].effective)
+            expect("AD_FREE_1M_V2").toBe(body.items[0].SKU)
+            expect("USA").toBe(body.storefront)
+            expect("C003-00-1").toBe(body.taxCode)
+        });
+
+        const subscriptionChangeMetadataRequest: AdvancedCommerceSubscriptionChangeMetadataRequest = {
+            requestInfo: {
+                requestReferenceId: "932c6903-0ab8-4469-9f21-015f6fab013c"
+            },
+            descriptors: {
+                effective: AdvancedCommerceEffective.NEXT_BILL_CYCLE,
+                description: "Remove ads and unlock advanced features.",
+                displayName: "Ad-free package"
+            },
+            items: [
+                {
+                    currentSKU: "AD_FREE_1M",
+                    effective: AdvancedCommerceEffective.NEXT_BILL_CYCLE,
+                    SKU: "AD_FREE_1M_V2"
+                }
+            ],
+            storefront: "USA",
+            taxCode: "C003-00-1"
+        }
+
+        const response = await client.changeSubscriptionMetadata("4124214", subscriptionChangeMetadataRequest);
+
+        expect(response).toBeTruthy()
+        expect("signed_renewal_info").toBe(response.signedRenewalInfo)
+        expect("signed_transaction_info").toBe(response.signedTransactionInfo)
+    })
+
+    it('calls migrateSubscriptionToAdvancedCommerceAPI', async () => {
+        const client = getClientWithBody("tests/resources/models/advancedCommerceSubscriptionMigrateResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("POST").toBe(method)
+            expect("/advancedCommerce/v1/subscription/migrate/4124214").toBe(path)
+            expect(parsedQueryParameters.entries.length).toBe(0)
+
+            expect(requestBody).toBeTruthy()
+            const body = JSON.parse(requestBody as string)
+            expect("932c6903-0ab8-4469-9f21-015f6fab013c").toBe(body.requestInfo.requestReferenceId)
+            expect("Remove ads and unlock advanced features.").toBe(body.descriptors.description)
+            expect("Ad-free package").toBe(body.descriptors.displayName)
+            expect("AD_FREE_1M").toBe(body.items[0].SKU)
+            expect("Remove ads for the service.").toBe(body.items[0].description)
+            expect("Ad-free monthly plan").toBe(body.items[0].displayName)
+            expect("com.example.base").toBe(body.targetProductId)
+            expect("C003-00-1").toBe(body.taxCode)
+            expect("USA").toBe(body.storefront)
+        });
+
+        const subscriptionMigrateRequest: AdvancedCommerceSubscriptionMigrateRequest = {
+            requestInfo: {
+                requestReferenceId: "932c6903-0ab8-4469-9f21-015f6fab013c"
+            },
+            descriptors: {
+                description: "Remove ads and unlock advanced features.",
+                displayName: "Ad-free package"
+            },
+            items: [
+                {
+                    SKU: "AD_FREE_1M",
+                    description: "Remove ads for the service.",
+                    displayName: "Ad-free monthly plan"
+                }
+            ],
+            targetProductId: "com.example.base",
+            taxCode: "C003-00-1",
+            storefront: "USA"
+        }
+
+        const response = await client.migrateSubscriptionToAdvancedCommerceAPI("4124214", subscriptionMigrateRequest);
+
+        expect(response).toBeTruthy()
+        expect("signed_renewal_info_value").toBe(response.signedRenewalInfo)
+        expect("signed_transaction_info_value").toBe(response.signedTransactionInfo)
     })
 })
