@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import { LastTransactionsItem } from "./LastTransactionsItem";
+import { LastTransactionsItem, LastTransactionsItemValidator } from "./LastTransactionsItem";
 import { Validator } from "./Validator";
 
 /**
@@ -26,9 +26,23 @@ export interface SubscriptionGroupIdentifierItem {
 
 
 export class SubscriptionGroupIdentifierItemValidator implements Validator<SubscriptionGroupIdentifierItem> {
+    static readonly lastTransactionsItemValidator = new LastTransactionsItemValidator()
     validate(obj: any): obj is SubscriptionGroupIdentifierItem {
         if ((typeof obj['subscriptionGroupIdentifier'] !== 'undefined') && !(typeof obj['subscriptionGroupIdentifier'] === "string" || obj['subscriptionGroupIdentifier'] instanceof String)) {
             return false
+        }
+        if (typeof obj['lastTransactions'] !== 'undefined') {
+            if (!Array.isArray(obj['lastTransactions'])) {
+                return false
+            }
+            for (const item of obj['lastTransactions']) {
+                if (typeof item !== 'object' || item === null || Array.isArray(item)) {
+                    return false
+                }
+                if (!SubscriptionGroupIdentifierItemValidator.lastTransactionsItemValidator.validate(item)) {
+                    return false
+                }
+            }
         }
         return true
     }

@@ -191,6 +191,50 @@ describe('The api client ', () => {
         expect(statusResponse.data).toStrictEqual(item)
     })
 
+    it.each([
+        { data: 'not-an-array' },
+        { data: {} },
+        { data: null },
+        { data: [null] },
+        { data: [123] },
+        { data: ['not-an-object'] },
+        { data: [[]] },
+        { data: [{ subscriptionGroupIdentifier: 123 }] },
+        { data: [{ lastTransactions: 'not-an-array' }] },
+        { data: [{ lastTransactions: {} }] },
+        { data: [{ lastTransactions: null }] },
+        { data: [{ lastTransactions: [null] }] },
+        { data: [{ lastTransactions: [123] }] },
+        { data: [{ lastTransactions: ['not-an-object'] }] },
+        { data: [{ lastTransactions: [[]] }] },
+        { data: [{ lastTransactions: [{ status: 'ACTIVE' }] }] },
+        { data: [{ lastTransactions: [{ originalTransactionId: 123 }] }] },
+        { data: [{ lastTransactions: [{ signedTransactionInfo: 123 }] }] },
+        { data: [{ lastTransactions: [{ signedRenewalInfo: false }] }] },
+        { data: [{ lastTransactions: [{}, { signedRenewalInfo: 123 }] }] },
+        { data: [{}, { subscriptionGroupIdentifier: 123 }] },
+    ])('rejects malformed getAllSubscriptionStatuses response %j', async (body) => {
+        const client = getAppStoreServerAPIClient(JSON.stringify(body), 200, () => {})
+
+        await expect(client.getAllSubscriptionStatuses('4321')).rejects.toThrow('Unexpected response body format')
+    })
+
+    it.each([
+        {},
+        { data: [] },
+        { data: [{}] },
+        { data: [{ lastTransactions: [] }] },
+        { data: [{ lastTransactions: [{}] }] },
+        { data: [{ lastTransactions: [{ status: 99 }] }] },
+        { environment: 'FUTURE', data: [{ subscriptionGroupIdentifier: '123' }] },
+        { data: [{ unknownField: true, lastTransactions: [{ unknownField: 'value' }] }] },
+        { data: [{}, { lastTransactions: [{}, {}] }] },
+    ])('accepts getAllSubscriptionStatuses response %j', async (body) => {
+        const client = getAppStoreServerAPIClient(JSON.stringify(body), 200, () => {})
+
+        await expect(client.getAllSubscriptionStatuses('4321')).resolves.toStrictEqual(body)
+    })
+
     it('calls getRefundHistory', async () => {
        const client = getClientWithBody("tests/resources/models/getRefundHistoryResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("GET").toBe(method)
