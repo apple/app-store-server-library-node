@@ -16,7 +16,7 @@ import { RevocationReason } from "../../models/RevocationReason";
 import { RevocationType } from "../../models/RevocationType";
 import { TransactionReason } from "../../models/TransactionReason";
 import { Type } from "../../models/Type";
-import { ConsumptionRequestReason } from "../../models/ConsumptionRequestReason";
+import { ConsumptionRequestReason } from "../../index";
 import { OfferDiscountType } from "../../models/OfferDiscountType";
 import { JWSTransactionDecodedPayloadValidator } from "../../models/JWSTransactionDecodedPayload";
 import { AdvancedCommercePeriod } from "../../models/AdvancedCommercePeriod";
