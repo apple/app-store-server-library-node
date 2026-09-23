@@ -1,7 +1,7 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
 import { Environment, EnvironmentValidator } from "./Environment";
-import { SubscriptionGroupIdentifierItem } from "./SubscriptionGroupIdentifierItem";
+import { SubscriptionGroupIdentifierItem, SubscriptionGroupIdentifierItemValidator } from "./SubscriptionGroupIdentifierItem";
 import { Validator } from "./Validator";
 
 /**
@@ -41,6 +41,7 @@ export interface StatusResponse {
 
 export class StatusResponseValidator implements Validator<StatusResponse> {
     static readonly environmentValidator = new EnvironmentValidator()
+    static readonly subscriptionGroupIdentifierItemValidator = new SubscriptionGroupIdentifierItemValidator()
     validate(obj: any): obj is StatusResponse {
         if ((typeof obj['environment'] !== 'undefined') && !(StatusResponseValidator.environmentValidator.validate(obj['environment']))) {
             return false
@@ -50,6 +51,19 @@ export class StatusResponseValidator implements Validator<StatusResponse> {
         }
         if ((typeof obj['appAppleId'] !== 'undefined') && !(typeof obj['appAppleId'] === "number")) {
             return false
+        }
+        if (typeof obj['data'] !== 'undefined') {
+            if (!Array.isArray(obj['data'])) {
+                return false
+            }
+            for (const item of obj['data']) {
+                if (typeof item !== 'object' || item === null || Array.isArray(item)) {
+                    return false
+                }
+                if (!StatusResponseValidator.subscriptionGroupIdentifierItemValidator.validate(item)) {
+                    return false
+                }
+            }
         }
         return true
     }
