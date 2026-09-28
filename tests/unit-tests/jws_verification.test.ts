@@ -1,6 +1,8 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
 import assert = require("assert");
+import http = require("http");
+import { once } from "events";
 import { KeyObject, X509Certificate } from "crypto";
 import { SignedDataVerifier, VerificationException, VerificationStatus } from "../../jws_verification";
 import { Environment } from "../../models/Environment";
@@ -31,6 +33,10 @@ class SignedJWTVerifierTest extends SignedDataVerifier {
 
     public async verifyCertificateChainWithoutCaching(trustedRoots: X509Certificate[], leaf: X509Certificate, intermediate: X509Certificate, effectiveDate: Date): Promise<KeyObject> {
         return await super.verifyCertificateChainWithoutCaching(trustedRoots, leaf, intermediate, effectiveDate)
+    }
+
+    public async testCheckOCSPStatus(cert: X509Certificate, issuer: X509Certificate): Promise<void> {
+        return await this.checkOCSPStatus(cert, issuer)
     }
 
     getRootCertificates() {
@@ -96,6 +102,61 @@ describe("Chain Verification Checks", () => {
     it('should validate a real chain with OCSP', async () => {
         const verifier = new SignedJWTVerifierTest([Buffer.from(REAL_APPLE_ROOT_BASE64_ENCODED, 'base64')], true, Environment.PRODUCTION, "com.example", 1234);
         await verifier.testVerifyCertificateChain(verifier.getRootCertificates(), REAL_APPLE_SIGNING_CERTIFICATE_BASE64_ENCODED, REAL_APPLE_INTERMEDIATE_BASE64_ENCODED)
+    })
+
+    it.each(['headers', 'body'] as const)('should abort an OCSP request that times out while reading %s', async (scenario) => {
+        const server = http.createServer()
+        server.listen(0, '127.0.0.1')
+        await once(server, 'listening')
+        const address = server.address()
+        assert(address && typeof address !== 'string')
+        const originalRequest = http.request
+        let outgoing: http.ClientRequest | undefined
+        const requestSpy = jest.spyOn(http, 'request').mockImplementation(((options: http.RequestOptions) => {
+            outgoing = originalRequest({ ...options, hostname: '127.0.0.1', port: address.port })
+            return outgoing
+        }) as typeof http.request)
+        jest.useFakeTimers({ doNotFake: ['nextTick', 'setImmediate'] })
+
+        try {
+            const received = once(server, 'request')
+            const verifier = new SignedJWTVerifierTest(
+                [Buffer.from(REAL_APPLE_ROOT_BASE64_ENCODED, 'base64')],
+                true,
+                Environment.PRODUCTION,
+                "com.example",
+                1234
+            )
+            const verification = verifier.testCheckOCSPStatus(
+                new X509Certificate(Buffer.from(REAL_APPLE_SIGNING_CERTIFICATE_BASE64_ENCODED, 'base64')),
+                new X509Certificate(Buffer.from(REAL_APPLE_INTERMEDIATE_BASE64_ENCODED, 'base64'))
+            )
+            const rejected = expect(verification).rejects.toMatchObject({
+                status: VerificationStatus.RETRYABLE_VERIFICATION_FAILURE,
+            })
+            const [request, response] = await received
+            request.resume()
+            const closed = once(request.socket, 'close')
+            if (scenario === 'body') {
+                assert(outgoing)
+                const started = once(outgoing, 'response')
+                response.flushHeaders()
+                const [body] = await started
+                const partial = once(body, 'data')
+                response.write(Buffer.from([0x30]))
+                await partial
+            }
+            await jest.advanceTimersByTimeAsync(30000)
+            await rejected
+            await closed
+        } finally {
+            requestSpy.mockRestore()
+            jest.useRealTimers()
+            server.closeAllConnections()
+            await new Promise<void>((resolve, reject) => {
+                server.close((error) => error ? reject(error) : resolve())
+            })
+        }
     })
 
     it('should fail to validate a chain with mismatched root certificates', async () => {
