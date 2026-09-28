@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import { NotificationHistoryResponseItem } from "./NotificationHistoryResponseItem";
+import { NotificationHistoryResponseItem, NotificationHistoryResponseItemValidator } from "./NotificationHistoryResponseItem";
 import { Validator } from "./Validator";
 
 /**
@@ -34,7 +34,7 @@ export interface NotificationHistoryResponse {
 
 
 export class NotificationHistoryResponseValidator implements Validator<NotificationHistoryResponse> {
-    static readonly notificationHistoryResponseItemValidator = new NotificationHistoryResponseValidator()
+    static readonly notificationHistoryResponseItemValidator = new NotificationHistoryResponseItemValidator()
     validate(obj: any): obj is NotificationHistoryResponse {
         if ((typeof obj['paginationToken'] !== 'undefined') && !(typeof obj['paginationToken'] === "string" || obj['paginationToken'] instanceof String)) {
             return false
