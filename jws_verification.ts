@@ -399,9 +399,11 @@ export class SignedDataVerifier {
         }
         // Validate contents
         const issueDate = this.parseX509Date(singleResponse.thisupdate)
+        // Require nextUpdate to bound the validity of the OCSP response.
         const nextDate = this.parseX509Date(singleResponse.nextupdate)
+        const now = Date.now()
         
-        if (singleResponse.status.status !== 'good' || new Date().getTime() + MAX_SKEW < issueDate.getTime() || nextDate.getTime() < new Date().getTime() - MAX_SKEW) {
+        if (singleResponse.status.status !== 'good' || now + MAX_SKEW < issueDate.getTime() || nextDate.getTime() < now - MAX_SKEW) {
           throw new VerificationException(VerificationStatus.FAILURE)
         }
         // Success
@@ -417,11 +419,19 @@ export class SignedDataVerifier {
       }
     }
 
-    private parseX509Date(date: string) {
-      return new Date(date.replace(
-        /^(\d{4})(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)$/,
-        '$4:$5:$6 $2/$3/$1'
-      ));
+    private parseX509Date(date: unknown): Date {
+      // RFC 6960 requires the RFC 5280 GeneralizedTime format: YYYYMMDDHHMMSSZ.
+      const match = typeof date === 'string' ? /^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})Z$/.exec(date) : null
+      if (!match || match[0] !== date) {
+        throw new VerificationException(VerificationStatus.FAILURE)
+      }
+      const isoDate = `${match[1]}-${match[2]}-${match[3]}T${match[4]}:${match[5]}:${match[6]}.000Z`
+      const parsedDate = new Date(isoDate)
+      // Reject invalid timestamps and calendar values that Date would normalize.
+      if (!Number.isFinite(parsedDate.getTime()) || parsedDate.toISOString() !== isoDate) {
+        throw new VerificationException(VerificationStatus.FAILURE)
+      }
+      return parsedDate
     }
 
     private extractSignedDate(decodedJWT: DecodedSignedData): Date {
