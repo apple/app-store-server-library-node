@@ -146,6 +146,37 @@ describe('The api client ', () => {
         expect(1698148900000).toBe(extendRenewalDateResponse.effectiveDate)
     })
 
+    it.each([
+        { data: "not-an-array" },
+        { data: null },
+        { data: [null] },
+        { data: ["not-an-object"] },
+        { data: [{ subscriptionGroupIdentifier: 123 }] },
+        { data: [{ lastTransactions: "not-an-array" }] },
+        { data: [{ lastTransactions: null }] },
+        { data: [{ lastTransactions: [null] }] },
+        { data: [{ lastTransactions: [123] }] },
+        { data: [{ lastTransactions: [{ status: "active" }] }] },
+        { data: [{ lastTransactions: [{ originalTransactionId: 123 }] }] },
+        { data: [{ lastTransactions: [{ signedTransactionInfo: 123 }] }] },
+        { data: [{ lastTransactions: [{ signedRenewalInfo: 123 }] }] },
+        { data: [{}, { lastTransactions: [{}, { signedTransactionInfo: 123 }] }] },
+    ])('rejects malformed subscription status data: %j', async (body) => {
+        const client = getAppStoreServerAPIClient(JSON.stringify(body), 200, () => {})
+        await expect(client.getAllSubscriptionStatuses("4321")).rejects.toThrow("Unexpected response body format")
+    })
+
+    it.each([
+        {},
+        { data: [] },
+        { data: [{}] },
+        { data: [{ lastTransactions: [] }] },
+        { data: [{ lastTransactions: [{}] }] },
+    ])('accepts omitted optional subscription status fields: %j', async (body) => {
+        const client = getAppStoreServerAPIClient(JSON.stringify(body), 200, () => {})
+        await expect(client.getAllSubscriptionStatuses("4321")).resolves.toEqual(body)
+    })
+
     it('calls getAllSubscriptionStatuses', async () => {
        const client = getClientWithBody("tests/resources/models/getAllSubscriptionStatusesResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("GET").toBe(method)
