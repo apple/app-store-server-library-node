@@ -12,7 +12,8 @@ import { AdvancedCommerceDescriptors } from "../../models/AdvancedCommerceDescri
 import { AdvancedCommerceOneTimeChargeItem } from "../../models/AdvancedCommerceOneTimeChargeItem"
 import { AdvancedCommerceSubscriptionCreateItem } from "../../models/AdvancedCommerceSubscriptionCreateItem"
 import { AdvancedCommerceRequestRefundItem } from "../../models/AdvancedCommerceRequestRefundItem"
-import { AdvancedCommerceOffer } from "../../models/AdvancedCommerceOffer"
+import { AdvancedCommerceOffer, AdvancedCommerceOfferValidator } from "../../models/AdvancedCommerceOffer"
+import { TransactionCommitmentInfoValidator } from "../../models/TransactionCommitmentInfo"
 import { AdvancedCommerceOneTimeChargeCreateRequest } from "../../models/AdvancedCommerceOneTimeChargeCreateRequest"
 import { AdvancedCommerceSubscriptionCreateRequest } from "../../models/AdvancedCommerceSubscriptionCreateRequest"
 import { AdvancedCommerceRequestRefundRequest } from "../../models/AdvancedCommerceRequestRefundRequest"
@@ -163,6 +164,27 @@ describe('AdvancedCommerceModels', () => {
 
     it('should reject null periodCount', () => {
         expect(HelperValidationUtils.validatePeriodCount(null)).toBe(false)
+    })
+
+    it.each([1.5, 6.25, 11.9])('should reject fractional periodCount %s', (periodCount) => {
+        expect(HelperValidationUtils.validatePeriodCount(periodCount)).toBe(false)
+    })
+
+    it('should reject fractional periods in offers and transaction commitments', () => {
+        const offer = {
+            period: AdvancedCommerceOfferPeriod.P1M,
+            periodCount: 1.5,
+            price: 1000,
+            reason: AdvancedCommerceOfferReason.ACQUISITION
+        }
+        const offerValidator = new AdvancedCommerceOfferValidator()
+        expect(offerValidator.validate(offer)).toBe(false)
+        expect(offerValidator.validate({...offer, periodCount: 1})).toBe(true)
+
+        const commitmentValidator = new TransactionCommitmentInfoValidator()
+        expect(commitmentValidator.validate({billingPeriodNumber: 1.5})).toBe(false)
+        expect(commitmentValidator.validate({billingPeriodNumber: 1})).toBe(true)
+        expect(commitmentValidator.validate({})).toBe(true)
     })
 
     it('should validate items with non-empty array', () => {
