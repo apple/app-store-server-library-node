@@ -39,13 +39,13 @@ export class HelperValidationUtils {
     }
 
     /**
-     * Validates periodCount is a number between MIN_PERIOD and MAX_PERIOD inclusive.
+     * Validates periodCount is an integer between MIN_PERIOD and MAX_PERIOD inclusive.
      *
      * @param periodCount The period count to validate
      * @return Whether the period count is valid
      */
     public static validatePeriodCount(periodCount: any): boolean {
-        return typeof periodCount === 'number' &&
+        return Number.isInteger(periodCount) &&
             periodCount >= HelperValidationUtils.MIN_PERIOD &&
             periodCount <= HelperValidationUtils.MAX_PERIOD
     }
