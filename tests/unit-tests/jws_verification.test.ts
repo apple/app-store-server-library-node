@@ -35,7 +35,18 @@ class SignedJWTVerifierTest extends SignedDataVerifier {
 
     getRootCertificates() {
         return this.rootCertificates
-    } 
+    }
+
+    // Seeds the (protected) verified-key cache directly with already-expired
+    // entries, so a subsequent verifyCertificateChain call that adds one more
+    // entry pushes the cache past MAXIMUM_CACHE_SIZE and exercises the
+    // eviction loop.
+    seedExpiredCacheEntries(entries: number, cacheExpiry: number) {
+        const dummyPublicKey = new X509Certificate(Buffer.from(LEAF_CERT_BASE64_ENCODED, 'base64')).publicKey
+        for (let i = 0; i < entries; i++) {
+            this.verifiedPublicKeyCache['test-dummy-cache-key-' + i] = { publicKey: dummyPublicKey, cacheExpiry }
+        }
+    }
 }
 
 describe("Chain Verification Checks", () => {
@@ -172,6 +183,23 @@ describe("Chain Verification Checks", () => {
         jest.setSystemTime(CLOCK_DATE + 15 * 60 * 1_000) // 15 minutes
         await verifier.testVerifyCertificateChain(verifier.getRootCertificates(), LEAF_CERT_BASE64_ENCODED, REAL_APPLE_INTERMEDIATE_BASE64_ENCODED)
         expect(spy).toHaveBeenCalledTimes(2);
+        jest.runOnlyPendingTimers()
+        jest.useRealTimers()
+    })
+
+    it('should evict expired cache entries once the cache grows past MAXIMUM_CACHE_SIZE, without throwing', async () => {
+        jest.useFakeTimers()
+        jest.setSystemTime(CLOCK_DATE)
+        const verifier = new SignedJWTVerifierTest([Buffer.from(ROOT_CA_BASE64_ENCODED, 'base64')], true, Environment.PRODUCTION, "com.example", 1234);
+        jest.spyOn(verifier, 'verifyCertificateChainWithoutCaching').mockImplementation((_, _2, _3, _4) => Promise.resolve(new X509Certificate(Buffer.from(LEAF_CERT_BASE64_ENCODED, 'base64')).publicKey));
+        // Seed 40 already-expired cache entries directly (simulating a server
+        // that has verified many distinct certificate chains over time), so
+        // that verifying one more chain pushes the cache size past
+        // MAXIMUM_CACHE_SIZE (32) and triggers the eviction loop.
+        verifier.seedExpiredCacheEntries(40, CLOCK_DATE - 1)
+        await expect(
+            verifier.testVerifyCertificateChain(verifier.getRootCertificates(), LEAF_CERT_BASE64_ENCODED, INTERMEDIATE_CA_BASE64_ENCODED)
+        ).resolves.toBeDefined()
         jest.runOnlyPendingTimers()
         jest.useRealTimers()
     })
