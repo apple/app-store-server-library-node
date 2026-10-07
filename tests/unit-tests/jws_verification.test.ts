@@ -177,6 +177,38 @@ describe("Chain Verification Checks", () => {
     })
 })
 
+describe("OCSP date parsing", () => {
+    class ExposedVerifier extends SignedDataVerifier {
+        parse(date: string): Date {
+            return (this as any).parseX509Date(date)
+        }
+    }
+
+    function verifier() {
+        return new ExposedVerifier([], false, Environment.SANDBOX, "com.example")
+    }
+
+    it('should parse GeneralizedTime with and without trailing Z in UTC', () => {
+        const v = verifier()
+        expect(v.parse('20200101000000Z').toISOString()).toEqual('2020-01-01T00:00:00.000Z')
+        expect(v.parse('20200101000000').getTime()).toEqual(v.parse('20200101000000Z').getTime())
+        expect(v.parse('20260905033451').toISOString()).toEqual('2026-09-05T03:34:51.000Z')
+    })
+
+    it('should reject malformed and out-of-range dates', () => {
+        const v = verifier()
+        for (const bad of ['', '2020-01-01', '2020010100000Z', '20200101000000ZZ', '20201301000000Z', '20200230000000Z', '20200101240000Z']) {
+            try {
+                v.parse(bad)
+                assert(false)
+            } catch (e) {
+                expect(e).toBeInstanceOf(VerificationException)
+                expect((e as VerificationException).status).toEqual(VerificationStatus.FAILURE)
+            }
+        }
+    })
+})
+
 describe("Decoding checks", () => {
     it('should fail to verify with a missing x5c header', async () => {
         const verifier = getSignedPayloadVerifierWithDefaultAppAppleId(Environment.PRODUCTION, "com.example")
