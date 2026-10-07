@@ -399,9 +399,11 @@ export class SignedDataVerifier {
         }
         // Validate contents
         const issueDate = this.parseX509Date(singleResponse.thisupdate)
-        const nextDate = this.parseX509Date(singleResponse.nextupdate)
+        const nextUpdate = singleResponse.nextupdate as string | undefined
+        // nextUpdate is optional per RFC 6960; when absent, only enforce thisUpdate freshness
+        const nextDate = nextUpdate == null ? null : this.parseX509Date(nextUpdate)
         
-        if (singleResponse.status.status !== 'good' || new Date().getTime() + MAX_SKEW < issueDate.getTime() || nextDate.getTime() < new Date().getTime() - MAX_SKEW) {
+        if (singleResponse.status.status !== 'good' || new Date().getTime() + MAX_SKEW < issueDate.getTime() || (nextDate != null && nextDate.getTime() < new Date().getTime() - MAX_SKEW)) {
           throw new VerificationException(VerificationStatus.FAILURE)
         }
         // Success
@@ -418,10 +420,27 @@ export class SignedDataVerifier {
     }
 
     private parseX509Date(date: string) {
-      return new Date(date.replace(
-        /^(\d{4})(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)$/,
-        '$4:$5:$6 $2/$3/$1'
-      ));
+      const match = /^(\d{4})(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)Z?$/.exec(date)
+      if (!match) {
+        throw new VerificationException(VerificationStatus.FAILURE)
+      }
+      const year = Number(match[1])
+      const month = Number(match[2])
+      const day = Number(match[3])
+      const hour = Number(match[4])
+      const minute = Number(match[5])
+      const second = Number(match[6])
+      const time = Date.UTC(year, month - 1, day, hour, minute, second)
+      if (!isFinite(time)) {
+        throw new VerificationException(VerificationStatus.FAILURE)
+      }
+      // Date.UTC normalizes out-of-range values, so verify the components round-trip
+      const check = new Date(time)
+      if (check.getUTCFullYear() !== year || check.getUTCMonth() !== month - 1 || check.getUTCDate() !== day ||
+          check.getUTCHours() !== hour || check.getUTCMinutes() !== minute || check.getUTCSeconds() !== second) {
+        throw new VerificationException(VerificationStatus.FAILURE)
+      }
+      return check
     }
 
     private extractSignedDate(decodedJWT: DecodedSignedData): Date {
