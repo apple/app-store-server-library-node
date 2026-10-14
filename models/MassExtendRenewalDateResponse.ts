@@ -10,17 +10,20 @@ import { Validator } from "./Validator"
 export interface MassExtendRenewalDateResponse {
 
     /**
-     * A string that contains a unique identifier you provide to track each subscription-renewal-date extension request.
+     * A string that contains the UUID that identifies the subscription-renewal-date extension request.
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/requestidentifier requestIdentifier}
-     **/
+     */
     requestIdentifier?: string
 }
 
-
 export class MassExtendRenewalDateResponseValidator implements Validator<MassExtendRenewalDateResponse> {
+    private static readonly MAXIMUM_REQUEST_IDENTIFIER_LENGTH = 128
     validate(obj: any): obj is MassExtendRenewalDateResponse {
-        if ((typeof obj['requestIdentifier'] !== 'undefined') && !(typeof obj['requestIdentifier'] === "string" || obj['requestIdentifier'] instanceof String)) {
+        if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
+            return false
+        }
+        if ((typeof obj['requestIdentifier'] !== 'undefined') && !((typeof obj['requestIdentifier'] === "string" || obj['requestIdentifier'] instanceof String) && [...obj['requestIdentifier']].length <= MassExtendRenewalDateResponseValidator.MAXIMUM_REQUEST_IDENTIFIER_LENGTH)) {
             return false
         }
         return true

@@ -11,22 +11,22 @@ export interface AdvancedCommerceRefund {
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommercerefundamount advancedCommerceRefundAmount}
-     **/
+     */
     refundAmount?: number
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommercerefunddate advancedCommerceRefundDate}
-     **/
+     */
     refundDate?: number
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommercerefundreason advancedCommerceRefundReason}
-     **/
+     */
     refundReason?: AdvancedCommerceRefundReason | string
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommercerefundtype advancedCommerceRefundType}
-     **/
+     */
     refundType?: AdvancedCommerceRefundType | string
 }
 
@@ -34,10 +34,13 @@ export class AdvancedCommerceRefundValidator implements Validator<AdvancedCommer
     static readonly refundReasonValidator = new AdvancedCommerceRefundReasonValidator()
     static readonly refundTypeValidator = new AdvancedCommerceRefundTypeValidator()
     validate(obj: any): obj is AdvancedCommerceRefund {
-        if ((typeof obj['refundAmount'] !== 'undefined') && !(typeof obj['refundAmount'] === "number")) {
+        if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
             return false
         }
-        if ((typeof obj['refundDate'] !== 'undefined') && !(typeof obj['refundDate'] === "number")) {
+        if ((typeof obj['refundAmount'] !== 'undefined') && !(typeof obj['refundAmount'] === "number" || obj['refundAmount'] instanceof Number)) {
+            return false
+        }
+        if ((typeof obj['refundDate'] !== 'undefined') && !(typeof obj['refundDate'] === "number" || obj['refundDate'] instanceof Number)) {
             return false
         }
         if ((typeof obj['refundReason'] !== 'undefined') && !(AdvancedCommerceRefundValidator.refundReasonValidator.validate(obj['refundReason']))) {

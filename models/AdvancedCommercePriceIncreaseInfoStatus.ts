@@ -3,7 +3,7 @@
 import { StringValidator } from "./Validator"
 
 /**
- * {@link https://developer.apple.com/documentation/appstoreservernotifications/advancedcommercepriceincreaseinfostatus advancedCommercePriceIncreaseInfoStatus}
+ * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommercepriceincreaseinfostatus advancedCommercePriceIncreaseInfoStatus}
  */
 export enum AdvancedCommercePriceIncreaseInfoStatus {
     SCHEDULED = "SCHEDULED",

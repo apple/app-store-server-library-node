@@ -13,13 +13,15 @@ export interface RealtimeRequestBody {
      * The payload in JSON Web Signature (JWS) format, signed by the App Store.
      *
      * {@link https://developer.apple.com/documentation/retentionmessaging/signedpayload signedPayload}
-     **/
+     */
     signedPayload?: string
 }
 
-
 export class RealtimeRequestBodyValidator implements Validator<RealtimeRequestBody> {
     validate(obj: any): obj is RealtimeRequestBody {
+        if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
+            return false
+        }
         if ((typeof obj['signedPayload'] !== 'undefined') && !(typeof obj['signedPayload'] === "string" || obj['signedPayload'] instanceof String)) {
             return false
         }

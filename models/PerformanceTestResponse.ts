@@ -13,21 +13,24 @@ export interface PerformanceTestResponse {
     /**
      * The performance test configuration object.
      *
-     * {@link https://developer.apple.com/documentation/retentionmessaging/performancetestconfig config}
-     **/
+     * {@link https://developer.apple.com/documentation/retentionmessaging/performancetestconfig PerformanceTestConfig}
+     */
     config: PerformanceTestConfig
 
     /**
      * The performance test request identifier.
      *
      * {@link https://developer.apple.com/documentation/retentionmessaging/requestid requestId}
-     **/
+     */
     requestId: string
 }
 
 export class PerformanceTestResponseValidator implements Validator<PerformanceTestResponse> {
     static readonly performanceTestConfigValidator = new PerformanceTestConfigValidator()
     validate(obj: any): obj is PerformanceTestResponse {
+        if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
+            return false
+        }
         if (!(PerformanceTestResponseValidator.performanceTestConfigValidator.validate(obj['config']))) {
             return false
         }

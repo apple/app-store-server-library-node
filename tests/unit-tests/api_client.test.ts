@@ -20,10 +20,11 @@ import { Status } from "../../models/Status";
 import { Subtype } from "../../models/Subtype";
 import { UserStatus } from "../../models/UserStatus";
 import { readFile } from "../util"
+import { ImageSize } from "../../models/ImageSize";
 import { InAppOwnershipType } from "../../models/InAppOwnershipType";
 import { RefundPreference } from "../../models/RefundPreference";
 import { RefundPreferenceV1 } from "../../models/RefundPreferenceV1";
-import { AdvancedCommerceRequestRefundRequest, AdvancedCommerceSubscriptionCancelRequest, AdvancedCommerceSubscriptionChangeMetadataRequest, AdvancedCommerceSubscriptionMigrateRequest, AdvancedCommerceSubscriptionPriceChangeRequest, AdvancedCommerceSubscriptionRevokeRequest, APIError, APIException, AppStoreServerAPIClient, ExtendReasonCode, ExtendRenewalDateRequest, GetTransactionHistoryVersion, MassExtendRenewalDateRequest, NotificationHistoryRequest, NotificationHistoryResponseItem, Order, OrderLookupStatus, ProductType, SendAttemptResult, TransactionHistoryRequest } from "../../index";
+import { AdvancedCommerceRequestRefundRequest, AdvancedCommerceSubscriptionCancelRequest, AdvancedCommerceSubscriptionChangeMetadataRequest, AdvancedCommerceSubscriptionMigrateRequest, AdvancedCommerceSubscriptionPriceChangeRequest, AdvancedCommerceSubscriptionRevokeRequest, APIError, APIException, AppStoreServerAPIClient, ExtendReasonCode, ExtendRenewalDateRequest, GetCustomerGroupsResponse, GetGroupMembersResponse, GetTransactionHistoryVersion, GroupEntry, GroupMemberEntry, GroupType, MassExtendRenewalDateRequest, NotificationHistoryRequest, NotificationHistoryResponseItem, Order, OrderLookupStatus, ProductType, Role, RoleEntry, SendAttemptResult, TransactionHistoryRequest } from "../../index";
 import { Response } from "node-fetch";
 
 import jsonwebtoken = require('jsonwebtoken');
@@ -87,11 +88,41 @@ function getSigningKey(): string {
 
 describe('The api client ', () => {
     
+    it('percent-encodes path parameters', async () => {
+        const client = getClientWithBody("tests/resources/models/transactionInfoResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string) => {
+            expect("GET").toBe(method)
+            expect("/inApps/v1/transactions/..%2F..%2Fv1%2Fnotifications%2Ftest%3Ffoo%3Dbar%23fragment").toBe(path)
+            expect(parsedQueryParameters.toString()).toBe("")
+        })
+
+        await client.getTransactionInfo("../../v1/notifications/test?foo=bar#fragment")
+    })
+
+    it('percent-encodes multiple path parameters', async () => {
+        const client = getClientWithBody("tests/resources/models/getDefaultMessageResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string) => {
+            expect("GET").toBe(method)
+            expect("/inApps/v1/messaging/default/com.example%2Fproduct/en%20US").toBe(path)
+        })
+
+        await client.getDefaultMessage("com.example/product", "en US")
+    })
+
+    it('rejects dot and empty path parameters', async () => {
+        const client = getClientWithBody("tests/resources/models/transactionInfoResponse.json", () => {
+            fail()
+        })
+
+        for (const pathParameter of ["..", ".", ""]) {
+            await expect(client.getTransactionInfo(pathParameter)).rejects.toThrow(Error)
+            await expect(client.getDefaultMessage("com.example", pathParameter)).rejects.toThrow(Error)
+        }
+    })
+
     it('calls extendRenewalDateForAllActiveSubscribers', async () => {
        const client = getClientWithBody("tests/resources/models/extendRenewalDateForAllActiveSubscribersResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("POST").toBe(method)
             expect("/inApps/v1/subscriptions/extend/mass").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
 
             expect(requestBody).toBeTruthy()
             expect(typeof requestBody).toBe('string')
@@ -121,7 +152,7 @@ describe('The api client ', () => {
        const client = getClientWithBody("tests/resources/models/extendSubscriptionRenewalDateResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("PUT").toBe(method)
             expect("/inApps/v1/subscriptions/extend/4124214").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
 
             expect(requestBody).toBeTruthy()
             expect(typeof requestBody).toBe('string')
@@ -214,7 +245,7 @@ describe('The api client ', () => {
        const client = getClientWithBody("tests/resources/models/getStatusOfSubscriptionRenewalDateExtensionsResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("GET").toBe(method)
             expect("/inApps/v1/subscriptions/extend/mass/20fba8a0-2b80-4a7d-a17f-85c1854727f8/com.example.product").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
             expect(requestBody).toBeUndefined()
         });
 
@@ -232,7 +263,7 @@ describe('The api client ', () => {
        const client = getClientWithBody("tests/resources/models/getTestNotificationStatusResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("GET").toBe(method)
             expect("/inApps/v1/notifications/test/8cd2974c-f905-492a-bf9a-b2f47c791d19").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
             expect(requestBody).toBeUndefined()
         });
 
@@ -390,7 +421,7 @@ describe('The api client ', () => {
        const client = getClientWithBody("tests/resources/models/transactionInfoResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("GET").toBe(method)
             expect("/inApps/v1/transactions/1234").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
             expect(requestBody).toBeUndefined()
         });
 
@@ -404,7 +435,7 @@ describe('The api client ', () => {
        const client = getClientWithBody("tests/resources/models/lookupOrderIdResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("GET").toBe(method)
             expect("/inApps/v1/lookup/W002182").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
             expect(requestBody).toBeUndefined()
         });
 
@@ -419,7 +450,7 @@ describe('The api client ', () => {
        const client = getClientWithBody("tests/resources/models/requestTestNotificationResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("POST").toBe(method)
             expect("/inApps/v1/notifications/test").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
             expect(requestBody).toBeUndefined()
         });
 
@@ -433,7 +464,7 @@ describe('The api client ', () => {
        const client = getAppStoreServerAPIClient("", 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("PUT").toBe(method)
             expect("/inApps/v1/transactions/consumption/49571273").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
 
             expect(requestBody).toBeTruthy()
             expect(typeof requestBody).toBe('string')
@@ -467,14 +498,89 @@ describe('The api client ', () => {
             refundPreference: RefundPreferenceV1.NO_PREFERENCE
         }
 
-        client.sendConsumptionData("49571273", consumptionRequest);
+        await client.sendConsumptionData("49571273", consumptionRequest);
+    })
+
+    it('calls sendConsumptionData with only required fields and an empty appAccountToken', async () => {
+       const client = getAppStoreServerAPIClient("", 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("PUT").toBe(method)
+            expect("/inApps/v1/transactions/consumption/49571273").toBe(path)
+
+            expect(requestBody).toBeTruthy()
+            expect(typeof requestBody).toBe('string')
+            const body = JSON.parse(requestBody as string)
+            expect(body.customerConsented).toBe(true)
+            expect(0).toBe(body.consumptionStatus)
+            expect(0).toBe(body.platform)
+            expect(body.sampleContentProvided).toBe(false)
+            expect(0).toBe(body.deliveryStatus)
+            expect("").toBe(body.appAccountToken)
+            expect(0).toBe(body.accountTenure)
+            expect(0).toBe(body.playTime)
+            expect(0).toBe(body.lifetimeDollarsRefunded)
+            expect(0).toBe(body.lifetimeDollarsPurchased)
+            expect(0).toBe(body.userStatus)
+            expect(body.refundPreference).toBeUndefined()
+        });
+
+        const consumptionRequest: ConsumptionRequestV1 = {
+            customerConsented: true,
+            consumptionStatus: ConsumptionStatus.UNDECLARED,
+            platform: Platform.UNDECLARED,
+            sampleContentProvided: false,
+            deliveryStatus: DeliveryStatusV1.DELIVERED_AND_WORKING_PROPERLY,
+            appAccountToken: "",
+            accountTenure: AccountTenure.UNDECLARED,
+            playTime: PlayTime.UNDECLARED,
+            lifetimeDollarsRefunded: LifetimeDollarsRefunded.UNDECLARED,
+            lifetimeDollarsPurchased: LifetimeDollarsPurchased.UNDECLARED,
+            userStatus: UserStatus.UNDECLARED
+        }
+
+        await client.sendConsumptionData("49571273", consumptionRequest);
+    })
+
+    it.each([
+        ['omits it', {}],
+        ['sets it to undefined', { appAccountToken: undefined }],
+        ['sets it to null', { appAccountToken: null }],
+    ])('calls sendConsumptionData with an empty appAccountToken when the caller %s', async (_, appAccountToken) => {
+        let body: any = undefined
+        const client = getAppStoreServerAPIClient("", 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("PUT").toBe(method)
+            expect("/inApps/v1/transactions/consumption/49571273").toBe(path)
+            body = JSON.parse(requestBody as string)
+        });
+
+        const consumptionRequest = {
+            customerConsented: true,
+            consumptionStatus: ConsumptionStatus.UNDECLARED,
+            platform: Platform.UNDECLARED,
+            sampleContentProvided: false,
+            deliveryStatus: DeliveryStatusV1.DELIVERED_AND_WORKING_PROPERLY,
+            ...appAccountToken,
+            accountTenure: AccountTenure.UNDECLARED,
+            playTime: PlayTime.UNDECLARED,
+            lifetimeDollarsRefunded: LifetimeDollarsRefunded.UNDECLARED,
+            lifetimeDollarsPurchased: LifetimeDollarsPurchased.UNDECLARED,
+            userStatus: UserStatus.UNDECLARED
+        } as unknown as ConsumptionRequestV1
+
+        await client.sendConsumptionData("49571273", consumptionRequest);
+
+        expect(body).toBeTruthy()
+        expect(body.appAccountToken).toBe("")
+        expect(body.customerConsented).toBe(true)
+        expect(body.userStatus).toBe(0)
+        expect(consumptionRequest).toStrictEqual(expect.objectContaining(appAccountToken))
+        expect('appAccountToken' in consumptionRequest).toBe('appAccountToken' in appAccountToken)
     })
 
     it('calls sendConsumptionInformation with all fields', async () => {
        const client = getAppStoreServerAPIClient("", 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("PUT").toBe(method)
             expect("/inApps/v2/transactions/consumption/49571273").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
 
             expect(requestBody).toBeTruthy()
             expect(typeof requestBody).toBe('string')
@@ -494,14 +600,14 @@ describe('The api client ', () => {
             sampleContentProvided: false
         }
 
-        client.sendConsumptionInformation("49571273", consumptionRequest);
+        await client.sendConsumptionInformation("49571273", consumptionRequest);
     })
 
     it('calls sendConsumptionInformation with only required fields', async () => {
        const client = getAppStoreServerAPIClient("", 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("PUT").toBe(method)
             expect("/inApps/v2/transactions/consumption/49571273").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
 
             expect(requestBody).toBeTruthy()
             expect(typeof requestBody).toBe('string')
@@ -519,14 +625,14 @@ describe('The api client ', () => {
             sampleContentProvided: true
         }
 
-        client.sendConsumptionInformation("49571273", consumptionRequest);
+        await client.sendConsumptionInformation("49571273", consumptionRequest);
     })
 
     it('calls getTransactionInfo but receives a general internal error', async () => {
         const client = getClientWithBody("tests/resources/models/apiException.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
              expect("GET").toBe(method)
              expect("/inApps/v1/transactions/1234").toBe(path)
-             expect(parsedQueryParameters.entries.length).toBe(0)
+             expect([...parsedQueryParameters.entries()].length).toBe(0)
              expect(requestBody).toBeUndefined()
          }, 500);
  
@@ -538,6 +644,7 @@ describe('The api client ', () => {
             expect(error.httpStatusCode).toBe(500)
             expect(error.apiError).toBe(APIError.GENERAL_INTERNAL)
             expect(error.errorMessage).toBe("An unknown error occurred.")
+            expect(error.name).toBe("APIException")
          }
      })
 
@@ -545,7 +652,7 @@ describe('The api client ', () => {
         const client = getClientWithBody("tests/resources/models/apiTooManyRequestsException.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
              expect("GET").toBe(method)
              expect("/inApps/v1/transactions/1234").toBe(path)
-             expect(parsedQueryParameters.entries.length).toBe(0)
+             expect([...parsedQueryParameters.entries()].length).toBe(0)
              expect(requestBody).toBeUndefined()
          }, 429);
 
@@ -602,7 +709,7 @@ describe('The api client ', () => {
         const client = getClientWithBody("tests/resources/models/apiUnknownError.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
              expect("GET").toBe(method)
              expect("/inApps/v1/transactions/1234").toBe(path)
-             expect(parsedQueryParameters.entries.length).toBe(0)
+             expect([...parsedQueryParameters.entries()].length).toBe(0)
              expect(requestBody).toBeUndefined()
          }, 400);
  
@@ -651,12 +758,7 @@ describe('The api client ', () => {
             subscriptionGroupIdentifiers: ["sub_group_id", "sub_group_id_2"]
         }
 
-        try {
-            await client.getTransactionHistory("1234", "revision_input", request);
-            fail('this test call is expected to throw')
-        } catch (e) {
-            return;
-        }
+        await expect(client.getTransactionHistory("1234", "revision_input", request, GetTransactionHistoryVersion.V2)).rejects.toThrow("Unexpected response body format")
      })
      
      it('throws an error when the XCODE environment is passed', async () => {
@@ -674,7 +776,7 @@ describe('The api client ', () => {
         const client = getAppStoreServerAPIClient("", 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("PUT").toBe(method)
             expect("/inApps/v1/transactions/49571273/appAccountToken").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
 
             expect(requestBody).toBeTruthy()
             expect(typeof requestBody).toBe('string')
@@ -686,14 +788,14 @@ describe('The api client ', () => {
             appAccountToken: "7389a31a-fb6d-4569-a2a6-db7d85d84813"
         }
 
-        client.setAppAccountToken("49571273", updateAppAccountTokenRequest);
+        await client.setAppAccountToken("49571273", updateAppAccountTokenRequest);
     })
 
     it('calls setAppAccountToken but receives an invalid UUID error', async () => {
         const client = getClientWithBody("tests/resources/models/invalidAppAccountTokenUUIDError.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("PUT").toBe(method)
             expect("/inApps/v1/transactions/49571273/appAccountToken").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
             expect(requestBody).toBeTruthy()
         }, 400);
 
@@ -715,7 +817,7 @@ describe('The api client ', () => {
         const client = getClientWithBody("tests/resources/models/familyTransactionNotSupportedError.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("PUT").toBe(method)
             expect("/inApps/v1/transactions/1234/appAccountToken").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
             expect(requestBody).toBeTruthy()
         }, 400);
 
@@ -737,7 +839,7 @@ describe('The api client ', () => {
         const client = getClientWithBody("tests/resources/models/transactionIdNotOriginalTransactionId.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("PUT").toBe(method)
             expect("/inApps/v1/transactions/1234/appAccountToken").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
             expect(requestBody).toBeTruthy()
         }, 400);
 
@@ -759,7 +861,7 @@ describe('The api client ', () => {
         const client = getAppStoreServerAPIClient("", 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("PUT").toBe(method)
             expect("/inApps/v1/messaging/image/a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
             expect(requestBody).toBeTruthy()
             expect(requestBody).toBeInstanceOf(Buffer)
             expect(Buffer.from([1, 2, 3])).toEqual(requestBody)
@@ -772,7 +874,7 @@ describe('The api client ', () => {
         const client = getAppStoreServerAPIClient("", 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("DELETE").toBe(method)
             expect("/inApps/v1/messaging/image/a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
             expect(requestBody).toBeUndefined()
         });
 
@@ -783,7 +885,7 @@ describe('The api client ', () => {
         const client = getClientWithBody("tests/resources/models/getImageListResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("GET").toBe(method)
             expect("/inApps/v1/messaging/image/list").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
             expect(requestBody).toBeUndefined()
         });
 
@@ -801,7 +903,7 @@ describe('The api client ', () => {
         const client = getAppStoreServerAPIClient("", 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("PUT").toBe(method)
             expect("/inApps/v1/messaging/message/a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
             expect(requestBody).toBeTruthy()
             expect(typeof requestBody).toBe('string')
 
@@ -822,7 +924,7 @@ describe('The api client ', () => {
         const client = getAppStoreServerAPIClient("", 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("PUT").toBe(method)
             expect("/inApps/v1/messaging/message/a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
             expect(requestBody).toBeTruthy()
             expect(typeof requestBody).toBe('string')
 
@@ -849,7 +951,7 @@ describe('The api client ', () => {
         const client = getAppStoreServerAPIClient("", 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("DELETE").toBe(method)
             expect("/inApps/v1/messaging/message/a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
             expect(requestBody).toBeUndefined()
         });
 
@@ -860,7 +962,7 @@ describe('The api client ', () => {
         const client = getClientWithBody("tests/resources/models/getMessageListResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("GET").toBe(method)
             expect("/inApps/v1/messaging/message/list").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
             expect(requestBody).toBeUndefined()
         });
 
@@ -877,7 +979,7 @@ describe('The api client ', () => {
         const client = getAppStoreServerAPIClient("", 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("PUT").toBe(method)
             expect("/inApps/v1/messaging/default/com.example.product/en-US").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
             expect(requestBody).toBeTruthy()
             expect(typeof requestBody).toBe('string')
 
@@ -895,7 +997,7 @@ describe('The api client ', () => {
         const client = getAppStoreServerAPIClient("", 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("DELETE").toBe(method)
             expect("/inApps/v1/messaging/default/com.example.product/en-US").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
             expect(requestBody).toBeUndefined()
         });
 
@@ -906,7 +1008,7 @@ describe('The api client ', () => {
         const client = getClientWithBody("tests/resources/models/getDefaultMessageResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("GET").toBe(method)
             expect("/inApps/v1/messaging/default/com.example.product/en-US").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
             expect(requestBody).toBeUndefined()
         });
 
@@ -929,11 +1031,22 @@ describe('The api client ', () => {
         await client.uploadImage("a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890", Buffer.from([1, 2, 3]), "FULL_SIZE")
     })
 
+    it('calls uploadImage with an ImageSize value', async () => {
+        const client = getAppStoreServerAPIClient("", 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("PUT").toBe(method)
+            expect("/inApps/v1/messaging/image/a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890").toBe(path)
+            expect([...parsedQueryParameters.entries()]).toStrictEqual([["imageSize", "BULLET_POINT"]])
+            expect(Buffer.from([1, 2, 3])).toEqual(requestBody)
+        });
+
+        await client.uploadImage("a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890", Buffer.from([1, 2, 3]), ImageSize.BULLET_POINT)
+    })
+
     it('calls configureRealtimeURL', async () => {
         const client = getAppStoreServerAPIClient("", 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("PUT").toBe(method)
             expect("/inApps/v1/messaging/realtime/url").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
             expect(requestBody).toBeTruthy()
             expect(typeof requestBody).toBe('string')
 
@@ -948,7 +1061,7 @@ describe('The api client ', () => {
         const client = getAppStoreServerAPIClient("", 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("DELETE").toBe(method)
             expect("/inApps/v1/messaging/realtime/url").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
             expect(requestBody).toBeUndefined()
         });
 
@@ -959,7 +1072,7 @@ describe('The api client ', () => {
         const client = getClientWithBody("tests/resources/models/getRealtimeUrlResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("GET").toBe(method)
             expect("/inApps/v1/messaging/realtime/url").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
             expect(requestBody).toBeUndefined()
         });
 
@@ -973,7 +1086,7 @@ describe('The api client ', () => {
         const client = getAppStoreServerAPIClient("", 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("PUT").toBe(method)
             expect("/inApps/v1/messaging/message/a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
             expect(requestBody).toBeTruthy()
             expect(typeof requestBody).toBe('string')
 
@@ -1014,7 +1127,7 @@ describe('The api client ', () => {
         const client = getClientWithBody("tests/resources/models/performanceTestResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("POST").toBe(method)
             expect("/inApps/v1/messaging/performanceTest").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
             expect(requestBody).toBeTruthy()
             expect(typeof requestBody).toBe('string')
 
@@ -1034,11 +1147,23 @@ describe('The api client ', () => {
         expect(response.config.successRateThreshold).toBe(95)
     })
 
+    it('calls getPerformanceTestResults with the request identifier in lowercase', async () => {
+        let calledPath: string | undefined = undefined
+        const client = getClientWithBody("tests/resources/models/performanceTestResultResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("GET").toBe(method)
+            calledPath = path
+        });
+
+        await client.getPerformanceTestResults("C4B87A1D-2E3F-4A5B-9C6D-7E8F9A0B1C2D")
+
+        expect(calledPath).toBe("/inApps/v1/messaging/performanceTest/result/c4b87a1d-2e3f-4a5b-9c6d-7e8f9a0b1c2d")
+    })
+
     it('calls getPerformanceTestResults', async () => {
         const client = getClientWithBody("tests/resources/models/performanceTestResultResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("GET").toBe(method)
             expect("/inApps/v1/messaging/performanceTest/result/c4b87a1d-2e3f-4a5b-9c6d-7e8f9a0b1c2d").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
             expect(requestBody).toBeUndefined()
         });
 
@@ -1070,7 +1195,7 @@ describe('The api client ', () => {
         const client = getClientWithBody("tests/resources/models/appTransactionInfoResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
              expect("GET").toBe(method)
              expect("/inApps/v1/transactions/appTransactions/1234").toBe(path)
-             expect(parsedQueryParameters.entries.length).toBe(0)
+             expect([...parsedQueryParameters.entries()].length).toBe(0)
              expect(requestBody).toBeUndefined()
          });
 
@@ -1084,7 +1209,7 @@ describe('The api client ', () => {
          const client = getClientWithBody("tests/resources/models/invalidTransactionIdError.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
               expect("GET").toBe(method)
               expect("/inApps/v1/transactions/appTransactions/invalid_id").toBe(path)
-              expect(parsedQueryParameters.entries.length).toBe(0)
+              expect([...parsedQueryParameters.entries()].length).toBe(0)
               expect(requestBody).toBeUndefined()
           }, 400);
 
@@ -1103,7 +1228,7 @@ describe('The api client ', () => {
          const client = getClientWithBody("tests/resources/models/appTransactionDoesNotExistError.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
               expect("GET").toBe(method)
               expect("/inApps/v1/transactions/appTransactions/5678").toBe(path)
-              expect(parsedQueryParameters.entries.length).toBe(0)
+              expect([...parsedQueryParameters.entries()].length).toBe(0)
               expect(requestBody).toBeUndefined()
           }, 404);
 
@@ -1113,7 +1238,7 @@ describe('The api client ', () => {
           } catch (e) {
              let error = e as APIException
              expect(error.httpStatusCode).toBe(404)
-             expect(error.apiError).toBe(APIError.APP_TRANSACTION_DOES_NOT_EXIST_ERROR)
+             expect(error.apiError).toBe(APIError.APP_TRANSACTION_DOES_NOT_EXIST)
              expect(error.errorMessage).toBe("No AppTransaction exists for the customer.")
           }
       })
@@ -1122,7 +1247,7 @@ describe('The api client ', () => {
          const client = getClientWithBody("tests/resources/models/transactionIdNotFoundError.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
               expect("GET").toBe(method)
               expect("/inApps/v1/transactions/appTransactions/9999").toBe(path)
-              expect(parsedQueryParameters.entries.length).toBe(0)
+              expect([...parsedQueryParameters.entries()].length).toBe(0)
               expect(requestBody).toBeUndefined()
           }, 404);
 
@@ -1141,7 +1266,7 @@ describe('The api client ', () => {
         const client = getAppStoreServerAPIClient("", 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("POST").toBe(method)
             expect("/inApps/v1/transactions/1234/finish").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
             expect(requestBody).toBeUndefined()
         });
 
@@ -1152,7 +1277,7 @@ describe('The api client ', () => {
         const client = getClientWithBody("tests/resources/models/advancedCommerceSubscriptionPriceChangeResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("POST").toBe(method)
             expect("/advancedCommerce/v1/subscription/changePrice/4124214").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
 
             expect(requestBody).toBeTruthy()
             const body = JSON.parse(requestBody as string)
@@ -1190,7 +1315,7 @@ describe('The api client ', () => {
         const client = getClientWithBody("tests/resources/models/advancedCommerceSubscriptionCancelResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("POST").toBe(method)
             expect("/advancedCommerce/v1/subscription/cancel/4124214").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
 
             expect(requestBody).toBeTruthy()
             const body = JSON.parse(requestBody as string)
@@ -1216,7 +1341,7 @@ describe('The api client ', () => {
         const client = getClientWithBody("tests/resources/models/advancedCommerceSubscriptionRevokeResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("POST").toBe(method)
             expect("/advancedCommerce/v1/subscription/revoke/4124214").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
 
             expect(requestBody).toBeTruthy()
             const body = JSON.parse(requestBody as string)
@@ -1248,7 +1373,7 @@ describe('The api client ', () => {
         const client = getClientWithBody("tests/resources/models/advancedCommerceRequestRefundResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("POST").toBe(method)
             expect("/advancedCommerce/v1/transaction/requestRefund/4124214").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
 
             expect(requestBody).toBeTruthy()
             const body = JSON.parse(requestBody as string)
@@ -1283,13 +1408,14 @@ describe('The api client ', () => {
 
         expect(response).toBeTruthy()
         expect("signed_transaction_info_value").toBe(response.signedTransactionInfo)
+        expect(response.signedRenewalInfo).toBeUndefined()
     })
 
     it('calls changeSubscriptionMetadata', async () => {
         const client = getClientWithBody("tests/resources/models/advancedCommerceSubscriptionChangeMetadataResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("POST").toBe(method)
             expect("/advancedCommerce/v1/subscription/changeMetadata/4124214").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
 
             expect(requestBody).toBeTruthy()
             const body = JSON.parse(requestBody as string)
@@ -1335,7 +1461,7 @@ describe('The api client ', () => {
         const client = getClientWithBody("tests/resources/models/advancedCommerceSubscriptionMigrateResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
             expect("POST").toBe(method)
             expect("/advancedCommerce/v1/subscription/migrate/4124214").toBe(path)
-            expect(parsedQueryParameters.entries.length).toBe(0)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
 
             expect(requestBody).toBeTruthy()
             const body = JSON.parse(requestBody as string)
@@ -1375,5 +1501,570 @@ describe('The api client ', () => {
         expect(response).toBeTruthy()
         expect("signed_renewal_info_value").toBe(response.signedRenewalInfo)
         expect("signed_transaction_info_value").toBe(response.signedTransactionInfo)
+    })
+
+    it('calls getRefundHistory without a revision', async () => {
+        const client = getClientWithBody("tests/resources/models/getRefundHistoryResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("GET").toBe(method)
+            expect("/inApps/v2/refund/lookup/555555").toBe(path)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
+            expect(requestBody).toBeUndefined()
+        });
+
+        const refundHistoryResponse = await client.getRefundHistory("555555", undefined as unknown as string | null);
+
+        expect(refundHistoryResponse).toBeTruthy()
+    })
+
+    it('calls getTransactionHistory without a version and uses V1', async () => {
+        const client = getClientWithBody("tests/resources/models/transactionHistoryResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("GET").toBe(method)
+            expect("/inApps/v1/history/1234").toBe(path)
+            expect([...parsedQueryParameters.entries()].length).toBe(0)
+            expect(requestBody).toBeUndefined()
+        });
+
+        const historyResponse = await client.getTransactionHistory("1234", null, {});
+
+        expect(historyResponse).toBeTruthy()
+    })
+
+    it('calls getTransactionInfo but receives an error without an error code', async () => {
+        const client = getAppStoreServerAPIClient("", 500, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+        });
+
+        try {
+            await client.getTransactionInfo("1234");
+            fail('this test call is expected to throw')
+        } catch (e) {
+            let error = e as APIException
+            expect(error).toBeInstanceOf(APIException)
+            expect(error.httpStatusCode).toBe(500)
+            expect(error.apiError).toBeNull()
+            expect(error.errorMessage).toBeNull()
+        }
+    })
+
+    it('calls sendConsumptionInformation but receives a consumption percentage out of range error', async () => {
+        const client = getAppStoreServerAPIClient(JSON.stringify({ errorCode: 4000207, errorMessage: "Invalid request. The consumption percentage is outside the valid range." }), 400, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("PUT").toBe(method)
+            expect("/inApps/v2/transactions/consumption/49571273").toBe(path)
+        });
+
+        const consumptionRequest: ConsumptionRequest = {
+            customerConsented: true,
+            consumptionPercentage: 100000,
+            deliveryStatus: DeliveryStatus.DELIVERED,
+            sampleContentProvided: false
+        }
+
+        try {
+            await client.sendConsumptionInformation("49571273", consumptionRequest);
+            fail('this test call is expected to throw')
+        } catch (e) {
+            let error = e as APIException
+            expect(error.httpStatusCode).toBe(400)
+            expect(error.apiError).toBe(APIError.CONSUMPTION_PERCENTAGE_OUT_OF_RANGE)
+            expect(error.errorMessage).toBe("Invalid request. The consumption percentage is outside the valid range.")
+        }
+    })
+
+    it.each([
+        ['extendSubscriptionRenewalDate', 'extendByDays 0', (client: AppStoreServerAPIClient) => client.extendSubscriptionRenewalDate("4124214", { extendByDays: 0, extendReasonCode: ExtendReasonCode.CUSTOMER_SATISFACTION, requestIdentifier: "id" })],
+        ['extendSubscriptionRenewalDate', 'extendByDays 91', (client: AppStoreServerAPIClient) => client.extendSubscriptionRenewalDate("4124214", { extendByDays: 91, extendReasonCode: ExtendReasonCode.CUSTOMER_SATISFACTION, requestIdentifier: "id" })],
+        ['extendSubscriptionRenewalDate', 'a requestIdentifier of 129 characters', (client: AppStoreServerAPIClient) => client.extendSubscriptionRenewalDate("4124214", { extendByDays: 45, extendReasonCode: ExtendReasonCode.CUSTOMER_SATISFACTION, requestIdentifier: "a".repeat(129) })],
+        ['extendRenewalDateForAllActiveSubscribers', 'extendByDays 0', (client: AppStoreServerAPIClient) => client.extendRenewalDateForAllActiveSubscribers({ extendByDays: 0, extendReasonCode: ExtendReasonCode.CUSTOMER_SATISFACTION, requestIdentifier: "id", productId: "com.example.productId" })],
+        ['extendRenewalDateForAllActiveSubscribers', 'extendByDays 91', (client: AppStoreServerAPIClient) => client.extendRenewalDateForAllActiveSubscribers({ extendByDays: 91, extendReasonCode: ExtendReasonCode.CUSTOMER_SATISFACTION, requestIdentifier: "id", productId: "com.example.productId" })],
+        ['extendRenewalDateForAllActiveSubscribers', 'a requestIdentifier of 129 characters', (client: AppStoreServerAPIClient) => client.extendRenewalDateForAllActiveSubscribers({ extendByDays: 45, extendReasonCode: ExtendReasonCode.CUSTOMER_SATISFACTION, requestIdentifier: "a".repeat(129), productId: "com.example.productId" })],
+        ['extendRenewalDateForAllActiveSubscribers', 'a storefront country code of 4 characters', (client: AppStoreServerAPIClient) => client.extendRenewalDateForAllActiveSubscribers({ extendByDays: 45, extendReasonCode: ExtendReasonCode.CUSTOMER_SATISFACTION, requestIdentifier: "id", productId: "com.example.productId", storefrontCountryCodes: ["USA", "ABCD"] })],
+        ['sendConsumptionInformation', 'consumptionPercentage -1', (client: AppStoreServerAPIClient) => client.sendConsumptionInformation("49571273", { customerConsented: true, consumptionPercentage: -1, deliveryStatus: DeliveryStatus.DELIVERED, sampleContentProvided: false })],
+        ['sendConsumptionInformation', 'consumptionPercentage 100001', (client: AppStoreServerAPIClient) => client.sendConsumptionInformation("49571273", { customerConsented: true, consumptionPercentage: 100001, deliveryStatus: DeliveryStatus.DELIVERED, sampleContentProvided: false })],
+    ] as [string, string, (client: AppStoreServerAPIClient) => Promise<unknown>][])('does not send a %s request with %s (a documented limit)', async (_, __, call) => {
+        let requests = 0
+        const client = getAppStoreServerAPIClient("", 200, () => { requests++ });
+        await expect(call(client)).rejects.toThrow("Unexpected request body format")
+        expect(requests).toBe(0)
+    })
+
+    it('calls changeSubscriptionPrice but receives a subscription does not exist error', async () => {
+        const client = getAppStoreServerAPIClient(JSON.stringify({ errorCode: 4030008, errorMessage: "The subscription doesn't exist." }), 403, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("POST").toBe(method)
+            expect("/advancedCommerce/v1/subscription/changePrice/4124214").toBe(path)
+        });
+
+        const subscriptionPriceChangeRequest: AdvancedCommerceSubscriptionPriceChangeRequest = {
+            requestInfo: {
+                requestReferenceId: "7c80bb86-f892-4b21-a919-1357811d6c4f"
+            },
+            items: [
+                {
+                    SKU: "AD_FREE_1M",
+                    price: 12990
+                }
+            ]
+        }
+
+        try {
+            await client.changeSubscriptionPrice("4124214", subscriptionPriceChangeRequest);
+            fail('this test call is expected to throw')
+        } catch (e) {
+            let error = e as APIException
+            expect(error.httpStatusCode).toBe(403)
+            expect(error.apiError).toBe(APIError.SUBSCRIPTION_DOES_NOT_EXIST)
+            expect(error.errorMessage).toBe("The subscription doesn't exist.")
+        }
+    })
+
+    it.each([
+        ['extendRenewalDateForAllActiveSubscribers', (client: AppStoreServerAPIClient, body: any) => client.extendRenewalDateForAllActiveSubscribers(body), () => ({
+            extendByDays: 45,
+            extendReasonCode: ExtendReasonCode.CUSTOMER_SATISFACTION,
+            requestIdentifier: "fdf964a4-233b-486c-aac1-97d8d52688ac",
+            storefrontCountryCodes: ["USA", "MEX"],
+            productId: "com.example.productId"
+        }), ['extendByDays', 'extendReasonCode', 'requestIdentifier', 'productId']],
+        ['extendSubscriptionRenewalDate', (client: AppStoreServerAPIClient, body: any) => client.extendSubscriptionRenewalDate("4124214", body), () => ({
+            extendByDays: 45,
+            extendReasonCode: ExtendReasonCode.CUSTOMER_SATISFACTION,
+            requestIdentifier: "fdf964a4-233b-486c-aac1-97d8d52688ac"
+        }), ['extendByDays', 'extendReasonCode', 'requestIdentifier']],
+        ['getNotificationHistory', (client: AppStoreServerAPIClient, body: any) => client.getNotificationHistory("a036bc0e-52b8-4bee-82fc-8c24cb6715d6", body), () => ({
+            startDate: 1698148900000,
+            endDate: 1698148950000,
+            notificationType: NotificationTypeV2.SUBSCRIBED
+        }), ['startDate', 'endDate']],
+        ['sendConsumptionData', (client: AppStoreServerAPIClient, body: any) => client.sendConsumptionData("49571273", body), () => ({
+            customerConsented: true,
+            consumptionStatus: ConsumptionStatus.NOT_CONSUMED,
+            platform: Platform.NON_APPLE,
+            sampleContentProvided: false,
+            deliveryStatus: DeliveryStatusV1.DID_NOT_DELIVER_DUE_TO_SERVER_OUTAGE,
+            appAccountToken: "7389a31a-fb6d-4569-a2a6-db7d85d84813",
+            accountTenure: AccountTenure.THIRTY_DAYS_TO_NINETY_DAYS,
+            playTime: PlayTime.ONE_DAY_TO_FOUR_DAYS,
+            lifetimeDollarsRefunded: LifetimeDollarsRefunded.ONE_THOUSAND_DOLLARS_TO_ONE_THOUSAND_NINE_HUNDRED_NINETY_NINE_DOLLARS_AND_NINETY_NINE_CENTS,
+            lifetimeDollarsPurchased: LifetimeDollarsPurchased.TWO_THOUSAND_DOLLARS_OR_GREATER,
+            userStatus: UserStatus.LIMITED_ACCESS
+        }), ['customerConsented', 'consumptionStatus', 'platform', 'sampleContentProvided', 'deliveryStatus', 'accountTenure', 'playTime', 'lifetimeDollarsRefunded', 'lifetimeDollarsPurchased', 'userStatus']],
+        ['sendConsumptionInformation', (client: AppStoreServerAPIClient, body: any) => client.sendConsumptionInformation("49571273", body), () => ({
+            customerConsented: true,
+            deliveryStatus: DeliveryStatus.DELIVERED,
+            sampleContentProvided: false
+        }), ['customerConsented', 'deliveryStatus', 'sampleContentProvided']],
+        ['setAppAccountToken', (client: AppStoreServerAPIClient, body: any) => client.setAppAccountToken("49571273", body), () => ({
+            appAccountToken: "7389a31a-fb6d-4569-a2a6-db7d85d84813"
+        }), ['appAccountToken']],
+    ] as [string, (client: AppStoreServerAPIClient, body: any) => Promise<unknown>, () => any, string[]][])('does not send a %s request whose body is missing or lacks a required field', async (_, call, completeBody, requiredKeys) => {
+        let requests = 0
+        const client = getAppStoreServerAPIClient("", 200, () => { requests++ });
+
+        await expect(call(client, null)).rejects.toThrow("Unexpected request body format")
+        await expect(call(client, undefined)).rejects.toThrow("Unexpected request body format")
+        for (const requiredKey of requiredKeys) {
+            const body = completeBody()
+            delete body[requiredKey]
+            await expect(call(client, body)).rejects.toThrow("Unexpected request body format")
+            const wrongType = completeBody()
+            wrongType[requiredKey] = typeof wrongType[requiredKey] === 'number' ? String(wrongType[requiredKey]) : 1
+            await expect(call(client, wrongType)).rejects.toThrow("Unexpected request body format")
+        }
+        expect(requests).toBe(0)
+
+        await call(client, completeBody()).catch(() => undefined)
+        expect(requests).toBe(1)
+    })
+
+    it('sends request bodies whose enum fields hold raw values newer than the library', async () => {
+        const sentBodies: any[] = []
+        const recordBody = (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined) => {
+            sentBodies.push(JSON.parse(requestBody as string))
+        }
+        const massExtendRenewalDateRequest: MassExtendRenewalDateRequest = {
+            extendByDays: 45,
+            extendReasonCode: 99,
+            requestIdentifier: "fdf964a4-233b-486c-aac1-97d8d52688ac",
+            productId: "com.example.productId"
+        }
+        const extendRenewalDateRequest: ExtendRenewalDateRequest = {
+            extendByDays: 45,
+            extendReasonCode: 99,
+            requestIdentifier: "fdf964a4-233b-486c-aac1-97d8d52688ac"
+        }
+        const notificationHistoryRequest: NotificationHistoryRequest = {
+            startDate: 1698148900000,
+            endDate: 1698148950000,
+            notificationType: "NEW_NOTIFICATION_TYPE",
+            notificationSubtype: "NEW_SUBTYPE"
+        }
+
+        await getClientWithBody("tests/resources/models/extendRenewalDateForAllActiveSubscribersResponse.json", recordBody).extendRenewalDateForAllActiveSubscribers(massExtendRenewalDateRequest)
+        await getClientWithBody("tests/resources/models/extendSubscriptionRenewalDateResponse.json", recordBody).extendSubscriptionRenewalDate("4124214", extendRenewalDateRequest)
+        await getClientWithBody("tests/resources/models/getNotificationHistoryResponse.json", recordBody).getNotificationHistory(null, notificationHistoryRequest)
+
+        expect(sentBodies).toEqual([massExtendRenewalDateRequest, extendRenewalDateRequest, notificationHistoryRequest])
+        expect(sentBodies.map(body => [body.extendReasonCode, body.notificationType, body.notificationSubtype])).toEqual([
+            [99, undefined, undefined],
+            [99, undefined, undefined],
+            [undefined, "NEW_NOTIFICATION_TYPE", "NEW_SUBTYPE"],
+        ])
+    })
+
+    it('does not send a changeSubscriptionPrice request with an invalid SKU', async () => {
+        let called = false
+        const client = getAppStoreServerAPIClient("", 200, () => { called = true });
+
+        const subscriptionPriceChangeRequest: AdvancedCommerceSubscriptionPriceChangeRequest = {
+            requestInfo: {
+                requestReferenceId: "7c80bb86-f892-4b21-a919-1357811d6c4f"
+            },
+            items: [
+                {
+                    SKU: "a".repeat(129),
+                    price: 12990
+                }
+            ]
+        }
+
+        await expect(client.changeSubscriptionPrice("4124214", subscriptionPriceChangeRequest)).rejects.toThrow("Unexpected request body format")
+        expect(called).toBe(false)
+    })
+
+    it('does not send a cancelSubscription request without a request body', async () => {
+        let called = false
+        const client = getAppStoreServerAPIClient("", 200, () => { called = true });
+
+        await expect(client.cancelSubscription("4124214", null as unknown as AdvancedCommerceSubscriptionCancelRequest)).rejects.toThrow("Unexpected request body format")
+        expect(called).toBe(false)
+    })
+
+    it('does not send a revokeSubscription request without a refund risking preference', async () => {
+        let called = false
+        const client = getAppStoreServerAPIClient("", 200, () => { called = true });
+
+        const subscriptionRevokeRequest = {
+            requestInfo: {
+                requestReferenceId: "932c6903-0ab8-4469-9f21-015f6fab013c"
+            },
+            refundReason: AdvancedCommerceRefundReason.UNINTENDED_PURCHASE,
+            refundType: AdvancedCommerceRefundType.PRORATED
+        } as AdvancedCommerceSubscriptionRevokeRequest
+
+        await expect(client.revokeSubscription("4124214", subscriptionRevokeRequest)).rejects.toThrow("Unexpected request body format")
+        expect(called).toBe(false)
+    })
+
+    it('does not send a requestTransactionRefund request without items', async () => {
+        let called = false
+        const client = getAppStoreServerAPIClient("", 200, () => { called = true });
+
+        const requestRefundRequest: AdvancedCommerceRequestRefundRequest = {
+            requestInfo: {
+                requestReferenceId: "932c6903-0ab8-4469-9f21-015f6fab013c"
+            },
+            items: [],
+            refundRiskingPreference: true
+        }
+
+        await expect(client.requestTransactionRefund("4124214", requestRefundRequest)).rejects.toThrow("Unexpected request body format")
+        expect(called).toBe(false)
+    })
+
+    it('does not send a changeSubscriptionMetadata request with a description that is too long', async () => {
+        let called = false
+        const client = getAppStoreServerAPIClient("", 200, () => { called = true });
+
+        const subscriptionChangeMetadataRequest: AdvancedCommerceSubscriptionChangeMetadataRequest = {
+            requestInfo: {
+                requestReferenceId: "932c6903-0ab8-4469-9f21-015f6fab013c"
+            },
+            descriptors: {
+                effective: AdvancedCommerceEffective.NEXT_BILL_CYCLE,
+                description: "a".repeat(46)
+            }
+        }
+
+        await expect(client.changeSubscriptionMetadata("4124214", subscriptionChangeMetadataRequest)).rejects.toThrow("Unexpected request body format")
+        expect(called).toBe(false)
+    })
+
+    it('does not send a migrateSubscriptionToAdvancedCommerceAPI request with a display name that is too long', async () => {
+        let called = false
+        const client = getAppStoreServerAPIClient("", 200, () => { called = true });
+
+        const subscriptionMigrateRequest: AdvancedCommerceSubscriptionMigrateRequest = {
+            requestInfo: {
+                requestReferenceId: "932c6903-0ab8-4469-9f21-015f6fab013c"
+            },
+            descriptors: {
+                description: "Remove ads and unlock advanced features.",
+                displayName: "a".repeat(31)
+            },
+            items: [
+                {
+                    SKU: "AD_FREE_1M",
+                    description: "Remove ads for the service.",
+                    displayName: "Ad-free monthly plan"
+                }
+            ],
+            targetProductId: "com.example.base",
+            taxCode: "C003-00-1"
+        }
+
+        await expect(client.migrateSubscriptionToAdvancedCommerceAPI("4124214", subscriptionMigrateRequest)).rejects.toThrow("Unexpected request body format")
+        expect(called).toBe(false)
+    })
+
+    it('rejects a cancelSubscription response without the required signedRenewalInfo', async () => {
+        const client = getAppStoreServerAPIClient(JSON.stringify({ signedTransactionInfo: "signed_transaction_info" }), 200, () => {});
+
+        const subscriptionCancelRequest: AdvancedCommerceSubscriptionCancelRequest = {
+            requestInfo: {
+                requestReferenceId: "932c6903-0ab8-4469-9f21-015f6fab013c"
+            }
+        }
+
+        await expect(client.cancelSubscription("4124214", subscriptionCancelRequest)).rejects.toThrow("Unexpected response body format")
+    })
+
+    it('rejects a requestTransactionRefund response without the required signedTransactionInfo', async () => {
+        const client = getAppStoreServerAPIClient(JSON.stringify({ signedRenewalInfo: "signed_renewal_info" }), 200, () => {});
+
+        const requestRefundRequest: AdvancedCommerceRequestRefundRequest = {
+            requestInfo: {
+                requestReferenceId: "932c6903-0ab8-4469-9f21-015f6fab013c"
+            },
+            items: [
+                {
+                    SKU: "AD_FREE_1M",
+                    refundReason: AdvancedCommerceRefundReason.UNSATISFIED_WITH_PURCHASE,
+                    refundType: AdvancedCommerceRefundType.FULL,
+                    revoke: true
+                }
+            ],
+            refundRiskingPreference: true
+        }
+
+        await expect(client.requestTransactionRefund("4124214", requestRefundRequest)).rejects.toThrow("Unexpected response body format")
+    })
+
+    it('has one APIError name per error code', async () => {
+        const names = Object.keys(APIError).filter(key => isNaN(Number(key)))
+        const codes = new Set(names.map(name => APIError[name as keyof typeof APIError]))
+        expect(codes.size).toBe(names.length)
+        for (const removedName of ['APP_TRANSACTION_ID_NOT_SUPPORTED_ERROR', 'INVALID_APP_ACCOUNT_TOKEN_UUID_ERROR', 'FAMILY_TRANSACTION_NOT_SUPPORTED_ERROR', 'TRANSACTION_ID_IS_NOT_ORIGINAL_TRANSACTION_ID_ERROR', 'APP_TRANSACTION_DOES_NOT_EXIST_ERROR']) {
+            expect(names).not.toContain(removedName)
+        }
+        expect(APIError.APP_TRANSACTION_ID_NOT_SUPPORTED).toBe(4000048)
+        expect(APIError.INVALID_APP_ACCOUNT_TOKEN_UUID).toBe(4000183)
+        expect(APIError.FAMILY_TRANSACTION_NOT_SUPPORTED).toBe(4000185)
+        expect(APIError.TRANSACTION_ID_IS_NOT_ORIGINAL_TRANSACTION_ID).toBe(4000187)
+        expect(APIError.APP_TRANSACTION_DOES_NOT_EXIST).toBe(4040019)
+        expect(APIError[4040019]).toBe('APP_TRANSACTION_DOES_NOT_EXIST')
+    })
+
+    it('calls getCustomerGroups', async () => {
+        const client = getClientWithBody("tests/resources/models/getCustomerGroupsResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("GET").toBe(method)
+            expect("/groups/v1/currentGroups/1234").toBe(path)
+            expect(Array.from(parsedQueryParameters.entries())).toStrictEqual([])
+            expect(requestBody).toBeUndefined()
+        });
+
+        const getCustomerGroupsResponse: GetCustomerGroupsResponse = await client.getCustomerGroups("1234");
+
+        expect(getCustomerGroupsResponse).toBeTruthy()
+        const roles: RoleEntry[] = [
+            {
+                productId: "example.productId.one",
+                role: Role.ADMIN
+            },
+            {
+                productId: "example.productId.two",
+                role: Role.NONE
+            }
+        ]
+        const expectedGroups: GroupEntry[] = [
+            {
+                groupId: "900000000000000000",
+                groupType: GroupType.ORGANIZATION,
+                roles: roles
+            },
+            {
+                groupId: "900000000000000001",
+                groupType: GroupType.CONSUMER
+            }
+        ]
+        expect(getCustomerGroupsResponse.groups).toStrictEqual(expectedGroups)
+        expect(getCustomerGroupsResponse.groups![1].roles).toBeUndefined()
+    })
+
+    it('calls getCustomerGroups and receives an empty list of groups', async () => {
+        const client = getAppStoreServerAPIClient('{"groups": []}', 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("GET").toBe(method)
+            expect("/groups/v1/currentGroups/1234").toBe(path)
+        });
+
+        const getCustomerGroupsResponse = await client.getCustomerGroups("1234");
+
+        expect(getCustomerGroupsResponse.groups).toStrictEqual([])
+    })
+
+    it('calls getCustomerGroups and receives unknown groupType and role values', async () => {
+        const body = JSON.stringify({
+            groups: [
+                {
+                    groupId: "900000000000000000",
+                    groupType: "NEW_GROUP_TYPE",
+                    roles: [
+                        {
+                            productId: "example.productId.one",
+                            role: "NEW_ROLE"
+                        }
+                    ]
+                }
+            ]
+        })
+        const client = getAppStoreServerAPIClient(body, 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("GET").toBe(method)
+            expect("/groups/v1/currentGroups/1234").toBe(path)
+        });
+
+        const getCustomerGroupsResponse = await client.getCustomerGroups("1234");
+
+        expect(getCustomerGroupsResponse.groups![0].groupType).toBe("NEW_GROUP_TYPE")
+        expect(getCustomerGroupsResponse.groups![0].roles![0].role).toBe("NEW_ROLE")
+    })
+
+    it('calls getCustomerGroups but receives a malformed response', async () => {
+        const malformedBodies = [
+            { groups: "900000000000000000" },
+            { groups: [{ groupId: 900000000000000000 }] },
+            { groups: [{ groupType: 1 }] },
+            { groups: [{ roles: { productId: "example.productId.one" } }] },
+            { groups: [{ roles: [{ productId: 1 }] }] },
+            { groups: [{ roles: [{ role: true }] }] }
+        ]
+        for (const malformedBody of malformedBodies) {
+            const client = getAppStoreServerAPIClient(JSON.stringify(malformedBody), 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+                expect("/groups/v1/currentGroups/1234").toBe(path)
+            });
+
+            await expect(client.getCustomerGroups("1234")).rejects.toThrow("Unexpected response body format")
+        }
+    })
+
+    it('calls getCustomerGroups but receives transaction id not found error', async () => {
+        const client = getClientWithBody("tests/resources/models/transactionIdNotFoundError.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("GET").toBe(method)
+            expect("/groups/v1/currentGroups/9999").toBe(path)
+            expect(Array.from(parsedQueryParameters.entries())).toStrictEqual([])
+            expect(requestBody).toBeUndefined()
+        }, 404);
+
+        const error = await client.getCustomerGroups("9999").then(() => null, (e) => e)
+
+        expect(error).toBeInstanceOf(APIException)
+        expect((error as APIException).httpStatusCode).toBe(404)
+        expect((error as APIException).apiError).toBe(APIError.TRANSACTION_ID_NOT_FOUND)
+        expect((error as APIException).errorMessage).toBe("Transaction id not found.")
+    })
+
+    it('calls getGroupMembers', async () => {
+        const client = getClientWithBody("tests/resources/models/getGroupMembersResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("GET").toBe(method)
+            expect("/groups/v1/group/900000000000000000").toBe(path)
+            expect(Array.from(parsedQueryParameters.entries())).toStrictEqual([
+                ["paginationToken", "c1f4b6a8-3c5e-4d8a-9b2f-6e7d8c9a0b12"],
+                ["limit", "50"]
+            ])
+            expect(requestBody).toBeUndefined()
+        });
+
+        const getGroupMembersResponse: GetGroupMembersResponse = await client.getGroupMembers("900000000000000000", "c1f4b6a8-3c5e-4d8a-9b2f-6e7d8c9a0b12", 50);
+
+        expect(getGroupMembersResponse).toBeTruthy()
+        const expectedMembers: GroupMemberEntry[] = [
+            {
+                appTransactionId: "700000000000000000"
+            },
+            {
+                appTransactionId: "700000000000000001"
+            }
+        ]
+        expect(getGroupMembersResponse.members).toStrictEqual(expectedMembers)
+        expect(getGroupMembersResponse.paginationToken).toBe("1d1b7a4e-7f47-4d3a-9f2c-2a6f0b9c5e11")
+        expect(getGroupMembersResponse.hasMore).toBe(true)
+    })
+
+    it('calls getGroupMembers without optional parameters', async () => {
+        const body = JSON.stringify({
+            members: [
+                {
+                    appTransactionId: "700000000000000000"
+                }
+            ],
+            hasMore: false
+        })
+        const expectedQueryParameters: string[][] = []
+        const client = getAppStoreServerAPIClient(body, 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("GET").toBe(method)
+            expect("/groups/v1/group/900000000000000000").toBe(path)
+            expect(Array.from(parsedQueryParameters.entries())).toStrictEqual(expectedQueryParameters)
+            expect(requestBody).toBeUndefined()
+        });
+
+        const getGroupMembersResponse = await client.getGroupMembers("900000000000000000");
+
+        expect(getGroupMembersResponse.members).toStrictEqual([{ appTransactionId: "700000000000000000" }])
+        expect(getGroupMembersResponse.paginationToken).toBeUndefined()
+        expect(getGroupMembersResponse.hasMore).toBe(false)
+
+        await client.getGroupMembers("900000000000000000", null, null);
+        await client.getGroupMembers("900000000000000000", undefined, undefined);
+    })
+
+    it('calls getGroupMembers with only a limit', async () => {
+        const client = getClientWithBody("tests/resources/models/getGroupMembersResponse.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("GET").toBe(method)
+            expect("/groups/v1/group/900000000000000000").toBe(path)
+            expect(Array.from(parsedQueryParameters.entries())).toStrictEqual([["limit", "100"]])
+            expect(requestBody).toBeUndefined()
+        });
+
+        const getGroupMembersResponse = await client.getGroupMembers("900000000000000000", null, 100);
+
+        expect(getGroupMembersResponse.hasMore).toBe(true)
+    })
+
+    it('calls getGroupMembers but receives a malformed response', async () => {
+        const malformedBodies = [
+            { members: { appTransactionId: "700000000000000000" } },
+            { members: [{ appTransactionId: 700000000000000000 }] },
+            { paginationToken: 1 },
+            { hasMore: "true" }
+        ]
+        for (const malformedBody of malformedBodies) {
+            const client = getAppStoreServerAPIClient(JSON.stringify(malformedBody), 200, (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+                expect("/groups/v1/group/900000000000000000").toBe(path)
+            });
+
+            await expect(client.getGroupMembers("900000000000000000")).rejects.toThrow("Unexpected response body format")
+        }
+    })
+
+    it('calls getGroupMembers but receives group not found error', async () => {
+        const client = getClientWithBody("tests/resources/models/groupNotFoundError.json", (path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) => {
+            expect("GET").toBe(method)
+            expect("/groups/v1/group/123").toBe(path)
+            expect(Array.from(parsedQueryParameters.entries())).toStrictEqual([])
+            expect(requestBody).toBeUndefined()
+        }, 404);
+
+        const error = await client.getGroupMembers("123").then(() => null, (e) => e)
+
+        expect(error).toBeInstanceOf(APIException)
+        expect((error as APIException).httpStatusCode).toBe(404)
+        expect((error as APIException).apiError).toBe(APIError.GROUP_NOT_FOUND)
+        expect((error as APIException).errorMessage).toBe("Group not found.")
     })
 })

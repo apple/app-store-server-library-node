@@ -12,54 +12,57 @@ export interface PerformanceTestConfig {
     /**
      * The maximum number of concurrent requests the API allows.
      *
-     * {@link https://developer.apple.com/documentation/retentionmessaging/maxconcurrentrequests maxConcurrentRequests}
-     **/
+     * {@link https://developer.apple.com/documentation/retentionmessaging/performancetestconfig PerformanceTestConfig}
+     */
     maxConcurrentRequests: number
-
-    /**
-     * The total number of requests to make during the test.
-     *
-     * {@link https://developer.apple.com/documentation/retentionmessaging/totalrequests totalRequests}
-     **/
-    totalRequests: number
-
-    /**
-     * The total duration of the test in milliseconds.
-     *
-     * {@link https://developer.apple.com/documentation/retentionmessaging/totalduration totalDuration}
-     **/
-    totalDuration: number
 
     /**
      * The maximum time your server has to respond when the system calls your Get Retention Message endpoint in the sandbox environment.
      *
-     * {@link https://developer.apple.com/documentation/retentionmessaging/responsetimethreshold responseTimeThreshold}
-     **/
+     * {@link https://developer.apple.com/documentation/retentionmessaging/performancetestconfig PerformanceTestConfig}
+     */
     responseTimeThreshold: number
 
     /**
      * The success rate threshold percentage.
      *
-     * {@link https://developer.apple.com/documentation/retentionmessaging/successratethreshold successRateThreshold}
-     **/
+     * {@link https://developer.apple.com/documentation/retentionmessaging/performancetestconfig PerformanceTestConfig}
+     */
     successRateThreshold: number
+
+    /**
+     * The total duration of the test in milliseconds.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/performancetestconfig PerformanceTestConfig}
+     */
+    totalDuration: number
+
+    /**
+     * The total number of requests to make during the test.
+     *
+     * {@link https://developer.apple.com/documentation/retentionmessaging/performancetestconfig PerformanceTestConfig}
+     */
+    totalRequests: number
 }
 
 export class PerformanceTestConfigValidator implements Validator<PerformanceTestConfig> {
     validate(obj: any): obj is PerformanceTestConfig {
-        if (!(typeof obj['maxConcurrentRequests'] === "number")) {
+        if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
             return false
         }
-        if (!(typeof obj['totalRequests'] === "number")) {
+        if (!(typeof obj['maxConcurrentRequests'] === "number" || obj['maxConcurrentRequests'] instanceof Number)) {
             return false
         }
-        if (!(typeof obj['totalDuration'] === "number")) {
+        if (!(typeof obj['responseTimeThreshold'] === "number" || obj['responseTimeThreshold'] instanceof Number)) {
             return false
         }
-        if (!(typeof obj['responseTimeThreshold'] === "number")) {
+        if (!(typeof obj['successRateThreshold'] === "number" || obj['successRateThreshold'] instanceof Number)) {
             return false
         }
-        if (!(typeof obj['successRateThreshold'] === "number")) {
+        if (!(typeof obj['totalDuration'] === "number" || obj['totalDuration'] instanceof Number)) {
+            return false
+        }
+        if (!(typeof obj['totalRequests'] === "number" || obj['totalRequests'] instanceof Number)) {
             return false
         }
         return true

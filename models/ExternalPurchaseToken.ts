@@ -11,68 +11,70 @@ import { Validator } from "./Validator"
 export interface ExternalPurchaseToken {
 
     /**
-     * The field of an external purchase token that uniquely identifies the token.
+     * The unique identifier of the token.
      *
      * {@link https://developer.apple.com/documentation/appstoreservernotifications/externalpurchaseid externalPurchaseId}
-     **/
-    externalPurchaseId?: string
+     */
+    externalPurchaseId: string
 
     /**
-     * The field of an external purchase token that contains the UNIX date, in milliseconds, when the system created the token.
+     * The UNIX time, in milliseconds, when the system created the token.
      *
      * {@link https://developer.apple.com/documentation/appstoreservernotifications/tokencreationdate tokenCreationDate}
-     **/
-    tokenCreationDate?: number
-        
+     */
+    tokenCreationDate: number
+
     /**
-     * The unique identifier of an app in the App Store.
+     * The app Apple ID for which the system generated the token.
      *
      * {@link https://developer.apple.com/documentation/appstoreservernotifications/appappleid appAppleId}
-     **/
-    appAppleId?: number
-        
+     */
+    appAppleId: number
+
     /**
-     * The bundle identifier of an app.
+     * The bundle ID of the app for which the system generated the token.
      *
      * {@link https://developer.apple.com/documentation/appstoreservernotifications/bundleid bundleId}
-     **/
-    bundleId?: string
+     */
+    bundleId: string
 
     /**
-     * The type of an external purchase custom link token.
-     *
-     * {@link https://developer.apple.com/documentation/appstoreservernotifications/tokentype tokenType}
-     **/
-    tokenType?: TokenType | string
-
-    /**
-     * The field of a custom link token that contains the UNIX date, in milliseconds, when the token expires.
+     * The UNIX time, in milliseconds, when a token expires.
      *
      * {@link https://developer.apple.com/documentation/appstoreservernotifications/tokenexpirationdate tokenExpirationDate}
-     **/
+     */
     tokenExpirationDate?: number
-}
 
+    /**
+     * The custom link token type, either SERVICES or ACQUISITION.
+     *
+     * {@link https://developer.apple.com/documentation/appstoreservernotifications/tokentype tokenType}
+     */
+    tokenType?: TokenType | string
+}
 
 export class ExternalPurchaseTokenValidator implements Validator<ExternalPurchaseToken> {
     static readonly tokenTypeValidator = new TokenTypeValidator()
     validate(obj: any): obj is ExternalPurchaseToken {
-        if ((typeof obj['externalPurchaseId'] !== 'undefined') && !(typeof obj['externalPurchaseId'] === "string" || obj['externalPurchaseId'] instanceof String)) {
+        if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
             return false
         }
-        if ((typeof obj['tokenCreationDate'] !== 'undefined') && !(typeof obj['tokenCreationDate'] === "number")) {
+        if (!(typeof obj['externalPurchaseId'] === "string" || obj['externalPurchaseId'] instanceof String)) {
             return false
         }
-        if ((typeof obj['appAppleId'] !== 'undefined') && !(typeof obj['appAppleId'] === "number")) {
+        if (!(typeof obj['tokenCreationDate'] === "number" || obj['tokenCreationDate'] instanceof Number)) {
             return false
         }
-        if ((typeof obj['bundleId'] !== 'undefined') && !(typeof obj['bundleId'] === "string" || obj['bundleId'] instanceof String)) {
+        if (!(typeof obj['appAppleId'] === "number" || obj['appAppleId'] instanceof Number)) {
+            return false
+        }
+        if (!(typeof obj['bundleId'] === "string" || obj['bundleId'] instanceof String)) {
+            return false
+        }
+        if ((typeof obj['tokenExpirationDate'] !== 'undefined') && !(typeof obj['tokenExpirationDate'] === "number" || obj['tokenExpirationDate'] instanceof Number)) {
             return false
         }
         if ((typeof obj['tokenType'] !== 'undefined') && !(ExternalPurchaseTokenValidator.tokenTypeValidator.validate(obj['tokenType']))) {
-            return false
-        }
-        if ((typeof obj['tokenExpirationDate'] !== 'undefined') && !(typeof obj['tokenExpirationDate'] === "number")) {
             return false
         }
         return true
