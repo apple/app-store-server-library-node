@@ -11,13 +11,15 @@
   },
   "types": "dist/index.d.ts",
   "dependencies": {
+    "@peculiar/asn1-ocsp": "^2.11.0",
+    "@peculiar/asn1-schema": "^2.11.0",
+    "@peculiar/asn1-x509": "^2.11.0",
     "@types/jsonwebtoken": "^9.0.5",
-    "@types/jsrsasign": "^10.5.12",
     "@types/node": "^26.3.0",
     "@types/node-fetch": "^2.6.13",
+    "asn1js": "^3.0.10",
     "base64url": "^3.0.1",
     "jsonwebtoken": "^9.0.2",
-    "jsrsasign": "^11.1.5",
     "node-fetch": "^2.7.0"
   },
   "devDependencies": {
@@ -33,6 +35,8 @@
   },
   "scripts": {
     "build": "tsc -p .",
+    "prepare": "npm run build",
+    "prepack": "npm run build",
     "test": "jest",
     "build-docs": "typedoc index.ts"
   },
