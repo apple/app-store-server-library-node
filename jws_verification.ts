@@ -322,7 +322,7 @@ export class SignedDataVerifier {
       const { AsnParser, AsnSerializer, OctetString } = await import('@peculiar/asn1-schema')
       const { AlgorithmIdentifier, ExtendedKeyUsage, KeyUsage, KeyUsageFlags, id_ce_extKeyUsage, id_ce_keyUsage, id_kp_OCSPSigning } = await import('@peculiar/asn1-x509')
       const { BasicOCSPResponse, CertID, OCSPRequest, OCSPResponse, OCSPResponseStatus, Request, TBSRequest, id_pkix_ocsp_basic } = await import('@peculiar/asn1-ocsp')
-      const { asn1Children, parseASN1, parseCertificate } = await import('./asn1_utils')
+      const { asn1Children, checkCertificateExtensions, parseASN1, parseCertificate, parseOctetString } = await import('./asn1_utils')
       const { BitString } = await import('asn1js')
       const authorityRex = /^OCSP - URI:(.*)$/m
       const matchResult = cert.infoAccess ? authorityRex.exec(cert.infoAccess) : ""
@@ -367,11 +367,13 @@ export class SignedDataVerifier {
         throw new VerificationException(VerificationStatus.RETRYABLE_VERIFICATION_FAILURE, error instanceof Error ? error : undefined)
       }
       try {
-        const parsedResponse = AsnParser.fromASN(parseASN1(responseBuffer), OCSPResponse)
+        const responseASN1 = parseASN1(responseBuffer)
+        const parsedResponse = AsnParser.fromASN(responseASN1, OCSPResponse)
         if (parsedResponse.responseStatus !== OCSPResponseStatus.successful || parsedResponse.responseBytes?.responseType !== id_pkix_ocsp_basic) {
           throw new VerificationException(VerificationStatus.FAILURE)
         }
-        const basicASN1 = parseASN1(new Uint8Array(parsedResponse.responseBytes.response.buffer))
+        const responseBytes = asn1Children(asn1Children(responseASN1)[1])[0]
+        const basicASN1 = parseOctetString(asn1Children(responseBytes)[1])
         // Keep the exact signed bytes. Re-encoding ResponseData can change the signature input.
         const responseData = Buffer.from(asn1Children(basicASN1)[0].valueBeforeDecodeView)
         const signatureBits = asn1Children(basicASN1)[2]
@@ -389,8 +391,12 @@ export class SignedDataVerifier {
         const responder = data.responderID
         let signingCert: X509Certificate | undefined
         let signingCertificate = issuerCertificate
-        for (const candidate of allCerts) {
-          const parsed = candidate === issuer ? issuerCertificate : parseCertificate(candidate.raw)
+        for (const [index, candidate] of allCerts.entries()) {
+          // Embedded certificates were schema- and DER-validated with BasicOCSPResponse.
+          const parsed = index === 0 ? issuerCertificate : basicResponse.certs![index - 1]
+          if (index !== 0) {
+            checkCertificateExtensions(parsed)
+          }
           if (responder.byKey !== undefined) {
             const keyHash = createHash('sha1').update(Buffer.from(parsed.tbsCertificate.subjectPublicKeyInfo.subjectPublicKey)).digest()
             if (keyHash.equals(Buffer.from(responder.byKey.buffer))) {

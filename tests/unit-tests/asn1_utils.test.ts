@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Apple Inc. Licensed under MIT License.
 
-import { GeneralizedTime, Sequence, Set } from 'asn1js';
-import { certificateExtensions, parseASN1, parseCertificate } from '../../asn1_utils';
+import { GeneralizedTime, OctetString, Sequence, Set, Utf8String } from 'asn1js';
+import { certificateExtensions, parseASN1, parseCertificate, parseOctetString } from '../../asn1_utils';
 import { ReceiptUtility } from '../../receipt_utility';
 import { createOCSPFixtures, createTestCertificate, extension } from '../ocsp_fixtures';
 
@@ -44,5 +44,38 @@ describe('ASN.1 parsing', () => {
         let value: Sequence = new Sequence()
         for (let i = 0; i < 110; i++) value = new Sequence({ value: [value] })
         expect(() => parseASN1(new Uint8Array(value.toBER()))).toThrow()
+    })
+
+    it.each(['', '3000ff', '308100', '30800000', '03020301'])('rejects invalid encapsulated DER %s', hex => {
+        const octet = new OctetString({ valueHex: new Uint8Array(Buffer.from(hex, 'hex')).buffer })
+        const parsed = parseASN1(new Uint8Array(octet.toBER()), false)
+        expect(() => parseOctetString(parsed)).toThrow()
+    })
+
+    it('rechecks the calendar date of an already decoded encapsulated value', () => {
+        const text = '20260230120000Z'
+        const octet = new OctetString({ valueHex: new Uint8Array(Buffer.concat([Buffer.from([24, text.length]), Buffer.from(text)])).buffer })
+        const parsed = parseASN1(new Uint8Array(octet.toBER()), false)
+        expect(() => parseOctetString(parsed)).toThrow('calendar')
+    })
+
+    it.each([1, 2])('decodes a constructed OCTET STRING containing %s chunks', chunks => {
+        const payload = new Uint8Array(new Utf8String({ value: 'transaction' }).toBER())
+        const value = chunks === 1 ? [new OctetString({ valueHex: payload.buffer })] :
+            [new OctetString({ valueHex: payload.slice(0, 3).buffer }), new OctetString({ valueHex: payload.slice(3).buffer })]
+        const octet = new OctetString({ isConstructed: true, value })
+        const parsed = parseASN1(new Uint8Array(octet.toBER()), false)
+        expect((parseOctetString(parsed, false) as Utf8String).valueBlock.value).toEqual('transaction')
+    })
+
+    it('rejects constructed OCTET STRING payloads with trailing bytes', () => {
+        const chunk = new OctetString({ valueHex: new Uint8Array([48, 0, 255]).buffer })
+        const octet = new OctetString({ isConstructed: true, value: [chunk] })
+        const parsed = parseASN1(new Uint8Array(octet.toBER()), false)
+        expect(() => parseOctetString(parsed, false)).toThrow()
+    })
+
+    it('rejects a non-OCTET encapsulation', () => {
+        expect(() => parseOctetString(new Sequence())).toThrow()
     })
 })

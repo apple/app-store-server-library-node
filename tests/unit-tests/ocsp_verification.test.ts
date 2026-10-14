@@ -120,6 +120,14 @@ describe('OCSP verification', () => {
         await expect(check()).rejects.toMatchObject({ status: VerificationStatus.INVALID_CERTIFICATE })
     })
 
+    it('rejects duplicate extensions in an already decoded embedded responder certificate', async () => {
+        const eku = extension('2.5.29.37', AsnSerializer.serialize(new ExtendedKeyUsage(['1.3.6.1.5.5.7.3.9'])))
+        const duplicate = extension('1.2.3.4', new Uint8Array([5, 0]).buffer)
+        const signer = createTestCertificate('Duplicate responder', 11, intermediate, [eku, duplicate, duplicate])
+        respond(signOCSPResponse(testResponseData(leaf, intermediate, signer), signer))
+        await expect(check()).rejects.toMatchObject({ status: VerificationStatus.FAILURE })
+    })
+
     it.each(['wrong signature', 'unsupported algorithm', 'unsuccessful', 'wrong response type', 'missing responder', 'critical extension'])('rejects %s', async condition => {
         const encoded = AsnParser.parse(signOCSPResponse(data, responder), OCSPResponse)
         const basic = AsnParser.parse(encoded.responseBytes!.response.buffer, BasicOCSPResponse)

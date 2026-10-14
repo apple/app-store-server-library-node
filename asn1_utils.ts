@@ -14,6 +14,26 @@ export function parseASN1(data: Uint8Array, der: boolean = true): AsnType {
     return decoded.result
 }
 
+export function parseOctetString(value: AsnType, der: boolean = true): AsnType {
+    if (!(value instanceof OctetString)) {
+        throw new Error('Expected OCTET STRING')
+    }
+    // ASN1.js also decodes encapsulated values. Reuse only a complete payload;
+    // otherwise parse the bytes with the same validation as parseASN1.
+    const children = value.valueBlock.value
+    if (!value.idBlock.isConstructed && children.length === 1 &&
+        children[0].valueBeforeDecodeView.byteLength === value.valueBlock.valueHexView.byteLength && !children[0].error) {
+        if (der) {
+            checkDER(children[0])
+        }
+        return children[0]
+    }
+    if (value.idBlock.isConstructed && children.length === 1 && children[0] instanceof OctetString && !children[0].idBlock.isConstructed) {
+        return parseOctetString(children[0], der)
+    }
+    return parseASN1(new Uint8Array(value.getValue()), der)
+}
+
 function checkDER(value: AsnType): void {
     if (value.lenBlock.isIndefiniteForm) {
         throw new Error('Indefinite length in DER')
@@ -65,6 +85,11 @@ export function parseCertificate(data: Uint8Array): Certificate {
     const { AsnParser } = require('@peculiar/asn1-schema') as typeof import('@peculiar/asn1-schema')
     const { Certificate } = require('@peculiar/asn1-x509') as typeof import('@peculiar/asn1-x509')
     const cert = AsnParser.fromASN(parseASN1(data), Certificate)
+    checkCertificateExtensions(cert)
+    return cert
+}
+
+export function checkCertificateExtensions(cert: Certificate): void {
     const extensions = cert.tbsCertificate.extensions ?? []
     const identifiers = new Set<string>()
     for (const extension of extensions) {
@@ -73,7 +98,6 @@ export function parseCertificate(data: Uint8Array): Certificate {
         }
         identifiers.add(extension.extnID)
     }
-    return cert
 }
 
 // Node's X509Certificate already handles the certificate itself. Only decode the

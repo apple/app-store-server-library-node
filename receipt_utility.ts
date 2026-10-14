@@ -17,7 +17,7 @@ export class ReceiptUtility {
     extractTransactionIdFromAppReceipt(appReceipt: string): string | null {
         // Keep the synchronous receipt API while deferring parser initialization.
         const { Integer, OctetString, Set, Utf8String } = require('asn1js') as typeof import('asn1js')
-        const { asn1Children, parseASN1 } = require('./asn1_utils') as typeof import('./asn1_utils')
+        const { asn1Children, parseASN1, parseOctetString } = require('./asn1_utils') as typeof import('./asn1_utils')
         // CMS receipts, including Xcode's indefinite-length BER encoding.
         let contents = parseASN1(Buffer.from(appReceipt, 'base64'), false)
         for (const index of [1, 0, 2, 1, 0]) {
@@ -29,10 +29,10 @@ export class ReceiptUtility {
         if (!(contents instanceof OctetString)) {
             throw new Error('Expected receipt OCTET STRING')
         }
-        let receipt = parseASN1(new Uint8Array(contents.getValue()), false)
+        let receipt = parseOctetString(contents, false)
         if (receipt instanceof OctetString) {
             // Xcode wraps the receipt in an extra OCTET STRING.
-            receipt = parseASN1(new Uint8Array(receipt.getValue()), false)
+            receipt = parseOctetString(receipt, false)
         }
         if (!(receipt instanceof Set)) {
             throw new Error('Expected receipt SET')
@@ -42,14 +42,14 @@ export class ReceiptUtility {
             if (fields.type !== IN_APP_TYPE_ID) {
                 continue
             }
-            const inApp = parseASN1(new Uint8Array(fields.value.getValue()), false)
+            const inApp = parseOctetString(fields.value, false)
             if (!(inApp instanceof Set)) {
                 throw new Error('Expected in-app receipt SET')
             }
             for (const inAppAttribute of asn1Children(inApp)) {
                 const inAppFields = this.receiptAttribute(inAppAttribute)
                 if (inAppFields.type === TRANSACTION_IDENTIFIER_TYPE_ID || inAppFields.type === ORIGINAL_TRANSACTION_IDENTIFIER_TYPE_ID) {
-                    const transactionId = parseASN1(new Uint8Array(inAppFields.value.getValue()), false)
+                    const transactionId = parseOctetString(inAppFields.value, false)
                     if (!(transactionId instanceof Utf8String)) {
                         throw new Error('Expected transaction identifier UTF8String')
                     }
