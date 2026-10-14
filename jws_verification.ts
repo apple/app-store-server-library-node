@@ -4,7 +4,7 @@ import jsonwebtoken = require('jsonwebtoken');
 
 import base64url from 'base64url';
 import { KeyObject, X509Certificate, createHash, verify } from 'crypto';
-import fetch, { Headers } from 'node-fetch';
+import * as nodeFetch from 'node-fetch';
 import { Environment } from './models/Environment';
 import { JWSTransactionDecodedPayload, JWSTransactionDecodedPayloadValidator } from './models/JWSTransactionDecodedPayload';
 import { ResponseBodyV2DecodedPayload, ResponseBodyV2DecodedPayloadValidator } from './models/ResponseBodyV2DecodedPayload';
@@ -337,12 +337,12 @@ export class SignedDataVerifier {
         serialNumber: parseCertificate(cert.raw).tbsCertificate.serialNumber
       })
       const request = new OCSPRequest({ tbsRequest: new TBSRequest({ requestList: [new Request({ reqCert: certId })] }) })
-      const headers = new Headers()
+      const headers = new nodeFetch.Headers()
       headers.append('Content-Type', 'application/ocsp-request')
 
       let response
       try {
-        response = await fetch(matchResult[1], {
+        response = await (nodeFetch.default ?? nodeFetch)(matchResult[1], {
           headers: headers,
           method: 'POST',
           body: Buffer.from(AsnSerializer.serialize(request)),
@@ -362,7 +362,7 @@ export class SignedDataVerifier {
 
       let responseBuffer
       try {
-        responseBuffer = await response.buffer()
+        responseBuffer = Buffer.from(await response.arrayBuffer())
       } catch (error) {
         throw new VerificationException(VerificationStatus.RETRYABLE_VERIFICATION_FAILURE, error instanceof Error ? error : undefined)
       }

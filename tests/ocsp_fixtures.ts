@@ -15,8 +15,8 @@ export interface TestCertificate {
     privateKey: KeyObject
 }
 
-export function createTestCertificate(name: string, serial: number, issuer?: TestCertificate, extensions: Extension[] = []): TestCertificate {
-    const keys = generateKeyPairSync('ec', { namedCurve: 'prime256v1' })
+export function createTestCertificate(name: string, serial: number, issuer?: TestCertificate, extensions: Extension[] = [], keyPair?: { privateKey: KeyObject, publicKey: KeyObject }): TestCertificate {
+    const keys = keyPair ?? generateKeyPairSync('ec', { namedCurve: 'prime256v1' })
     const subject = new Name([new RelativeDistinguishedName([new AttributeTypeAndValue({ type: '2.5.4.3', value: new AttributeValue({ utf8String: name }) })])])
     const tbsCertificate = new TBSCertificate({
         version: 2,
@@ -63,11 +63,14 @@ export function testResponseData(cert: TestCertificate, issuer: TestCertificate,
     })
 }
 
-export function signOCSPResponse(data: ResponseData, signer: TestCertificate, includeCertificate: boolean = true): Buffer {
+export function signOCSPResponse(data: ResponseData, signer: TestCertificate, includeCertificate: boolean = true, hash: 'sha256' | 'sha384' | 'sha512' = 'sha256'): Buffer {
+    const rsa = signer.privateKey.asymmetricKeyType === 'rsa'
+    const algorithms = rsa ? { sha256: '1.2.840.113549.1.1.11', sha384: '1.2.840.113549.1.1.12', sha512: '1.2.840.113549.1.1.13' } :
+        { sha256: '1.2.840.10045.4.3.2', sha384: '1.2.840.10045.4.3.3', sha512: '1.2.840.10045.4.3.4' }
     const response = new BasicOCSPResponse({
         tbsResponseData: data,
-        signatureAlgorithm,
-        signature: new Uint8Array(sign('sha256', Buffer.from(AsnSerializer.serialize(data)), signer.privateKey)).buffer,
+        signatureAlgorithm: new AlgorithmIdentifier({ algorithm: algorithms[hash], parameters: rsa ? null : undefined }),
+        signature: new Uint8Array(sign(hash, Buffer.from(AsnSerializer.serialize(data)), signer.privateKey)).buffer,
         certs: includeCertificate ? [signer.asn] : undefined
     })
     return Buffer.from(AsnSerializer.serialize(new OCSPResponse({ responseStatus: OCSPResponseStatus.successful, responseBytes: new ResponseBytes({ responseType: id_pkix_ocsp_basic, response: new OctetString(AsnSerializer.serialize(response)) }) })))

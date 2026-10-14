@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import fetch from 'node-fetch';
+import * as nodeFetch from 'node-fetch';
 import { CheckTestNotificationResponse, CheckTestNotificationResponseValidator } from './models/CheckTestNotificationResponse';
 import { ConsumptionRequest } from './models/ConsumptionRequest';
 import { ConsumptionRequestV1 } from './models/ConsumptionRequestV1';
@@ -310,7 +310,7 @@ export class AppStoreServerAPIClient {
     }
 
     protected async makeFetchRequest(path: string, parsedQueryParameters: URLSearchParams, method: string, requestBody: string | Buffer | undefined, headers: { [key: string]: string; }) {
-        return await fetch(this.urlBase + path + '?' + parsedQueryParameters, {
+        return await (nodeFetch.default ?? nodeFetch)(this.urlBase + path + '?' + parsedQueryParameters, {
             method: method,
             body: requestBody,
             headers: headers,

@@ -3,9 +3,9 @@
 import { AsnParser, AsnSerializer, OctetString } from '@peculiar/asn1-schema';
 import { ExtendedKeyUsage, KeyUsage, KeyUsageFlags } from '@peculiar/asn1-x509';
 import { BasicOCSPResponse, CertStatus, OCSPRequest, OCSPResponse, OCSPResponseStatus, ResponseData, RevokedInfo } from '@peculiar/asn1-ocsp';
-import { X509Certificate, sign } from 'crypto';
+import { X509Certificate, generateKeyPairSync, sign } from 'crypto';
 import { BitString, Constructed, Integer, fromBER } from 'asn1js';
-import fetch, { Response } from 'node-fetch';
+import { Response } from 'node-fetch';
 import jsonwebtoken = require('jsonwebtoken');
 import { SignedDataVerifier, VerificationStatus } from '../../jws_verification';
 import { Environment } from '../../models/Environment';
@@ -22,6 +22,7 @@ class OCSPVerifier extends SignedDataVerifier {
 describe('OCSP verification', () => {
     const fixtures = createOCSPFixtures()
     const { root, intermediate, leaf, responder } = fixtures
+    const rsaResponder = createTestCertificate('RSA responder', 8, intermediate, [extension('2.5.29.37', AsnSerializer.serialize(new ExtendedKeyUsage(['1.3.6.1.5.5.7.3.9'])))], generateKeyPairSync('rsa', { modulusLength: 2048 }))
     let verifier: OCSPVerifier
     let data: ResponseData
 
@@ -52,6 +53,13 @@ describe('OCSP verification', () => {
     it.each([false, true])('accepts an issuer signature without embedded certificates, byName=%s', async byName => {
         respond(signOCSPResponse(testResponseData(leaf, intermediate, intermediate, byName), intermediate, false))
         await expect(check()).resolves.toBeUndefined()
+    })
+
+    it.each(['sha256', 'sha384', 'sha512'] as const)('preserves EC and RSA OCSP signatures using %s', async hash => {
+        for (const signer of [responder, rsaResponder]) {
+            respond(signOCSPResponse(testResponseData(leaf, intermediate, signer), signer, true, hash))
+            await expect(check()).resolves.toBeUndefined()
+        }
     })
 
     it('verifies the original signed ResponseData rather than its re-encoding', async () => {
@@ -144,8 +152,20 @@ describe('OCSP verification', () => {
     it.each(['fetch', 'HTTP', 'body', 'timeout'])('classifies %s network failure as retryable', async condition => {
         if (condition === 'fetch' || condition === 'timeout') mockFetch.mockRejectedValue(new Error(condition))
         if (condition === 'HTTP') mockFetch.mockResolvedValue(new Response('', { status: 503 }))
-        if (condition === 'body') mockFetch.mockResolvedValue({ ok: true, buffer: () => Promise.reject(new Error('connection reset')) } as Response)
+        if (condition === 'body') mockFetch.mockResolvedValue({ ok: true, arrayBuffer: () => Promise.reject(new Error('connection reset')) } as Response)
         await expect(check()).rejects.toMatchObject({ status: VerificationStatus.RETRYABLE_VERIFICATION_FAILURE })
+    })
+
+    it.each(['malformed', 'duplicate'])('rejects a signed leaf with a %s Apple extension', async condition => {
+        const oid = '1.2.840.113635.100.6.11.1'
+        const extensions = [...leaf.asn.tbsCertificate.extensions!].filter(ext => ext.extnID !== oid)
+        extensions.push(extension(oid, new Uint8Array(condition === 'malformed' ? [5] : [5, 0]).buffer))
+        if (condition === 'duplicate') extensions.push(extension(oid, new Uint8Array([5, 0]).buffer))
+        const badLeaf = createTestCertificate('Bad leaf', 10, intermediate, extensions)
+        const jwt = jsonwebtoken.sign({ bundleId: 'com.example', environment: Environment.SANDBOX, signedDate: OCSP_TEST_DATE.getTime() }, badLeaf.privateKey,
+            { algorithm: 'ES256', header: { alg: 'ES256', x5c: [badLeaf, intermediate, root].map(c => c.certificate.raw.toString('base64')) } })
+        const offline = new SignedDataVerifier([root.certificate.raw], false, Environment.SANDBOX, 'com.example')
+        await expect(offline.verifyAndDecodeTransaction(jwt)).rejects.toMatchObject({ status: VerificationStatus.VERIFICATION_FAILURE })
     })
 
     it('verifies a complete signed transaction including both OCSP responses and the cache', async () => {
@@ -160,5 +180,36 @@ describe('OCSP verification', () => {
         expect(mockFetch).toHaveBeenCalledTimes(2)
         const wrongSignature = jsonwebtoken.sign({ bundleId: 'com.example', environment: Environment.SANDBOX }, responder.privateKey, { algorithm: 'ES256', header: { alg: 'ES256', x5c: [leaf, intermediate, root].map(c => c.certificate.raw.toString('base64')) } })
         await expect(verifier.verifyAndDecodeTransaction(wrongSignature)).rejects.toMatchObject({ status: VerificationStatus.VERIFICATION_FAILURE })
+    })
+
+    it('supports a callable CommonJS fetch shim and standard arrayBuffer response bodies', async () => {
+        const actual = jest.requireActual('node-fetch') as typeof import('node-fetch')
+        const shim = jest.fn(async (url: string, options: import('node-fetch').RequestInit) => {
+            if (url.startsWith('https://')) return new actual.Response('{}')
+            const request = AsnParser.parse(options.body as Buffer, OCSPRequest)
+            const leafRequest = Buffer.from(request.tbsRequest.requestList[0].reqCert.serialNumber).equals(Buffer.from(leaf.asn.tbsCertificate.serialNumber))
+            const response = new actual.Response(leafRequest ? signOCSPResponse(testResponseData(leaf, intermediate, responder), responder) : signOCSPResponse(testResponseData(intermediate, root), root, false))
+            // Web-standard Response does not implement node-fetch's buffer() extension.
+            return { ok: true, arrayBuffer: () => response.arrayBuffer() }
+        })
+        jest.doMock('node-fetch', () => Object.assign(shim, { Headers: actual.Headers }))
+        try {
+            await jest.isolateModulesAsync(async () => {
+                const { SignedDataVerifier } = await import('../../jws_verification')
+                const { AppStoreServerAPIClient } = await import('../../index')
+                const verifier = new SignedDataVerifier([root.certificate.raw], true, Environment.SANDBOX, 'com.example')
+                const jwt = jsonwebtoken.sign({ bundleId: 'com.example', environment: Environment.SANDBOX }, leaf.privateKey,
+                    { algorithm: 'ES256', header: { alg: 'ES256', x5c: [leaf, intermediate, root].map(c => c.certificate.raw.toString('base64')) } })
+                await expect(verifier.verifyAndDecodeTransaction(jwt)).resolves.toMatchObject({ bundleId: 'com.example' })
+                class Client extends AppStoreServerAPIClient {
+                    public request() { return this.makeFetchRequest('/test', new URLSearchParams(), 'GET', undefined, {}) }
+                }
+                const client = new Client(leaf.privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(), 'key', 'issuer', 'com.example', Environment.SANDBOX)
+                await expect((await client.request()).json()).resolves.toEqual({})
+                expect(shim).toHaveBeenCalledTimes(3)
+            })
+        } finally {
+            jest.dontMock('node-fetch')
+        }
     })
 })
