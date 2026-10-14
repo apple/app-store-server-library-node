@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import { ASN1HEX } from 'jsrsasign';
+import type { AsnType, OctetString } from 'asn1js';
 
 const IN_APP_TYPE_ID = 17;
 const TRANSACTION_IDENTIFIER_TYPE_ID = 1703;
@@ -15,57 +15,62 @@ export class ReceiptUtility {
      * @returns A transaction id from the array of in-app purchases, null if the receipt contains no in-app purchases
      */
     extractTransactionIdFromAppReceipt(appReceipt: string): string | null {
-        // Xcode receipts use indefinite length encoding, not supported by all parsers
-        // Indefinite length encoding is only entered, but never left during parsing for receipts
-        // We therefore round up indefinite length encoding to be the remaining length
-        const prevGetVblenFunction = ASN1HEX.getVblen
-        ASN1HEX.getVblen = function(s, idx) {
-            const c = ASN1HEX.getL(s, idx)
-            const oldResult = prevGetVblenFunction(s, idx)
-            // Round up to the remaining length in the string value, measured in bytes (2 hex values per byte).
-            if (oldResult === 0 && c === '80') {
-                return (s.length - ASN1HEX.getVidx(s, idx)) / 2
+        // Keep the synchronous receipt API while deferring parser initialization.
+        const { Integer, OctetString, Set, Utf8String } = require('asn1js') as typeof import('asn1js')
+        const { asn1Children, parseASN1 } = require('./asn1_utils') as typeof import('./asn1_utils')
+        // CMS receipts, including Xcode's indefinite-length BER encoding.
+        let contents = parseASN1(Buffer.from(appReceipt, 'base64'), false)
+        for (const index of [1, 0, 2, 1, 0]) {
+            contents = asn1Children(contents)[index]
+            if (contents === undefined) {
+                throw new Error('Invalid receipt structure')
             }
-            return oldResult
         }
-        const prevGetLblen = ASN1HEX.getLblen
-        ASN1HEX.getLblen = function(s, idx) {
-            const oldResult = prevGetLblen(s, idx)
-            // The length for the length byte for 80 00 is 1
-            if (oldResult == -1) {
-                return 1
-            }
-            return oldResult
+        if (!(contents instanceof OctetString)) {
+            throw new Error('Expected receipt OCTET STRING')
         }
-        try {
-            let receiptInfo = ASN1HEX.getVbyList(Buffer.from(appReceipt, 'base64').toString('hex'), 0, [1, 0, 2, 1, 0]) as string
-            if (receiptInfo.length > 2 && receiptInfo.startsWith('04')) {
-                // We are still in an Octet String, Xcode wraps with an extra Octet, decode it here
-                receiptInfo = ASN1HEX.getV(receiptInfo, 0)
+        let receipt = parseASN1(new Uint8Array(contents.getValue()), false)
+        if (receipt instanceof OctetString) {
+            // Xcode wraps the receipt in an extra OCTET STRING.
+            receipt = parseASN1(new Uint8Array(receipt.getValue()), false)
+        }
+        if (!(receipt instanceof Set)) {
+            throw new Error('Expected receipt SET')
+        }
+        for (const attribute of asn1Children(receipt)) {
+            const fields = this.receiptAttribute(attribute)
+            if (fields.type !== IN_APP_TYPE_ID) {
+                continue
             }
-            let index = 0;
-            while(ASN1HEX.getVbyList(receiptInfo, 0, [index, 0])) {
-                const val = ASN1HEX.getVbyList(receiptInfo, 0, [index, 0]) as string
-                if (IN_APP_TYPE_ID === parseInt(val, 16)) {
-                    const inAppInfo = ASN1HEX.getVbyList(receiptInfo, 0, [index, 2]) as string
-                    let inAppIndex = 0;
-                    while(ASN1HEX.getVbyList(inAppInfo, 0, [inAppIndex, 0])) {
-                        const val = ASN1HEX.getVbyList(inAppInfo, 0, [inAppIndex, 0]) as string
-                        if (TRANSACTION_IDENTIFIER_TYPE_ID === parseInt(val, 16) || ORIGINAL_TRANSACTION_IDENTIFIER_TYPE_ID === parseInt(val, 16)) {
-                            const transactionIdUTF8String = ASN1HEX.getVbyList(inAppInfo, 0, [inAppIndex, 2]) as string
-                            const transactionId = ASN1HEX.getVbyList(transactionIdUTF8String, 0, []) as string
-                            return Buffer.from(transactionId, 'hex').toString()
-                        }
-                        inAppIndex = inAppIndex + 1
+            const inApp = parseASN1(new Uint8Array(fields.value.getValue()), false)
+            if (!(inApp instanceof Set)) {
+                throw new Error('Expected in-app receipt SET')
+            }
+            for (const inAppAttribute of asn1Children(inApp)) {
+                const inAppFields = this.receiptAttribute(inAppAttribute)
+                if (inAppFields.type === TRANSACTION_IDENTIFIER_TYPE_ID || inAppFields.type === ORIGINAL_TRANSACTION_IDENTIFIER_TYPE_ID) {
+                    const transactionId = parseASN1(new Uint8Array(inAppFields.value.getValue()), false)
+                    if (!(transactionId instanceof Utf8String)) {
+                        throw new Error('Expected transaction identifier UTF8String')
                     }
+                    return transactionId.valueBlock.value
                 }
-                index = index + 1
             }
-            return null
-        } finally {
-            ASN1HEX.getLblen = prevGetLblen
-            ASN1HEX.getVblen = prevGetVblenFunction
         }
+        return null
+    }
+
+    private receiptAttribute(attribute: AsnType): { type: number, value: OctetString } {
+        const { Integer, OctetString, Sequence } = require('asn1js') as typeof import('asn1js')
+        const { asn1Children } = require('./asn1_utils') as typeof import('./asn1_utils')
+        if (!(attribute instanceof Sequence)) {
+            throw new Error('Expected receipt attribute SEQUENCE')
+        }
+        const fields = asn1Children(attribute)
+        if (fields.length !== 3 || !(fields[0] instanceof Integer) || !(fields[1] instanceof Integer) || !(fields[2] instanceof OctetString)) {
+            throw new Error('Invalid receipt attribute')
+        }
+        return { type: fields[0].valueBlock.valueDec, value: fields[2] }
     }
 
     /**
