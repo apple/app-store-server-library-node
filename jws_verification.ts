@@ -50,6 +50,7 @@ export class SignedDataVerifier {
     private responseBodyV2DecodedPayloadValidator = new ResponseBodyV2DecodedPayloadValidator()
     private appTransactionValidator = new AppTransactionValidator()
     private decodedRealtimeRequestBodyValidator = new DecodedRealtimeRequestBodyValidator()
+    private ocspResponseExpiry = new WeakMap<X509Certificate, number>()
 
     protected rootCertificates: X509Certificate[]
     protected enableOnlineChecks: boolean
@@ -247,7 +248,7 @@ export class SignedDataVerifier {
     }
 
     protected async verifyCertificateChain(trustedRoots: X509Certificate[], leaf: X509Certificate, intermediate: X509Certificate, effectiveDate: Date): Promise<KeyObject> {
-      let cacheKey = leaf.toString() + intermediate.toString()
+      let cacheKey = leaf.toString() + intermediate.toString() + trustedRoots.map(root => root.toString()).join('')
       if (this.enableOnlineChecks) {
         if (cacheKey in this.verifiedPublicKeyCache) {
           if (this.verifiedPublicKeyCache[cacheKey].cacheExpiry > new Date().getTime()) {
@@ -259,12 +260,24 @@ export class SignedDataVerifier {
       let publicKey = await this.verifyCertificateChainWithoutCaching(trustedRoots, leaf, intermediate, effectiveDate)
 
       if (this.enableOnlineChecks) {
-        this.verifiedPublicKeyCache[cacheKey] = new CacheValue(leaf.publicKey, new Date().getTime() + CACHE_TIME_LIMIT)
+        const now = Date.now()
+        const cacheExpiry = Math.min(now + CACHE_TIME_LIMIT,
+          this.ocspResponseExpiry.get(leaf) ?? Infinity, this.ocspResponseExpiry.get(intermediate) ?? Infinity,
+          ...[leaf, intermediate, ...trustedRoots].map(cert => new Date(cert.validTo).getTime() + MAX_SKEW))
+        this.verifiedPublicKeyCache[cacheKey] = new CacheValue(publicKey, cacheExpiry)
         if (Object.keys(this.verifiedPublicKeyCache).length > MAXIMUM_CACHE_SIZE) {
-          for (let key in Object.keys(this.verifiedPublicKeyCache)) {
-            if (this.verifiedPublicKeyCache[key].cacheExpiry < new Date().getTime()) {
+          for (const key of Object.keys(this.verifiedPublicKeyCache)) {
+            if (this.verifiedPublicKeyCache[key].cacheExpiry <= now) {
               delete this.verifiedPublicKeyCache[key]
             }
+          }
+        }
+        // Bound the cache even when all entries are still current.
+        const keys = Object.keys(this.verifiedPublicKeyCache)
+        if (keys.length > MAXIMUM_CACHE_SIZE) {
+          keys.sort((a, b) => this.verifiedPublicKeyCache[a].cacheExpiry - this.verifiedPublicKeyCache[b].cacheExpiry)
+          for (const key of keys.slice(0, keys.length - MAXIMUM_CACHE_SIZE)) {
+            delete this.verifiedPublicKeyCache[key]
           }
         }
       }
@@ -440,6 +453,7 @@ export class SignedDataVerifier {
               data.producedAt.getTime() > now + MAX_SKEW || singleResponse.singleExtensions?.some(ext => ext.critical)) {
             throw new VerificationException(VerificationStatus.FAILURE)
           }
+          this.ocspResponseExpiry.set(cert, Math.min(nextDate + MAX_SKEW, new Date(signingCert.validTo).getTime() + MAX_SKEW))
           return
         }
         throw new VerificationException(VerificationStatus.FAILURE)
