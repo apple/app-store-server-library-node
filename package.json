@@ -35,6 +35,8 @@
   },
   "scripts": {
     "build": "tsc -p .",
+    "prepare": "npm run build",
+    "prepack": "npm run build",
     "test": "jest",
     "build-docs": "typedoc index.ts"
   },
