@@ -1,4 +1,6 @@
 {
+  "operation": "CREATE_SUBSCRIPTION",
+  "version": "1",
   "currency": "USD",
   "descriptors": {
     "description": "description",

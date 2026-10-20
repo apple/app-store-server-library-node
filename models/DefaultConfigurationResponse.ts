@@ -13,12 +13,15 @@ export interface DefaultConfigurationResponse {
      * The message identifier of the retention message you configured as a default.
      *
      * {@link https://developer.apple.com/documentation/retentionmessaging/messageidentifier messageIdentifier}
-     **/
+     */
     messageIdentifier: string
 }
 
 export class DefaultConfigurationResponseValidator implements Validator<DefaultConfigurationResponse> {
     validate(obj: any): obj is DefaultConfigurationResponse {
+        if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
+            return false
+        }
         if (!(typeof obj['messageIdentifier'] === "string" || obj['messageIdentifier'] instanceof String)) {
             return false
         }

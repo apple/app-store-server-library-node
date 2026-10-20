@@ -14,13 +14,16 @@ export interface GetImageListResponse {
      * An array of all image identifiers and their image state.
      *
      * {@link https://developer.apple.com/documentation/retentionmessaging/getimagelistresponseitem GetImageListResponseItem}
-     **/
+     */
     imageIdentifiers?: GetImageListResponseItem[]
 }
 
 export class GetImageListResponseValidator implements Validator<GetImageListResponse> {
     static readonly getImageListResponseItemValidator = new GetImageListResponseItemValidator()
     validate(obj: any): obj is GetImageListResponse {
+        if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
+            return false
+        }
         if (typeof obj['imageIdentifiers'] !== 'undefined') {
             if (!Array.isArray(obj['imageIdentifiers'])) {
                 return false

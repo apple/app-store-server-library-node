@@ -11,5 +11,6 @@
   "deviceVerificationNonce": "48ccfa42-7431-4f22-9908-7e88983e105a",
   "preorderDate": 1698148700000,
   "appTransactionId": "71134",
-  "originalPlatform": "iOS"
+  "originalPlatform": "iOS",
+  "storeType": "CONSUMER"
 }

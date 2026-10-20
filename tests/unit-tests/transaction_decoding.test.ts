@@ -7,6 +7,7 @@ import { NotificationTypeV2 } from "../../models/NotificationTypeV2";
 import { OfferType } from "../../models/OfferType";
 import { PriceIncreaseStatus } from "../../models/PriceIncreaseStatus";
 import { PurchasePlatform } from "../../models/PurchasePlatform";
+import { StoreType } from "../../models/StoreType";
 import { Status } from "../../models/Status";
 import { Subtype } from "../../models/Subtype";
 import { TokenType } from "../../models/TokenType";
@@ -46,6 +47,7 @@ describe('Testing decoding of signed data', () => {
         expect(1698148700000).toBe(appTransaction.preorderDate)
         expect("71134").toBe(appTransaction.appTransactionId)
         expect(PurchasePlatform.IOS).toBe(appTransaction.originalPlatform)
+        expect(StoreType.CONSUMER).toBe(appTransaction.storeType)
     })
     it('should decode a renewal info', async () => {
         const signedRenewalInfo = createSignedDataFromJson("tests/resources/models/signedRenewalInfo.json")
@@ -135,6 +137,7 @@ describe('Testing decoding of signed data', () => {
         expect(OfferDiscountType.PAY_AS_YOU_GO).toBe(transaction.offerDiscountType)
         expect("71134").toBe(transaction.appTransactionId)
         expect("P1Y").toBe(transaction.offerPeriod)
+        expect("11111").toBe(transaction.previousOriginalTransactionId)
         expect(transaction.advancedCommerceInfo).toBeDefined()
         const info = transaction.advancedCommerceInfo!
         expect(info.descriptors).toBeDefined()

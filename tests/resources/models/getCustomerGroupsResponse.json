@@ -1,0 +1,22 @@
+{
+  "groups": [
+    {
+      "groupId": "900000000000000000",
+      "groupType": "ORGANIZATION",
+      "roles": [
+        {
+          "productId": "example.productId.one",
+          "role": "ADMIN"
+        },
+        {
+          "productId": "example.productId.two",
+          "role": "NONE"
+        }
+      ]
+    },
+    {
+      "groupId": "900000000000000001",
+      "groupType": "CONSUMER"
+    }
+  ]
+}

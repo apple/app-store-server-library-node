@@ -1,4 +1,6 @@
 {
+  "operation": "CREATE_ONE_TIME_CHARGE",
+  "version": "1",
   "currency": "USD",
   "item": {
     "description": "description",

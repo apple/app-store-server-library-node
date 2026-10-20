@@ -10,7 +10,7 @@ import { StringValidator } from "./Validator"
 export enum AdvancedCommerceOfferReason {
     ACQUISITION = "ACQUISITION",
     WIN_BACK = "WIN_BACK",
-    RETENTION = "RETENTION"
+    RETENTION = "RETENTION",
 }
 
 export class AdvancedCommerceOfferReasonValidator extends StringValidator {}

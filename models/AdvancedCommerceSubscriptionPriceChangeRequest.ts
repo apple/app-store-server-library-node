@@ -1,10 +1,10 @@
 // Copyright (c) 2026 Apple Inc. Licensed under MIT License.
 
-import { HelperValidationUtils } from '../helper_validation_utils'
-import { AdvancedCommerceRequest } from './AdvancedCommerceRequest'
-import { AdvancedCommerceRequestInfoValidator } from './AdvancedCommerceRequestInfo'
-import { AdvancedCommerceSubscriptionPriceChangeItem, AdvancedCommerceSubscriptionPriceChangeItemValidator } from './AdvancedCommerceSubscriptionPriceChangeItem'
-import { Validator } from './Validator'
+import { HelperValidationUtils } from "../helper_validation_utils"
+import { AdvancedCommerceRequest } from "./AdvancedCommerceRequest"
+import { AdvancedCommerceRequestInfo, AdvancedCommerceRequestInfoValidator } from "./AdvancedCommerceRequestInfo"
+import { AdvancedCommerceSubscriptionPriceChangeItem, AdvancedCommerceSubscriptionPriceChangeItemValidator } from "./AdvancedCommerceSubscriptionPriceChangeItem"
+import { Validator } from "./Validator"
 
 /**
  * The request body you use to change the price of an auto-renewable subscription.
@@ -12,6 +12,14 @@ import { Validator } from './Validator'
  * {@link https://developer.apple.com/documentation/advancedcommerceapi/subscriptionpricechangerequest SubscriptionPriceChangeRequest}
  */
 export interface AdvancedCommerceSubscriptionPriceChangeRequest extends AdvancedCommerceRequest {
+
+    /**
+     * Metadata that identifies the request.
+     *
+     * {@link https://developer.apple.com/documentation/advancedcommerceapi/requestinfo RequestInfo}
+     */
+    requestInfo: AdvancedCommerceRequestInfo
+
     /**
      * The currency of the prices.
      *
@@ -21,14 +29,14 @@ export interface AdvancedCommerceSubscriptionPriceChangeRequest extends Advanced
 
     /**
      * An array that contains one or more SKUs and the changed price for each SKU.
-     * 
+     *
      * {@link https://developer.apple.com/documentation/advancedcommerceapi/subscriptionpricechangeitem SubscriptionPriceChangeItem}
      */
     items: AdvancedCommerceSubscriptionPriceChangeItem[]
 
     /**
      * The App Store storefront of the subscription.
-     * 
+     *
      * {@link https://developer.apple.com/documentation/advancedcommerceapi/storefront storefront}
      */
     storefront?: string
@@ -37,8 +45,10 @@ export interface AdvancedCommerceSubscriptionPriceChangeRequest extends Advanced
 export class AdvancedCommerceSubscriptionPriceChangeRequestValidator implements Validator<AdvancedCommerceSubscriptionPriceChangeRequest> {
     static readonly requestInfoValidator = new AdvancedCommerceRequestInfoValidator()
     static readonly itemValidator = new AdvancedCommerceSubscriptionPriceChangeItemValidator()
-
     validate(obj: any): obj is AdvancedCommerceSubscriptionPriceChangeRequest {
+        if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
+            return false
+        }
         if (!(AdvancedCommerceSubscriptionPriceChangeRequestValidator.requestInfoValidator.validate(obj['requestInfo']))) {
             return false
         }
@@ -49,7 +59,7 @@ export class AdvancedCommerceSubscriptionPriceChangeRequestValidator implements 
             return false
         }
         for (const item of obj['items']) {
-            if (!AdvancedCommerceSubscriptionPriceChangeRequestValidator.itemValidator.validate(item)) {
+            if (!(AdvancedCommerceSubscriptionPriceChangeRequestValidator.itemValidator.validate(item))) {
                 return false
             }
         }

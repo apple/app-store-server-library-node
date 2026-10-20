@@ -11,32 +11,32 @@ export interface AdvancedCommerceRenewalItem {
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommercesku advancedCommerceSKU}
-     **/
+     */
     SKU?: string
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommercedescription advancedCommerceDescription}
-     **/
+     */
     description?: string
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommercedisplayname advancedCommerceDisplayName}
-     **/
+     */
     displayName?: string
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommerceoffer advancedCommerceOffer}
-     **/
+     */
     offer?: AdvancedCommerceOffer
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommerceprice advancedCommercePrice}
-     **/
+     */
     price?: number
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommercepriceincreaseinfo advancedCommercePriceIncreaseInfo}
-     **/
+     */
     priceIncreaseInfo?: AdvancedCommercePriceIncreaseInfo
 }
 
@@ -44,6 +44,9 @@ export class AdvancedCommerceRenewalItemValidator implements Validator<AdvancedC
     static readonly offerValidator = new AdvancedCommerceOfferValidator()
     static readonly priceIncreaseInfoValidator = new AdvancedCommercePriceIncreaseInfoValidator()
     validate(obj: any): obj is AdvancedCommerceRenewalItem {
+        if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
+            return false
+        }
         if ((typeof obj['SKU'] !== 'undefined') && !(typeof obj['SKU'] === "string" || obj['SKU'] instanceof String)) {
             return false
         }
@@ -56,7 +59,7 @@ export class AdvancedCommerceRenewalItemValidator implements Validator<AdvancedC
         if ((typeof obj['offer'] !== 'undefined') && !(AdvancedCommerceRenewalItemValidator.offerValidator.validate(obj['offer']))) {
             return false
         }
-        if ((typeof obj['price'] !== 'undefined') && !(typeof obj['price'] === "number")) {
+        if ((typeof obj['price'] !== 'undefined') && !(typeof obj['price'] === "number" || obj['price'] instanceof Number)) {
             return false
         }
         if ((typeof obj['priceIncreaseInfo'] !== 'undefined') && !(AdvancedCommerceRenewalItemValidator.priceIncreaseInfoValidator.validate(obj['priceIncreaseInfo']))) {

@@ -1,6 +1,6 @@
 // Copyright (c) 2025 Apple Inc. Licensed under MIT License.
 
-import { StringValidator } from "./Validator";
+import { StringValidator } from "./Validator"
 
 /**
  * The approval state of an image.
@@ -8,8 +8,17 @@ import { StringValidator } from "./Validator";
  * {@link https://developer.apple.com/documentation/retentionmessaging/imagestate imageState}
  */
 export enum ImageState {
-    PENDING_REVIEW = "PENDING_REVIEW",
+    /**
+     * The image is awaiting approval.
+     */
+    PENDING = "PENDING",
+    /**
+     * The image is approved.
+     */
     APPROVED = "APPROVED",
+    /**
+     * The image is rejected.
+     */
     REJECTED = "REJECTED",
 }
 

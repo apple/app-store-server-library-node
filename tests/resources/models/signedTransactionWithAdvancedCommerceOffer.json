@@ -1,0 +1,47 @@
+{
+  "transactionId": "23456",
+  "originalTransactionId": "12345",
+  "bundleId": "com.example",
+  "productId": "com.example.product",
+  "purchaseDate": 1698148900000,
+  "originalPurchaseDate": 1698148800000,
+  "quantity": 1,
+  "type": "Auto-Renewable Subscription",
+  "inAppOwnershipType": "PURCHASED",
+  "signedDate": 1698148900000,
+  "environment": "LocalTesting",
+  "transactionReason": "PURCHASE",
+  "storefront": "USA",
+  "storefrontId": "143441",
+  "advancedCommerceInfo": {
+    "descriptors": {
+      "description": "A premium subscription",
+      "displayName": "Premium"
+    },
+    "items": [
+      {
+        "SKU": "com.example.sku.premium",
+        "description": "Premium feature",
+        "displayName": "Premium Feature",
+        "price": 9990,
+        "offer": {
+          "period": "P1W",
+          "periodCount": 3,
+          "price": 4990,
+          "reason": "ACQUISITION"
+        }
+      },
+      {
+        "SKU": "com.example.sku.addon",
+        "offer": {
+          "period": "P9M",
+          "periodCount": 12,
+          "price": 990,
+          "reason": "RETENTION"
+        }
+      }
+    ],
+    "period": "P1M",
+    "requestReferenceId": "ref-12345"
+  }
+}

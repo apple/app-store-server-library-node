@@ -15,7 +15,7 @@ export class HelperValidationUtils {
      * @return Whether the description is valid
      */
     public static validateDescription(description: any): boolean {
-        return (typeof description === 'string' || description instanceof String) && description.length <= HelperValidationUtils.MAXIMUM_DESCRIPTION_LENGTH
+        return (typeof description === 'string' || description instanceof String) && HelperValidationUtils.characterCount(description) <= HelperValidationUtils.MAXIMUM_DESCRIPTION_LENGTH
     }
 
     /**
@@ -25,7 +25,7 @@ export class HelperValidationUtils {
      * @return Whether the display name is valid
      */
     public static validateDisplayName(displayName: any): boolean {
-        return (typeof displayName === 'string' || displayName instanceof String) && displayName.length <= HelperValidationUtils.MAXIMUM_DISPLAY_NAME_LENGTH
+        return (typeof displayName === 'string' || displayName instanceof String) && HelperValidationUtils.characterCount(displayName) <= HelperValidationUtils.MAXIMUM_DISPLAY_NAME_LENGTH
     }
 
     /**
@@ -35,17 +35,17 @@ export class HelperValidationUtils {
      * @return Whether the SKU is valid
      */
     public static validateSku(sku: any): boolean {
-        return (typeof sku === 'string' || sku instanceof String) && sku.length <= HelperValidationUtils.MAXIMUM_SKU_LENGTH
+        return (typeof sku === 'string' || sku instanceof String) && HelperValidationUtils.characterCount(sku) <= HelperValidationUtils.MAXIMUM_SKU_LENGTH
     }
 
     /**
-     * Validates periodCount is a number between MIN_PERIOD and MAX_PERIOD inclusive.
+     * Validates periodCount is an integer between MIN_PERIOD and MAX_PERIOD inclusive.
      *
      * @param periodCount The period count to validate
      * @return Whether the period count is valid
      */
     public static validatePeriodCount(periodCount: any): boolean {
-        return typeof periodCount === 'number' &&
+        return Number.isInteger(periodCount) &&
             periodCount >= HelperValidationUtils.MIN_PERIOD &&
             periodCount <= HelperValidationUtils.MAX_PERIOD
     }
@@ -58,5 +58,9 @@ export class HelperValidationUtils {
      */
     public static validateItems(list: any): boolean {
         return Array.isArray(list) && list.length > 0 && list.every((item: any) => item != null)
+    }
+
+    private static characterCount(value: string | String): number {
+        return Array.from(value.toString()).length
     }
 }
