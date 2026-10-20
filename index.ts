@@ -243,7 +243,7 @@ export class AppStoreServerAPIClient {
     private keyId: string
     private signingKey: string
     private bundleId: string
-    private urlBase: string
+    protected urlBase: string
 
     /**
      * Create an App Store Server API client
