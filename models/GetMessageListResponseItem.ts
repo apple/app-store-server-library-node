@@ -14,20 +14,23 @@ export interface GetMessageListResponseItem {
      * The identifier of the message.
      *
      * {@link https://developer.apple.com/documentation/retentionmessaging/messageidentifier messageIdentifier}
-     **/
+     */
     messageIdentifier?: string
 
     /**
      * The current state of the message.
      *
      * {@link https://developer.apple.com/documentation/retentionmessaging/messagestate messageState}
-     **/
+     */
     messageState?: MessageState | string
 }
 
 export class GetMessageListResponseItemValidator implements Validator<GetMessageListResponseItem> {
     static readonly messageStateValidator = new MessageStateValidator()
     validate(obj: any): obj is GetMessageListResponseItem {
+        if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
+            return false
+        }
         if ((typeof obj['messageIdentifier'] !== 'undefined') && !(typeof obj['messageIdentifier'] === "string" || obj['messageIdentifier'] instanceof String)) {
             return false
         }

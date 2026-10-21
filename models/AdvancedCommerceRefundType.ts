@@ -3,14 +3,14 @@
 import { StringValidator } from "./Validator"
 
 /**
- * Information about the refund request for an item, such as its SKU, the refund amount, reason, and type.
+ * The type of refund requested.
  *
  * {@link https://developer.apple.com/documentation/advancedcommerceapi/requestrefunditem RequestRefundItem}
  */
 export enum AdvancedCommerceRefundType {
     FULL = "FULL",
     PRORATED = "PRORATED",
-    CUSTOM = "CUSTOM"
+    CUSTOM = "CUSTOM",
 }
 
 export class AdvancedCommerceRefundTypeValidator extends StringValidator {}

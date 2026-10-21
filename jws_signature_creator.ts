@@ -2,6 +2,7 @@
 
 import jsonwebtoken = require('jsonwebtoken');
 import { randomUUID } from 'crypto';
+import { AdvancedCommerceInAppRequestValidator } from './models/AbstractAdvancedCommerceInAppRequest';
 
 class BaseSignatureCreator {
     private audience: string
@@ -51,6 +52,12 @@ export class PromotionalOfferV2SignatureCreator extends BaseSignatureCreator {
      * {@link https://developer.apple.com/documentation/storekit/generating-jws-to-sign-app-store-requests Generating JWS to sign App Store requests}
      */
     public createSignature(productId: string, offerIdentifier: string, transactionId: string | undefined = undefined) {
+        if (productId == null) {
+            throw new Error()
+        }
+        if (offerIdentifier == null) {
+            throw new Error()
+        }
         let featureSpecificClaims: { [key: string]: any } = {}
         featureSpecificClaims['productId'] = productId
         featureSpecificClaims['offerIdentifier'] = offerIdentifier
@@ -63,7 +70,7 @@ export class PromotionalOfferV2SignatureCreator extends BaseSignatureCreator {
 
 export class IntroductoryOfferEligibilitySignatureCreator extends BaseSignatureCreator {
     /**
-     * Create a IntroductoryOfferEligibilitySignatureCreator
+     * Create an IntroductoryOfferEligibilitySignatureCreator
      * 
      * @param signingKey Your private key downloaded from App Store Connect
      * @param keyId Your private key ID from App Store Connect
@@ -84,6 +91,15 @@ export class IntroductoryOfferEligibilitySignatureCreator extends BaseSignatureC
      * {@link https://developer.apple.com/documentation/storekit/generating-jws-to-sign-app-store-requests Generating JWS to sign App Store requests}
      */
     public createSignature(productId: string, allowIntroductoryOffer: boolean, transactionId: string) {
+        if (productId == null) {
+            throw new Error()
+        }
+        if (allowIntroductoryOffer == null) {
+            throw new Error()
+        }
+        if (transactionId == null) {
+            throw new Error()
+        }
         let featureSpecificClaims: { [key: string]: any } = {}
         featureSpecificClaims['productId'] = productId
         featureSpecificClaims['allowIntroductoryOffer'] = allowIntroductoryOffer
@@ -95,8 +111,10 @@ export class IntroductoryOfferEligibilitySignatureCreator extends BaseSignatureC
 export interface AdvancedCommerceInAppRequest {}
 
 export class AdvancedCommerceInAppSignatureCreator extends BaseSignatureCreator {
+    private static readonly IN_APP_REQUEST_VALIDATOR = new AdvancedCommerceInAppRequestValidator()
+
     /**
-     * Create a AdvancedCommerceInAppSignatureCreator
+     * Create an AdvancedCommerceInAppSignatureCreator
      * 
      * @param signingKey Your private key downloaded from App Store Connect
      * @param keyId Your private key ID from App Store Connect
@@ -110,12 +128,19 @@ export class AdvancedCommerceInAppSignatureCreator extends BaseSignatureCreator 
     /**
      * Create an Advanced Commerce in-app signed request.
      *
-     * @param AdvancedCommerceInAppRequest The request to be signed.
+     * @param advancedCommerceInAppRequest The request to be signed.
      * @return The signed JWS.
      * {@link https://developer.apple.com/documentation/storekit/generating-jws-to-sign-app-store-requests Generating JWS to sign App Store requests}
+     * @throws Error Thrown if the request is null or not an object, or if a one-time charge, subscription create, subscription modify or subscription reactivate request fails validation
      */
-    public createSignature(AdvancedCommerceInAppRequest: AdvancedCommerceInAppRequest) {
-        let jsonRequest = JSON.stringify(AdvancedCommerceInAppRequest)
+    public createSignature(advancedCommerceInAppRequest: AdvancedCommerceInAppRequest) {
+        if (advancedCommerceInAppRequest == null) {
+            throw new Error()
+        }
+        if (!AdvancedCommerceInAppSignatureCreator.IN_APP_REQUEST_VALIDATOR.validate(advancedCommerceInAppRequest)) {
+            throw new Error()
+        }
+        let jsonRequest = JSON.stringify(advancedCommerceInAppRequest)
         
         let base64Request = Buffer.from(jsonRequest, 'utf-8').toString('base64')
 

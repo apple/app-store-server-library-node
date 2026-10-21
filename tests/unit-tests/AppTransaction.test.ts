@@ -1,5 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 import { AppTransaction, AppTransactionValidator } from "../../models/AppTransaction";
+import { StoreType } from "../../models/StoreType";
 import * as fs from 'fs';
 
 describe('AppTransaction', () => {
@@ -11,6 +12,7 @@ describe('AppTransaction', () => {
         expect(appTransaction.receiptType).toBe("LocalTesting")
         expect(appTransaction.appAppleId).toBe(531412)
         expect(appTransaction.bundleId).toBe("com.example")
+        expect(appTransaction.storeType).toBe(StoreType.CONSUMER)
     })
 
     it('should validate valid AppTransaction', () => {
@@ -28,6 +30,26 @@ describe('AppTransaction', () => {
         const invalidAppTransaction = {
             receiptType: 123,
             bundleId: "com.example",
+        }
+
+        expect(validator.validate(invalidAppTransaction)).toBe(false)
+    })
+
+    it('should validate AppTransaction with storeType', () => {
+        const validator = new AppTransactionValidator()
+        const validAppTransaction = {
+            bundleId: "com.example",
+            storeType: "CONSUMER",
+        }
+
+        expect(validator.validate(validAppTransaction)).toBe(true)
+    })
+
+    it('should reject AppTransaction with invalid storeType type', () => {
+        const validator = new AppTransactionValidator()
+        const invalidAppTransaction = {
+            bundleId: "com.example",
+            storeType: 1,
         }
 
         expect(validator.validate(invalidAppTransaction)).toBe(false)

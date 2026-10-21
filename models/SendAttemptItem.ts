@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import { SendAttemptResult, SendAttemptResultValidator } from "./SendAttemptResult";
+import { SendAttemptResult, SendAttemptResultValidator } from "./SendAttemptResult"
 import { Validator } from "./Validator"
 
 /**
@@ -11,27 +11,30 @@ import { Validator } from "./Validator"
 export interface SendAttemptItem {
 
     /**
-     * The date the App Store server attempts to send a notification.
+     * The date the App Store server attempts to send the notification.
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/attemptdate attemptDate}
-     **/
+     */
     attemptDate?: number
-    
+
     /**
      * The success or error information the App Store server records when it attempts to send an App Store server notification to your server.
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/sendattemptresult sendAttemptResult}
-     **/
+     */
     sendAttemptResult?: SendAttemptResult | string
 }
 
 export class SendAttemptItemValidator implements Validator<SendAttemptItem> {
     static readonly sendAttemptResultValidator = new SendAttemptResultValidator()
     validate(obj: any): obj is SendAttemptItem {
-        if ((typeof obj['attemptDate'] !== 'undefined') && !(typeof obj['attemptDate'] === "number")) {
+        if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
             return false
         }
-        if ((typeof obj['sendAttemptResult'] !== 'undefined') && !SendAttemptItemValidator.sendAttemptResultValidator.validate(obj['sendAttemptResult'])) {
+        if ((typeof obj['attemptDate'] !== 'undefined') && !(typeof obj['attemptDate'] === "number" || obj['attemptDate'] instanceof Number)) {
+            return false
+        }
+        if ((typeof obj['sendAttemptResult'] !== 'undefined') && !(SendAttemptItemValidator.sendAttemptResultValidator.validate(obj['sendAttemptResult']))) {
             return false
         }
         return true

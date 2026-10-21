@@ -11,16 +11,19 @@ import { Validator } from "./Validator"
 export interface GetMessageListResponse {
 
     /**
-     * An array of all message identifiers and their message state.
+     * An array of all message identifiers and their message states.
      *
-     * {@link https://developer.apple.com/documentation/retentionmessaging/getmessagelistresponseitem messageIdentifiers}
-     **/
+     * {@link https://developer.apple.com/documentation/retentionmessaging/getmessagelistresponseitem GetMessageListResponseItem}
+     */
     messageIdentifiers?: GetMessageListResponseItem[]
 }
 
 export class GetMessageListResponseValidator implements Validator<GetMessageListResponse> {
     static readonly getMessageListResponseItemValidator = new GetMessageListResponseItemValidator()
     validate(obj: any): obj is GetMessageListResponse {
+        if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
+            return false
+        }
         if (typeof obj['messageIdentifiers'] !== 'undefined') {
             if (!Array.isArray(obj['messageIdentifiers'])) {
                 return false

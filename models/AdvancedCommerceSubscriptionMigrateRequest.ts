@@ -1,20 +1,30 @@
 // Copyright (c) 2026 Apple Inc. Licensed under MIT License.
 
-import { HelperValidationUtils } from '../helper_validation_utils'
-import { AdvancedCommerceRequest } from './AdvancedCommerceRequest'
-import { AdvancedCommerceRequestInfoValidator } from './AdvancedCommerceRequestInfo'
-import { AdvancedCommerceSubscriptionMigrateDescriptors, AdvancedCommerceSubscriptionMigrateDescriptorsValidator } from './AdvancedCommerceSubscriptionMigrateDescriptors'
-import { AdvancedCommerceSubscriptionMigrateItem, AdvancedCommerceSubscriptionMigrateItemValidator } from './AdvancedCommerceSubscriptionMigrateItem'
-import { AdvancedCommerceSubscriptionMigrateRenewalItem, AdvancedCommerceSubscriptionMigrateRenewalItemValidator } from './AdvancedCommerceSubscriptionMigrateRenewalItem'
-import { Validator } from './Validator'
+import { HelperValidationUtils } from "../helper_validation_utils"
+import { AdvancedCommerceRequest } from "./AdvancedCommerceRequest"
+import { AdvancedCommerceRequestInfo, AdvancedCommerceRequestInfoValidator } from "./AdvancedCommerceRequestInfo"
+import { AdvancedCommerceSubscriptionMigrateDescriptors, AdvancedCommerceSubscriptionMigrateDescriptorsValidator } from "./AdvancedCommerceSubscriptionMigrateDescriptors"
+import { AdvancedCommerceSubscriptionMigrateItem, AdvancedCommerceSubscriptionMigrateItemValidator } from "./AdvancedCommerceSubscriptionMigrateItem"
+import { AdvancedCommerceSubscriptionMigrateRenewalItem, AdvancedCommerceSubscriptionMigrateRenewalItemValidator } from "./AdvancedCommerceSubscriptionMigrateRenewalItem"
+import { Validator } from "./Validator"
 
 /**
- * The subscription details you provide to migrate a subscription from In-App Purchase to the Advanced Commerce API, such as descriptors, items, storefront, and more.
+ * The subscription details you provide to migrate a subscription from Apple In-App Purchase to the Advanced Commerce API, such as descriptors, items, storefront, and more.
  *
  * {@link https://developer.apple.com/documentation/advancedcommerceapi/subscriptionmigraterequest SubscriptionMigrateRequest}
  */
 export interface AdvancedCommerceSubscriptionMigrateRequest extends AdvancedCommerceRequest {
+
     /**
+     * The metadata to include in server requests.
+     *
+     * {@link https://developer.apple.com/documentation/advancedcommerceapi/requestinfo RequestInfo}
+     */
+    requestInfo: AdvancedCommerceRequestInfo
+
+    /**
+     * The description and display name of the subscription to migrate to that you manage.
+     *
      * {@link https://developer.apple.com/documentation/advancedcommerceapi/subscriptionmigratedescriptors SubscriptionMigrateDescriptors}
      */
     descriptors: AdvancedCommerceSubscriptionMigrateDescriptors
@@ -34,6 +44,8 @@ export interface AdvancedCommerceSubscriptionMigrateRequest extends AdvancedComm
     renewalItems?: AdvancedCommerceSubscriptionMigrateRenewalItem[]
 
     /**
+     * A three-letter code that represents the country or region associated with the App Store storefront.
+     *
      * {@link https://developer.apple.com/documentation/advancedcommerceapi/storefront storefront}
      */
     storefront?: string
@@ -46,6 +58,8 @@ export interface AdvancedCommerceSubscriptionMigrateRequest extends AdvancedComm
     targetProductId: string
 
     /**
+     * A tax code that applies to a SKU.
+     *
      * {@link https://developer.apple.com/documentation/advancedcommerceapi/taxcode taxCode}
      */
     taxCode: string
@@ -56,8 +70,10 @@ export class AdvancedCommerceSubscriptionMigrateRequestValidator implements Vali
     static readonly descriptorsValidator = new AdvancedCommerceSubscriptionMigrateDescriptorsValidator()
     static readonly itemValidator = new AdvancedCommerceSubscriptionMigrateItemValidator()
     static readonly renewalItemValidator = new AdvancedCommerceSubscriptionMigrateRenewalItemValidator()
-
     validate(obj: any): obj is AdvancedCommerceSubscriptionMigrateRequest {
+        if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
+            return false
+        }
         if (!(AdvancedCommerceSubscriptionMigrateRequestValidator.requestInfoValidator.validate(obj['requestInfo']))) {
             return false
         }
@@ -68,7 +84,7 @@ export class AdvancedCommerceSubscriptionMigrateRequestValidator implements Vali
             return false
         }
         for (const item of obj['items']) {
-            if (!AdvancedCommerceSubscriptionMigrateRequestValidator.itemValidator.validate(item)) {
+            if (!(AdvancedCommerceSubscriptionMigrateRequestValidator.itemValidator.validate(item))) {
                 return false
             }
         }
@@ -76,8 +92,8 @@ export class AdvancedCommerceSubscriptionMigrateRequestValidator implements Vali
             if (!HelperValidationUtils.validateItems(obj['renewalItems'])) {
                 return false
             }
-            for (const item of obj['renewalItems']) {
-                if (!AdvancedCommerceSubscriptionMigrateRequestValidator.renewalItemValidator.validate(item)) {
+            for (const renewalItem of obj['renewalItems']) {
+                if (!(AdvancedCommerceSubscriptionMigrateRequestValidator.renewalItemValidator.validate(renewalItem))) {
                     return false
                 }
             }

@@ -11,37 +11,39 @@ export interface AdvancedCommerceTransactionItem {
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommercesku advancedCommerceSKU}
-     **/
+     */
     SKU?: string
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommercedescription advancedCommerceDescription}
-     **/
+     */
     description?: string
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommercedisplayname advancedCommerceDisplayName}
-     **/
+     */
     displayName?: string
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommerceoffer advancedCommerceOffer}
-     **/
+     */
     offer?: AdvancedCommerceOffer
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommerceprice advancedCommercePrice}
-     **/
+     */
     price?: number
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommercerefunds advancedCommerceRefunds}
-     **/
+     */
     refunds?: AdvancedCommerceRefund[]
 
     /**
+     * The UNIX time, in milliseconds, that the App Store refunded the transaction or revoked it from Family Sharing.
+     *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/revocationdate revocationDate}
-     **/
+     */
     revocationDate?: number
 }
 
@@ -49,6 +51,9 @@ export class AdvancedCommerceTransactionItemValidator implements Validator<Advan
     static readonly offerValidator = new AdvancedCommerceOfferValidator()
     static readonly refundValidator = new AdvancedCommerceRefundValidator()
     validate(obj: any): obj is AdvancedCommerceTransactionItem {
+        if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
+            return false
+        }
         if ((typeof obj['SKU'] !== 'undefined') && !(typeof obj['SKU'] === "string" || obj['SKU'] instanceof String)) {
             return false
         }
@@ -61,7 +66,7 @@ export class AdvancedCommerceTransactionItemValidator implements Validator<Advan
         if ((typeof obj['offer'] !== 'undefined') && !(AdvancedCommerceTransactionItemValidator.offerValidator.validate(obj['offer']))) {
             return false
         }
-        if ((typeof obj['price'] !== 'undefined') && !(typeof obj['price'] === "number")) {
+        if ((typeof obj['price'] !== 'undefined') && !(typeof obj['price'] === "number" || obj['price'] instanceof Number)) {
             return false
         }
         if (typeof obj['refunds'] !== 'undefined') {
@@ -74,7 +79,7 @@ export class AdvancedCommerceTransactionItemValidator implements Validator<Advan
                 }
             }
         }
-        if ((typeof obj['revocationDate'] !== 'undefined') && !(typeof obj['revocationDate'] === "number")) {
+        if ((typeof obj['revocationDate'] !== 'undefined') && !(typeof obj['revocationDate'] === "number" || obj['revocationDate'] instanceof Number)) {
             return false
         }
         return true

@@ -10,34 +10,37 @@ export interface AdvancedCommercePriceIncreaseInfo {
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommercepriceincreaseinfodependentsku advancedCommercePriceIncreaseInfoDependentSKU}
-     **/
+     */
     dependentSKUs?: string[]
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommercepriceincreaseinfoprice advancedCommercePriceIncreaseInfoPrice}
-     **/
+     */
     price?: number
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommercepriceincreaseinfostatus advancedCommercePriceIncreaseInfoStatus}
-     **/
+     */
     status?: AdvancedCommercePriceIncreaseInfoStatus | string
 }
 
 export class AdvancedCommercePriceIncreaseInfoValidator implements Validator<AdvancedCommercePriceIncreaseInfo> {
     static readonly statusValidator = new AdvancedCommercePriceIncreaseInfoStatusValidator()
     validate(obj: any): obj is AdvancedCommercePriceIncreaseInfo {
+        if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
+            return false
+        }
         if (typeof obj['dependentSKUs'] !== 'undefined') {
             if (!Array.isArray(obj['dependentSKUs'])) {
                 return false
             }
-            for (const sku of obj['dependentSKUs']) {
-                if (!(typeof sku === "string" || sku instanceof String)) {
+            for (const dependentSKU of obj['dependentSKUs']) {
+                if (!(typeof dependentSKU === "string" || dependentSKU instanceof String)) {
                     return false
                 }
             }
         }
-        if ((typeof obj['price'] !== 'undefined') && !(typeof obj['price'] === "number")) {
+        if ((typeof obj['price'] !== 'undefined') && !(typeof obj['price'] === "number" || obj['price'] instanceof Number)) {
             return false
         }
         if ((typeof obj['status'] !== 'undefined') && !(AdvancedCommercePriceIncreaseInfoValidator.statusValidator.validate(obj['status']))) {

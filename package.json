@@ -32,7 +32,7 @@
     "semver": "^6.3.1"
   },
   "scripts": {
-    "build": "tsc -p .",
+    "build": "tsc -p tsconfig.build.json",
     "test": "jest",
     "build-docs": "typedoc index.ts"
   },

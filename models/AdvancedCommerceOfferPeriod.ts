@@ -16,7 +16,7 @@ export enum AdvancedCommerceOfferPeriod {
     P3M = "P3M",
     P6M = "P6M",
     P9M = "P9M",
-    P1Y = "P1Y"
+    P1Y = "P1Y",
 }
 
 export class AdvancedCommerceOfferPeriodValidator extends StringValidator {}

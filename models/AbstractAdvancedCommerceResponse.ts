@@ -2,16 +2,16 @@
 
 export interface AbstractAdvancedCommerceResponse {
     /**
-     * Subscription renewal information, signed by the App Store, in JSON Web Signature (JWS) format.
-     * 
-     * @see https://developer.apple.com/documentation/appstoreserverapi/jwsrenewalinfo
+     * Subscription renewal information signed by the App Store, in JSON Web Signature (JWS) format.
+     *
+     * {@link https://developer.apple.com/documentation/advancedcommerceapi/jwsrenewalinfo JWSRenewalInfo}
      */
     signedRenewalInfo?: string
 
     /**
-     * Transaction information signed by the App Store, in JSON Web Signature (JWS) Compact Serialization format.
+     * Transaction information signed by the App Store, in JWS Compact Serialization format.
      *
-     * @see https://developer.apple.com/documentation/appstoreserverapi/jwstransaction
+     * {@link https://developer.apple.com/documentation/advancedcommerceapi/jwstransaction JWSTransaction}
      */
     signedTransactionInfo?: string
 }

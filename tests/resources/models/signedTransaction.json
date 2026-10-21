@@ -27,6 +27,7 @@
   "offerDiscountType": "PAY_AS_YOU_GO",
   "appTransactionId": "71134",
   "offerPeriod": "P1Y",
+  "previousOriginalTransactionId": "11111",
   "advancedCommerceInfo": {
     "descriptors": {
       "description": "Premium Plan",

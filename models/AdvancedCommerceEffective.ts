@@ -8,8 +8,14 @@ import { StringValidator } from "./Validator"
  * {@link https://developer.apple.com/documentation/advancedcommerceapi/effective effective}
  */
 export enum AdvancedCommerceEffective {
+    /**
+     * The requested change goes into effect immediately.
+     */
     IMMEDIATELY = "IMMEDIATELY",
-    NEXT_BILL_CYCLE = "NEXT_BILL_CYCLE"
+    /**
+     * The requested change goes into effect at the start of the next billing cycle.
+     */
+    NEXT_BILL_CYCLE = "NEXT_BILL_CYCLE",
 }
 
 export class AdvancedCommerceEffectiveValidator extends StringValidator {}

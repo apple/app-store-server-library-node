@@ -12,32 +12,32 @@ export interface AdvancedCommerceRenewalInfo {
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommerceconsistencytoken advancedCommerceConsistencyToken}
-     **/
+     */
     consistencyToken?: string
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommercedescriptors advancedCommerceDescriptors}
-     **/
+     */
     descriptors?: AdvancedCommerceDescriptors
 
     /**
-     * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommercerenewalitem advancedCommerceRenewalItem}
-     **/
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommercerenewalitems advancedCommerceRenewalItems}
+     */
     items?: AdvancedCommerceRenewalItem[]
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommerceperiod advancedCommercePeriod}
-     **/
+     */
     period?: AdvancedCommercePeriod | string
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommercerequestreferenceid advancedCommerceRequestReferenceId}
-     **/
+     */
     requestReferenceId?: string
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommercetaxcode advancedCommerceTaxCode}
-     **/
+     */
     taxCode?: string
 }
 
@@ -46,6 +46,9 @@ export class AdvancedCommerceRenewalInfoValidator implements Validator<AdvancedC
     static readonly itemValidator = new AdvancedCommerceRenewalItemValidator()
     static readonly periodValidator = new AdvancedCommercePeriodValidator()
     validate(obj: any): obj is AdvancedCommerceRenewalInfo {
+        if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
+            return false
+        }
         if ((typeof obj['consistencyToken'] !== 'undefined') && !(typeof obj['consistencyToken'] === "string" || obj['consistencyToken'] instanceof String)) {
             return false
         }
