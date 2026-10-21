@@ -42,6 +42,7 @@ import { AdvancedCommerceSubscriptionReactivateItem, AdvancedCommerceSubscriptio
 import { AdvancedCommerceSubscriptionChangeMetadataItem, AdvancedCommerceSubscriptionChangeMetadataItemValidator } from "../../models/AdvancedCommerceSubscriptionChangeMetadataItem"
 import { AdvancedCommerceRequestInfo, AdvancedCommerceRequestInfoValidator } from "../../models/AdvancedCommerceRequestInfo"
 import { AdvancedCommerceSubscriptionMigrateResponse, AdvancedCommerceSubscriptionMigrateResponseValidator } from "../../models/AdvancedCommerceSubscriptionMigrateResponse"
+import { TransactionCommitmentInfoValidator } from "../../models/TransactionCommitmentInfo"
 import { AdvancedCommercePriceIncreaseInfoStatus } from "../../models/AdvancedCommercePriceIncreaseInfoStatus"
 import { BillingPlanType } from "../../models/BillingPlanType"
 import { RenewalBillingPlanType } from "../../models/RenewalBillingPlanType"
@@ -193,6 +194,33 @@ describe('AdvancedCommerceModels', () => {
 
     it('should reject null periodCount', () => {
         expect(HelperValidationUtils.validatePeriodCount(null)).toBe(false)
+    })
+
+    it.each([1.5, 6.25, 11.9])('should reject fractional periodCount %s', (periodCount) => {
+        expect(HelperValidationUtils.validatePeriodCount(periodCount)).toBe(false)
+    })
+
+    it('should reject fractional periods in offers and transaction commitments', () => {
+        const offer = {
+            period: AdvancedCommerceOfferPeriod.P1M,
+            periodCount: 1.5,
+            price: 1000,
+            reason: AdvancedCommerceOfferReason.ACQUISITION
+        }
+        const offerValidator = new AdvancedCommerceOfferValidator()
+        expect(offerValidator.validate(offer)).toBe(false)
+        expect(offerValidator.validate({...offer, periodCount: 1})).toBe(true)
+
+        const commitmentValidator = new TransactionCommitmentInfoValidator()
+        expect(commitmentValidator.validate({billingPeriodNumber: 1.5})).toBe(false)
+        expect(commitmentValidator.validate({billingPeriodNumber: 1})).toBe(true)
+        expect(commitmentValidator.validate({billingPeriodNumber: new Number(1.5)})).toBe(false)
+        expect(commitmentValidator.validate({billingPeriodNumber: new Number(1)})).toBe(true)
+        expect(commitmentValidator.validate({billingPeriodNumber: 0})).toBe(false)
+        expect(commitmentValidator.validate({billingPeriodNumber: 13})).toBe(false)
+        expect(commitmentValidator.validate({billingPeriodNumber: "1"})).toBe(false)
+        expect(commitmentValidator.validate({billingPeriodNumber: null})).toBe(false)
+        expect(commitmentValidator.validate({})).toBe(true)
     })
 
     it('should reject non-integer periodCount', () => {

@@ -35,7 +35,7 @@ export class TransactionCommitmentInfoValidator implements Validator<Transaction
         if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
             return false
         }
-        if ((typeof obj['billingPeriodNumber'] !== 'undefined') && !((typeof obj['billingPeriodNumber'] === "number" || obj['billingPeriodNumber'] instanceof Number) && obj['billingPeriodNumber'].valueOf() >= TransactionCommitmentInfoValidator.MINIMUM_BILLING_PERIOD_NUMBER && obj['billingPeriodNumber'].valueOf() <= TransactionCommitmentInfoValidator.MAXIMUM_BILLING_PERIOD_NUMBER)) {
+        if ((typeof obj['billingPeriodNumber'] !== 'undefined') && !((typeof obj['billingPeriodNumber'] === "number" || obj['billingPeriodNumber'] instanceof Number) && Number.isInteger(obj['billingPeriodNumber'].valueOf()) && obj['billingPeriodNumber'].valueOf() >= TransactionCommitmentInfoValidator.MINIMUM_BILLING_PERIOD_NUMBER && obj['billingPeriodNumber'].valueOf() <= TransactionCommitmentInfoValidator.MAXIMUM_BILLING_PERIOD_NUMBER)) {
             return false
         }
         if ((typeof obj['commitmentExpiresDate'] !== 'undefined') && !(typeof obj['commitmentExpiresDate'] === "number" || obj['commitmentExpiresDate'] instanceof Number)) {
