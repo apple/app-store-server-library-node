@@ -20,7 +20,7 @@ const MAX_SKEW = 60000
 const MAXIMUM_CACHE_SIZE = 32 // There are unlikely to be more than a couple keys at once
 const CACHE_TIME_LIMIT = 15 * 60 * 1_000 // 15 minutes
 
-class CacheValue {
+export class CacheValue {
   public publicKey: KeyObject
   public cacheExpiry: number
 
@@ -38,7 +38,7 @@ class CacheValue {
  * const verifier = new SignedDataVerifier([appleRoot, appleRoot2], true, Environment.SANDBOX, "com.example")
  * 
  * try {
- *     const decodedNotification = verifier.verifyAndDecodeNotification("ey...")
+ *     const decodedNotification = await verifier.verifyAndDecodeNotification("ey...")
  *     console.log(decodedNotification)
  * } catch (e) {
  *     console.error(e)
@@ -139,7 +139,7 @@ export class SignedDataVerifier {
       } else if (decodedJWT.externalPurchaseToken) {
         appAppleId = decodedJWT.externalPurchaseToken.appAppleId
         bundleId = decodedJWT.externalPurchaseToken.bundleId
-        if (decodedJWT.externalPurchaseToken.externalPurchaseId && decodedJWT.externalPurchaseToken.externalPurchaseId.startsWith("SANDBOX")) {
+        if (decodedJWT.externalPurchaseToken.externalPurchaseId.startsWith("SANDBOX")) {
           environment = Environment.SANDBOX
         } else {
           environment = Environment.PRODUCTION
@@ -206,6 +206,9 @@ export class SignedDataVerifier {
       let decodedJWT
       try {
         decodedJWT = jsonwebtoken.decode(jwt)
+        if (typeof decodedJWT !== 'object' || decodedJWT === null || Array.isArray(decodedJWT)) {
+          throw new VerificationException(VerificationStatus.VERIFICATION_FAILURE)
+        }
         if (!validator.validate(decodedJWT)) {
           throw new VerificationException(VerificationStatus.FAILURE)
         }
@@ -224,7 +227,9 @@ export class SignedDataVerifier {
           }
           certificateChain = chain.slice(0, 2).map(cert => new X509Certificate(Buffer.from(cert, 'base64')))
         } catch (error) {
-          if (error instanceof Error) {
+          if (error instanceof VerificationException) {
+            throw error
+          } else if (error instanceof Error) {
             throw new VerificationException(VerificationStatus.INVALID_CERTIFICATE, error)
           }
           throw new VerificationException(VerificationStatus.INVALID_CERTIFICATE)
@@ -262,7 +267,7 @@ export class SignedDataVerifier {
       if (this.enableOnlineChecks) {
         this.verifiedPublicKeyCache[cacheKey] = new CacheValue(leaf.publicKey, new Date().getTime() + CACHE_TIME_LIMIT)
         if (Object.keys(this.verifiedPublicKeyCache).length > MAXIMUM_CACHE_SIZE) {
-          for (let key in Object.keys(this.verifiedPublicKeyCache)) {
+          for (const key of Object.keys(this.verifiedPublicKeyCache)) {
             if (this.verifiedPublicKeyCache[key].cacheExpiry < new Date().getTime()) {
               delete this.verifiedPublicKeyCache[key]
             }
@@ -363,13 +368,14 @@ export class SignedDataVerifier {
         throw new VerificationException(VerificationStatus.FAILURE)
       }
       // Verify Signing Cert is issued by issuer
-      if (signingCert.publicKey === issuer.publicKey && signingCert.subject === issuer.subject) {
+      if (signingCert.raw.equals(issuer.raw)) {
         // This is directly signed by the issuer
       } else if (signingCert.verify(issuer.publicKey)) {
         // This is issued by the issuer, let's check the dates and purpose
         const signingCertAssign = new X509()
         signingCertAssign.readCertPEM(signingCert.toString())
-        if (!signingCertAssign.getExtExtKeyUsage().array.includes("ocspSigning")) {
+        const extKeyUsage = signingCertAssign.getExtExtKeyUsage()
+        if (extKeyUsage === undefined || !extKeyUsage.array.includes("ocspSigning")) {
           throw new VerificationException(VerificationStatus.INVALID_CERTIFICATE)
         }
         this.checkDates(signingCert, new Date())
@@ -417,11 +423,13 @@ export class SignedDataVerifier {
       }
     }
 
-    private parseX509Date(date: string) {
-      return new Date(date.replace(
-        /^(\d{4})(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)$/,
-        '$4:$5:$6 $2/$3/$1'
-      ));
+    private parseX509Date(date: string | undefined): Date {
+      const match = date === undefined ? null : /^(\d{4})(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)(\.\d+)?Z$/.exec(date)
+      if (match === null) {
+        throw new VerificationException(VerificationStatus.FAILURE)
+      }
+      const milliseconds = match[7] === undefined ? 0 : Math.floor(parseFloat(match[7]) * 1000)
+      return new Date(Date.UTC(parseInt(match[1], 10), parseInt(match[2], 10) - 1, parseInt(match[3], 10), parseInt(match[4], 10), parseInt(match[5], 10), parseInt(match[6], 10), milliseconds))
     }
 
     private extractSignedDate(decodedJWT: DecodedSignedData): Date {

@@ -12,54 +12,57 @@ export interface PerformanceTestResponseTimes {
     /**
      * Average response time in milliseconds.
      *
-     * {@link https://developer.apple.com/documentation/retentionmessaging/average average}
-     **/
+     * {@link https://developer.apple.com/documentation/retentionmessaging/performancetestresponsetimes PerformanceTestResponseTimes}
+     */
     average: number
 
     /**
      * The 50th percentile response time in milliseconds.
      *
-     * {@link https://developer.apple.com/documentation/retentionmessaging/p50 p50}
-     **/
+     * {@link https://developer.apple.com/documentation/retentionmessaging/performancetestresponsetimes PerformanceTestResponseTimes}
+     */
     p50: number
 
     /**
      * The 90th percentile response time in milliseconds.
      *
-     * {@link https://developer.apple.com/documentation/retentionmessaging/p90 p90}
-     **/
+     * {@link https://developer.apple.com/documentation/retentionmessaging/performancetestresponsetimes PerformanceTestResponseTimes}
+     */
     p90: number
 
     /**
      * The 95th percentile response time in milliseconds.
      *
-     * {@link https://developer.apple.com/documentation/retentionmessaging/p95 p95}
-     **/
+     * {@link https://developer.apple.com/documentation/retentionmessaging/performancetestresponsetimes PerformanceTestResponseTimes}
+     */
     p95: number
 
     /**
      * The 99th percentile response time in milliseconds.
      *
-     * {@link https://developer.apple.com/documentation/retentionmessaging/p99 p99}
-     **/
+     * {@link https://developer.apple.com/documentation/retentionmessaging/performancetestresponsetimes PerformanceTestResponseTimes}
+     */
     p99: number
 }
 
 export class PerformanceTestResponseTimesValidator implements Validator<PerformanceTestResponseTimes> {
     validate(obj: any): obj is PerformanceTestResponseTimes {
-        if (!(typeof obj['average'] === "number")) {
+        if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
             return false
         }
-        if (!(typeof obj['p50'] === "number")) {
+        if (!(typeof obj['average'] === "number" || obj['average'] instanceof Number)) {
             return false
         }
-        if (!(typeof obj['p90'] === "number")) {
+        if (!(typeof obj['p50'] === "number" || obj['p50'] instanceof Number)) {
             return false
         }
-        if (!(typeof obj['p95'] === "number")) {
+        if (!(typeof obj['p90'] === "number" || obj['p90'] instanceof Number)) {
             return false
         }
-        if (!(typeof obj['p99'] === "number")) {
+        if (!(typeof obj['p95'] === "number" || obj['p95'] instanceof Number)) {
+            return false
+        }
+        if (!(typeof obj['p99'] === "number" || obj['p99'] instanceof Number)) {
             return false
         }
         return true

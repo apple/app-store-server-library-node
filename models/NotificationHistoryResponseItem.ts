@@ -11,24 +11,24 @@ import { Validator } from "./Validator"
 export interface NotificationHistoryResponseItem {
 
     /**
-     * A cryptographically signed payload, in JSON Web Signature (JWS) format, containing the response body for a version 2 notification.
-     *
-     * {@link https://developer.apple.com/documentation/appstoreservernotifications/signedpayload signedPayload}
-     **/
-    signedPayload?: string
-        
-    /**
-     * An array of information the App Store server records for its attempts to send a notification to your server. The maximum number of entries in the array is six.
+     * An array of information the App Store server records for its attempts to send a notification to your server.
      *
      * {@link https://developer.apple.com/documentation/appstoreserverapi/sendattemptitem sendAttemptItem}
-     **/
+     */
     sendAttempts?: SendAttemptItem[]
+
+    /**
+     * The cryptographically signed payload, in JSON Web Signature (JWS) format, containing the original response body of a version 2 notification.
+     *
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/signedpayload signedPayload}
+     */
+    signedPayload?: string
 }
 
 export class NotificationHistoryResponseItemValidator implements Validator<NotificationHistoryResponseItem> {
     static readonly sendAttemptItemValidator = new SendAttemptItemValidator()
     validate(obj: any): obj is NotificationHistoryResponseItem {
-        if ((typeof obj['signedPayload'] !== 'undefined') && !(typeof obj['signedPayload'] === "string" || obj['signedPayload'] instanceof String)) {
+        if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
             return false
         }
         if (typeof obj['sendAttempts'] !== 'undefined') {
@@ -40,6 +40,9 @@ export class NotificationHistoryResponseItemValidator implements Validator<Notif
                     return false
                 }
             }
+        }
+        if ((typeof obj['signedPayload'] !== 'undefined') && !(typeof obj['signedPayload'] === "string" || obj['signedPayload'] instanceof String)) {
+            return false
         }
         return true
     }

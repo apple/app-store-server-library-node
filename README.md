@@ -1,5 +1,5 @@
 # Apple App Store Server Node.js Library
-The Node.js server library for the [App Store Server API](https://developer.apple.com/documentation/appstoreserverapi), [App Store Server Notifications](https://developer.apple.com/documentation/appstoreservernotifications), [Retention Messaging API](https://developer.apple.com/documentation/retentionmessaging), and [Advanced Commerce API](https://developer.apple.com/documentation/AdvancedCommerceAPI). Also available in [Swift](https://github.com/apple/app-store-server-library-swift), [Python](https://github.com/apple/app-store-server-library-python), and [Java](https://github.com/apple/app-store-server-library-java).
+The Node.js server library for the [App Store Server API](https://developer.apple.com/documentation/appstoreserverapi), [App Store Server Notifications](https://developer.apple.com/documentation/appstoreservernotifications), [Retention Messaging API](https://developer.apple.com/documentation/retentionmessaging), and [Advanced Commerce API](https://developer.apple.com/documentation/advancedcommerceapi). Also available in [Swift](https://github.com/apple/app-store-server-library-swift), [Python](https://github.com/apple/app-store-server-library-python), and [Java](https://github.com/apple/app-store-server-library-java).
 
 ## Table of Contents
 1. [Installation](#installation)
@@ -11,7 +11,7 @@ The Node.js server library for the [App Store Server API](https://developer.appl
 
 ### Requirements
 
-- Node 16+
+- Node 22+
 
 ### NPM/Yarn
 ```bash
@@ -62,7 +62,7 @@ try {
 ### Verification Usage
 
 ```typescript
-import { SignedDataVerifier } from "@apple/app-store-server-library"
+import { Environment, SignedDataVerifier } from "@apple/app-store-server-library"
 
 const bundleId = "com.example"
 const appleRootCAs: Buffer[] = loadRootCAs() // Specific implementation may vary
@@ -103,7 +103,7 @@ if (transactionId != null) {
     let response: HistoryResponse | null = null
     let transactions: string[] = []
     do {
-        const revisionToken = response !== null && response.revision !== null ? response.revision : null
+        const revisionToken = response?.revision ?? null
         response = await client.getTransactionHistory(transactionId, revisionToken, transactionHistoryRequest, GetTransactionHistoryVersion.V2)
         if (response.signedTransactions) {
             transactions = transactions.concat(response.signedTransactions)

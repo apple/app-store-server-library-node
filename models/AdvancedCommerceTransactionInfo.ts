@@ -12,42 +12,42 @@ export interface AdvancedCommerceTransactionInfo {
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommercedescriptors advancedCommerceDescriptors}
-     **/
+     */
     descriptors?: AdvancedCommerceDescriptors
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommerceestimatedtax advancedCommerceEstimatedTax}
-     **/
+     */
     estimatedTax?: number
 
     /**
-     * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommercetransactionitem advancedCommerceTransactionItem}
-     **/
+     * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommercetransactionitems advancedCommerceTransactionItems}
+     */
     items?: AdvancedCommerceTransactionItem[]
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommerceperiod advancedCommercePeriod}
-     **/
+     */
     period?: AdvancedCommercePeriod | string
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommercerequestreferenceid advancedCommerceRequestReferenceId}
-     **/
+     */
     requestReferenceId?: string
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommercetaxcode advancedCommerceTaxCode}
-     **/
+     */
     taxCode?: string
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommercetaxexclusiveprice advancedCommerceTaxExclusivePrice}
-     **/
+     */
     taxExclusivePrice?: number
 
     /**
      * {@link https://developer.apple.com/documentation/appstoreserverapi/advancedcommercetaxrate advancedCommerceTaxRate}
-     **/
+     */
     taxRate?: string
 }
 
@@ -56,10 +56,13 @@ export class AdvancedCommerceTransactionInfoValidator implements Validator<Advan
     static readonly itemValidator = new AdvancedCommerceTransactionItemValidator()
     static readonly periodValidator = new AdvancedCommercePeriodValidator()
     validate(obj: any): obj is AdvancedCommerceTransactionInfo {
+        if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
+            return false
+        }
         if ((typeof obj['descriptors'] !== 'undefined') && !(AdvancedCommerceTransactionInfoValidator.descriptorsValidator.validate(obj['descriptors']))) {
             return false
         }
-        if ((typeof obj['estimatedTax'] !== 'undefined') && !(typeof obj['estimatedTax'] === "number")) {
+        if ((typeof obj['estimatedTax'] !== 'undefined') && !(typeof obj['estimatedTax'] === "number" || obj['estimatedTax'] instanceof Number)) {
             return false
         }
         if (typeof obj['items'] !== 'undefined') {
@@ -81,7 +84,7 @@ export class AdvancedCommerceTransactionInfoValidator implements Validator<Advan
         if ((typeof obj['taxCode'] !== 'undefined') && !(typeof obj['taxCode'] === "string" || obj['taxCode'] instanceof String)) {
             return false
         }
-        if ((typeof obj['taxExclusivePrice'] !== 'undefined') && !(typeof obj['taxExclusivePrice'] === "number")) {
+        if ((typeof obj['taxExclusivePrice'] !== 'undefined') && !(typeof obj['taxExclusivePrice'] === "number" || obj['taxExclusivePrice'] instanceof Number)) {
             return false
         }
         if ((typeof obj['taxRate'] !== 'undefined') && !(typeof obj['taxRate'] === "string" || obj['taxRate'] instanceof String)) {

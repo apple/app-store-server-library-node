@@ -1,0 +1,42 @@
+{
+  "originalTransactionId": "12345",
+  "autoRenewProductId": "com.example.product",
+  "productId": "com.example.product",
+  "autoRenewStatus": 1,
+  "signedDate": 1698148800000,
+  "environment": "LocalTesting",
+  "recentSubscriptionStartDate": 1698148800000,
+  "renewalDate": 1698148850000,
+  "advancedCommerceInfo": {
+    "consistencyToken": "token-abc-123",
+    "descriptors": {
+      "displayName": "Premium",
+      "description": "Premium Plan"
+    },
+    "items": [
+      {
+        "SKU": "com.example.sku.premium",
+        "description": "Premium feature",
+        "displayName": "Premium Feature",
+        "price": 9990,
+        "offer": {
+          "period": "P1Y",
+          "periodCount": 1,
+          "price": 0,
+          "reason": "WIN_BACK"
+        }
+      },
+      {
+        "SKU": "com.example.sku.addon",
+        "offer": {
+          "reason": "RETENTION",
+          "periodCount": 6,
+          "period": "P1M",
+          "price": 1990
+        }
+      }
+    ],
+    "period": "P1M",
+    "requestReferenceId": "ref-12345"
+  }
+}
