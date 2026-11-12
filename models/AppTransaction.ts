@@ -120,7 +120,7 @@ export class AppTransactionValidator implements Validator<AppTransaction> {
         if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
             return false
         }
-        if ((typeof obj['appAppleId'] !== 'undefined') && !(typeof obj['appAppleId'] === "number" || obj['appAppleId'] instanceof Number)) {
+        if ((typeof obj['appAppleId'] !== 'undefined') && !((typeof obj['appAppleId'] === "number" || obj['appAppleId'] instanceof Number) && Number.isInteger(obj['appAppleId'].valueOf()))) {
             return false
         }
         if ((typeof obj['appTransactionId'] !== 'undefined') && !(typeof obj['appTransactionId'] === "string" || obj['appTransactionId'] instanceof String)) {
@@ -153,7 +153,7 @@ export class AppTransactionValidator implements Validator<AppTransaction> {
         if ((typeof obj['applicationVersion'] !== 'undefined') && !(typeof obj['applicationVersion'] === "string" || obj['applicationVersion'] instanceof String)) {
             return false
         }
-        if ((typeof obj['versionExternalIdentifier'] !== 'undefined') && !(typeof obj['versionExternalIdentifier'] === "number" || obj['versionExternalIdentifier'] instanceof Number)) {
+        if ((typeof obj['versionExternalIdentifier'] !== 'undefined') && !((typeof obj['versionExternalIdentifier'] === "number" || obj['versionExternalIdentifier'] instanceof Number) && Number.isInteger(obj['versionExternalIdentifier'].valueOf()))) {
             return false
         }
         if ((typeof obj['deviceVerification'] !== 'undefined') && !(typeof obj['deviceVerification'] === "string" || obj['deviceVerification'] instanceof String)) {
