@@ -63,4 +63,30 @@ describe('AppTransaction', () => {
 
         expect(validator.validate(appTransaction)).toBe(true)
     })
+
+    it('should accept AppTransaction with valid integer appAppleId and versionExternalIdentifier', () => {
+        const validator = new AppTransactionValidator()
+        const validAppTransaction = {
+            appAppleId: 531412,
+            versionExternalIdentifier: new Number(12345),
+        }
+
+        expect(validator.validate(validAppTransaction)).toBe(true)
+    })
+
+    it('should reject AppTransaction with non-integer appAppleId', () => {
+        const validator = new AppTransactionValidator()
+
+        expect(validator.validate({ appAppleId: 123.45 })).toBe(false)
+        expect(validator.validate({ appAppleId: NaN })).toBe(false)
+        expect(validator.validate({ appAppleId: Infinity })).toBe(false)
+    })
+
+    it('should reject AppTransaction with non-integer versionExternalIdentifier', () => {
+        const validator = new AppTransactionValidator()
+
+        expect(validator.validate({ versionExternalIdentifier: 12.34 })).toBe(false)
+        expect(validator.validate({ versionExternalIdentifier: NaN })).toBe(false)
+        expect(validator.validate({ versionExternalIdentifier: Infinity })).toBe(false)
+    })
 })
