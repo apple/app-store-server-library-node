@@ -5,7 +5,6 @@ import jsonwebtoken = require('jsonwebtoken');
 import base64url from 'base64url';
 import { KeyObject, X509Certificate, createHash, verify } from 'crypto';
 import { KJUR, X509, ASN1HEX } from 'jsrsasign';
-import fetch, { Headers } from 'node-fetch';
 import { Environment } from './models/Environment';
 import { JWSTransactionDecodedPayload, JWSTransactionDecodedPayloadValidator } from './models/JWSTransactionDecodedPayload';
 import { ResponseBodyV2DecodedPayload, ResponseBodyV2DecodedPayloadValidator } from './models/ResponseBodyV2DecodedPayload';
@@ -313,16 +312,14 @@ export class SignedDataVerifier {
         throw new VerificationException(VerificationStatus.INVALID_CERTIFICATE)
       }
       const request = new KJUR.asn1.ocsp.OCSPRequest({reqList: [{issuerCert: issuer.toString(), subjectCert: cert.toString() , alg: "sha256"}]})
-      const headers = new Headers()
-      headers.append('Content-Type', 'application/ocsp-request')
 
       let response
       try {
         response = await fetch(matchResult[1], {
-          headers: headers,
+          headers: { 'Content-Type': 'application/ocsp-request' },
           method: 'POST',
           body: Buffer.from(request.getEncodedHex(), 'hex'),
-          timeout: 30000
+          signal: AbortSignal.timeout(30000)
         })
 
         if (!response.ok) {
@@ -336,7 +333,7 @@ export class SignedDataVerifier {
         throw new VerificationException(VerificationStatus.RETRYABLE_VERIFICATION_FAILURE, error instanceof Error ? error : undefined)
       }
 
-      const responseBuffer = await response.buffer()
+      const responseBuffer = Buffer.from(await response.arrayBuffer())
       const parsedResponse = new (KJUR.asn1.ocsp as any).OCSPParser().getOCSPResponse(responseBuffer.toString('hex'))
       // The issuer could also be the signer
       const jsrassignX509Issuer = new X509()
