@@ -2,10 +2,8 @@
 
 import assert = require("assert");
 import jsonwebtoken = require('jsonwebtoken');
-import nodeFetch = require('node-fetch');
 import { KeyObject, X509Certificate, createHash, createPublicKey, generateKeyPairSync } from "crypto";
 import { KJUR, X509 } from "jsrsasign";
-import { Response } from "node-fetch";
 import { SignedDataVerifier, VerificationException, VerificationStatus } from "../../jws_verification";
 import { Environment } from "../../models/Environment";
 import { readFile, readBytes, getSignedPayloadVerifier, getSignedPayloadVerifierWithDefaultAppAppleId, getDefaultSignedPayloadVerifier } from "../util";
@@ -623,7 +621,7 @@ describe("OCSP Checks", () => {
     }
 
     function mockOCSPResponse(body: Buffer, status: number = 200) {
-        return jest.spyOn(nodeFetch, 'default').mockImplementation(() => Promise.resolve(new Response(body, { status: status })))
+        return jest.spyOn(global, 'fetch').mockImplementation(() => Promise.resolve(new Response(new Uint8Array(body), { status: status })))
     }
 
     async function expectOCSPFailure(status: VerificationStatus) {
@@ -645,6 +643,10 @@ describe("OCSP Checks", () => {
         await getVerifier().testCheckOCSPStatus(leaf, intermediate)
         expect(spy).toHaveBeenCalledTimes(1)
         expect(spy.mock.calls[0][0]).toBe(OCSP_URL)
+        const init = spy.mock.calls[0][1] as RequestInit
+        expect(init.method).toBe('POST')
+        expect(init.headers).toEqual({ 'Content-Type': 'application/ocsp-request' })
+        expect(init.signal).toBeInstanceOf(AbortSignal)
     })
 
     it('should accept a good OCSP response signed directly by the issuer', async () => {
@@ -721,7 +723,7 @@ describe("OCSP Checks", () => {
     })
 
     it('should return a retryable failure when the OCSP responder cannot be reached', async () => {
-        jest.spyOn(nodeFetch, 'default').mockImplementation(() => Promise.reject(new Error("Network error")))
+        jest.spyOn(global, 'fetch').mockImplementation(() => Promise.reject(new Error("Network error")))
         await expectOCSPFailure(VerificationStatus.RETRYABLE_VERIFICATION_FAILURE)
     })
 });
