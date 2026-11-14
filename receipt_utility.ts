@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-import { ASN1HEX } from 'jsrsasign';
+import { getJsrsasign } from './jsrsasign_loader'
 
 const IN_APP_TYPE_ID = 17;
 const TRANSACTION_IDENTIFIER_TYPE_ID = 1703;
@@ -96,6 +96,7 @@ export class ReceiptUtility {
      * @throws Error If the receipt is not valid base64, is not a PKCS#7 app receipt, or is otherwise not in the expected format
      */
     extractTransactionIdFromAppReceipt(appReceipt: string): string | null {
+        const { ASN1HEX } = getJsrsasign()
         const receipt = decodeBase64(appReceipt).toString('hex')
         // Xcode receipts use indefinite length encoding, not supported by all parsers
         // Indefinite length encoding is only entered, but never left during parsing for receipts

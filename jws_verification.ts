@@ -4,7 +4,6 @@ import jsonwebtoken = require('jsonwebtoken');
 
 import base64url from 'base64url';
 import { KeyObject, X509Certificate, createHash, verify } from 'crypto';
-import { KJUR, X509, ASN1HEX } from 'jsrsasign';
 import fetch, { Headers } from 'node-fetch';
 import { Environment } from './models/Environment';
 import { JWSTransactionDecodedPayload, JWSTransactionDecodedPayloadValidator } from './models/JWSTransactionDecodedPayload';
@@ -14,6 +13,7 @@ import { DecodedRealtimeRequestBody, DecodedRealtimeRequestBodyValidator } from 
 import { Validator } from './models/Validator';
 import { DecodedSignedData } from './models/DecodedSignedData';
 import { AppTransaction, AppTransactionValidator } from './models/AppTransaction';
+import { getJsrsasign } from './jsrsasign_loader';
 
 const MAX_SKEW = 60000
 
@@ -278,6 +278,7 @@ export class SignedDataVerifier {
     }
 
     protected async verifyCertificateChainWithoutCaching(trustedRoots: X509Certificate[], leaf: X509Certificate, intermediate: X509Certificate, effectiveDate: Date): Promise<KeyObject> {
+      const { X509 } = getJsrsasign()
       let validity = false
       let rootCert
       for (const root of trustedRoots) {
@@ -307,6 +308,7 @@ export class SignedDataVerifier {
       return leaf.publicKey
     }
     protected async checkOCSPStatus(cert: X509Certificate, issuer: X509Certificate): Promise<void> {
+      const { ASN1HEX, KJUR, X509 } = getJsrsasign()
       const authorityRex = /^OCSP - URI:(.*)$/m
       const matchResult = cert.infoAccess ? authorityRex.exec(cert.infoAccess) : ""
       if (matchResult === null || matchResult.length !== 2) {
@@ -341,7 +343,7 @@ export class SignedDataVerifier {
       // The issuer could also be the signer
       const jsrassignX509Issuer = new X509()
       jsrassignX509Issuer.readCertHex(issuer.raw.toString('hex'))
-      const allCerts: X509[] = [jsrassignX509Issuer]
+      const allCerts = [jsrassignX509Issuer]
       for (const certHex of parsedResponse.certs) {
         const cert = new X509()
         cert.readCertHex(certHex)
