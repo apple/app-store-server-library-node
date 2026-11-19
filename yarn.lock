@@ -1025,12 +1025,12 @@
   resolved "https://registry.yarnpkg.com/@pkgr/core/-/core-0.2.9.tgz#d229a7b7f9dac167a156992ef23c7f023653f53b"
   integrity sha512-QNqXyfVS2wm9hweSYD2O7F0G06uurj9kZ96TRQE5Y9hU7+tgdZwIkbAKc5Ocy1HxEY2kuDQa6cQ1WRs/O5LFKA==
 
-"@preeternal/jws-verifier@0.0.1-rc.1":
-  version "0.0.1-rc.1"
-  resolved "https://registry.yarnpkg.com/@preeternal/jws-verifier/-/jws-verifier-0.0.1-rc.1.tgz#671b5b808c30cdaec43d328474c29355f80ceb4f"
-  integrity sha512-JRHsnFIg5/heI+KULU8nNqqtUx5cE8Gs75o0RZO2JY2cv7hsKHnPnR7xdDRDfHR4lKILQbxS/6Dkzjv2Qn/DWw==
+"@preeternal/jws-verifier@0.0.1-rc.2":
+  version "0.0.1-rc.2"
+  resolved "https://registry.yarnpkg.com/@preeternal/jws-verifier/-/jws-verifier-0.0.1-rc.2.tgz#e78b375c6be824d24c9dc8a0c6504aad0f939bf3"
+  integrity sha512-D5N8uK/5CN/5DC6GG3U2Xx3E3tYC1FayuS06SEh7xdGUDmU/GL/du1KFb1oQ/j9lvwuqt/e4Z46/Jg+TPSgdDw==
   dependencies:
-    zod "^4.4.3"
+    zod "^4.6.7"
 
 "@shikijs/engine-oniguruma@^3.23.0":
   version "3.23.0"
@@ -3474,7 +3474,7 @@ yocto-queue@^0.1.0:
   resolved "https://registry.yarnpkg.com/yocto-queue/-/yocto-queue-0.1.0.tgz#0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b"
   integrity sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==
 
-zod@^4.4.3:
+zod@^4.6.7:
   version "4.6.7"
   resolved "https://registry.yarnpkg.com/zod/-/zod-4.6.7.tgz#e806cf64a7f4e37635ce9f2f52c04c3766f75e5b"
   integrity sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==

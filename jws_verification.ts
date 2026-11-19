@@ -12,11 +12,17 @@ import { DecodedRealtimeRequestBody, DecodedRealtimeRequestBodyValidator } from 
 import { Validator } from './models/Validator';
 import { DecodedSignedData } from './models/DecodedSignedData';
 import { AppTransaction, AppTransactionValidator } from './models/AppTransaction';
-import { APPLE_INTERMEDIATE_OID, APPLE_LEAF_OID, checkLegacyOcsp, hasAppleCertificateMarkers, MAX_SKEW, OCSP_TIMEOUT_MS, ocspEndpoints, requestOcsp } from './jws_verifier_compat';
+import { APPLE_INTERMEDIATE_OID, APPLE_LEAF_OID, checkLegacyOcsp, hasAppleCertificateMarkers, MAX_OCSP_RESPONSE_BYTES, MAX_SKEW, OCSP_TIMEOUT_MS, ocspEndpoints } from './jws_verifier_compat';
 import { getVerifierModule, isVerifierError } from './jws_verifier_loader';
 
 const MAXIMUM_CACHE_SIZE = 32 // There are unlikely to be more than a couple keys at once
+const MAXIMUM_ONLINE_BACKENDS = 8
 const CACHE_TIME_LIMIT = 15 * 60 * 1_000 // 15 minutes
+
+type OnlineBackend = {
+  verifier: JwsVerifier
+  chains: Set<string>
+}
 
 export class CacheValue {
   public publicKey: KeyObject
@@ -57,7 +63,7 @@ export class SignedDataVerifier {
     protected environment: Environment
     protected verifiedPublicKeyCache: { [index: string]: CacheValue }
     private offlineVerifier?: JwsVerifier
-    private readonly onlineVerifiers = new Map<string, JwsVerifier>()
+    private readonly onlineVerifiers = new Map<string, OnlineBackend>()
 
     /**
      * 
@@ -279,24 +285,37 @@ export class SignedDataVerifier {
         return
       }
 
-      // The RC requires exact OCSP URLs. Derive them once per chain; the backend
-      // authenticates the JWS and checks the chain against configured roots before fetching.
-      const cacheKey = chain.join('|')
-      const cached = this.onlineVerifiers.get(cacheKey)
-      if (cached !== undefined) {
-        await cached.verify(jwt)
-        return
+      const chainKey = chain.join('|')
+      for (const backend of this.onlineVerifiers.values()) {
+        if (backend.chains.has(chainKey)) {
+          await backend.verifier.verify(jwt)
+          return
+        }
       }
       const endpoints = this.decodeSigningCertificates(chain).map(cert => ocspEndpoints(cert))
       if (endpoints.some(urls => urls.length === 0)) {
         throw new VerificationException(VerificationStatus.INVALID_CERTIFICATE)
       }
-      const backend = this.createBackend(endpoints.flat())
-      await backend.verify(jwt)
-      this.onlineVerifiers.set(cacheKey, backend)
-      if (this.onlineVerifiers.size > MAXIMUM_CACHE_SIZE) {
-        const oldest = this.onlineVerifiers.keys().next().value
-        if (oldest !== undefined) this.onlineVerifiers.delete(oldest)
+      // A backend's exact OCSP allowlist is fixed at construction. The backend
+      // authenticates every new JWS and chain before sending OCSP requests.
+      const allowedEndpoints = [...new Set(endpoints.flat())].sort()
+      const policyKey = JSON.stringify(allowedEndpoints)
+      const verifier = this.onlineVerifiers.get(policyKey)?.verifier ?? this.createBackend(allowedEndpoints)
+      await verifier.verify(jwt)
+
+      let backend = this.onlineVerifiers.get(policyKey)
+      if (backend === undefined) {
+        backend = { verifier, chains: new Set() }
+        this.onlineVerifiers.set(policyKey, backend)
+        if (this.onlineVerifiers.size > MAXIMUM_ONLINE_BACKENDS) {
+          const oldest = this.onlineVerifiers.keys().next().value
+          if (oldest !== undefined) this.onlineVerifiers.delete(oldest)
+        }
+      }
+      backend.chains.add(chainKey)
+      if (backend.chains.size > MAXIMUM_CACHE_SIZE) {
+        const oldest = backend.chains.values().next().value
+        if (oldest !== undefined) backend.chains.delete(oldest)
       }
     }
 
@@ -306,7 +325,11 @@ export class SignedDataVerifier {
         policy: {
           mode: allowedEndpoints === undefined ? 'offline' : 'online',
           requiredExtensions: { leaf: [APPLE_LEAF_OID], intermediate: [APPLE_INTERMEDIATE_OID] },
-          ocsp: allowedEndpoints === undefined ? undefined : { allowedEndpoints, timeoutMs: OCSP_TIMEOUT_MS },
+          ocsp: allowedEndpoints === undefined ? undefined : {
+            allowedEndpoints,
+            timeoutMs: OCSP_TIMEOUT_MS,
+            maxResponseBytes: MAX_OCSP_RESPONSE_BYTES
+          },
           validateClaims: (payload) => {
             // The SDK's previous jsonwebtoken.verify call also checked standard JWT time claims.
             if (typeof payload !== 'object' || payload === null || Array.isArray(payload)) return false
@@ -316,8 +339,7 @@ export class SignedDataVerifier {
                 && (exp === undefined || (typeof exp === 'number' && exp > now))
           }
         },
-        limits: { maxCacheEntries: 1, cacheTtlMs: CACHE_TIME_LIMIT },
-        ocspTransport: allowedEndpoints === undefined ? undefined : requestOcsp
+        limits: { maxCacheEntries: MAXIMUM_CACHE_SIZE, cacheTtlMs: CACHE_TIME_LIMIT }
       })
     }
 

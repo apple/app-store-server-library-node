@@ -122,12 +122,14 @@ function createSigningChain() {
         { extname: '1.2.840.113635.100.6.2.1', extn: '0500' },
         { extname: 'authorityInfoAccess', array: [{ ocsp: rootUrl }] },
     ])
-    const leaf = createCertificate(12, '/CN=SDK Test Leaf', intermediateName, leafKeys.publicKey, intermediateKeys.privateKey, [
-        { extname: '1.2.840.113635.100.6.11.1', extn: '0500' },
-        { extname: 'authorityInfoAccess', array: [{ ocsp: intermediateUrl }] },
-    ])
+    const issueLeaf = (serial: number, ocspUrl: string) =>
+        createCertificate(serial, '/CN=SDK Test Leaf', intermediateName, leafKeys.publicKey, intermediateKeys.privateKey, [
+            { extname: '1.2.840.113635.100.6.11.1', extn: '0500' },
+            { extname: 'authorityInfoAccess', array: [{ ocsp: ocspUrl }] },
+        ])
+    const leaf = issueLeaf(12, intermediateUrl)
     const chain = [leaf, intermediate, root].map(cert => cert.raw.toString('base64'))
-    return { root, intermediate, leaf, rootKeys, intermediateKeys, leafKeys, rootUrl, intermediateUrl, chain }
+    return { root, intermediate, leaf, rootKeys, intermediateKeys, leafKeys, rootUrl, intermediateUrl, chain, issueLeaf }
 }
 
 describe("Chain Verification Checks", () => {
@@ -703,6 +705,53 @@ describe("OCSP Checks", () => {
         await expect(verifier.verifyAndDecodeTransaction(signed)).resolves.toMatchObject(payload)
         await expect(verifier.verifyAndDecodeTransaction(invalid)).rejects.toMatchObject({ status: VerificationStatus.VERIFICATION_FAILURE })
         expect(fetch).toHaveBeenCalledTimes(2)
+    })
+
+    it('should share a backend across new chains only when their OCSP endpoint sets match', async () => {
+        const signing = createSigningChain()
+        const verifier = new SignedDataVerifier([signing.root.raw], true, Environment.SANDBOX, 'com.example')
+        const createBackend = jest.spyOn(verifier as unknown as { createBackend(endpoints: string[]): unknown }, 'createBackend')
+        const payload = { bundleId: 'com.example', environment: Environment.SANDBOX }
+        const sign = (cert: X509Certificate, key = signing.leafKeys.privateKey) =>
+            signPayloadWithChain(payload, key, [cert.raw.toString('base64'), ...signing.chain.slice(1)])
+        const respondForLeaf = (cert: X509Certificate) =>
+            createOCSPResponse(signing.intermediateKeys.privateKey, { key: getKeyHash(signing.intermediate) }, [], getGoodSingleResponse(), cert, signing.intermediate)
+        const responses = new Map([
+            [signing.intermediateUrl, respondForLeaf(signing.leaf)],
+            [signing.rootUrl, createOCSPResponse(signing.rootKeys.privateKey, { key: getKeyHash(signing.root) }, [], getGoodSingleResponse(), signing.intermediate, signing.root)],
+        ])
+        const fetch = jest.spyOn(globalThis, 'fetch').mockImplementation(async input => {
+            const status = responses.get(String(input))
+            if (status === undefined) throw new Error('Unexpected OCSP endpoint')
+            return new Response(Uint8Array.from(status), { headers: { 'Content-Type': 'application/ocsp-response' } })
+        })
+        const original = sign(signing.leaf)
+        await expect(verifier.verifyAndDecodeTransaction(original)).resolves.toMatchObject(payload)
+        expect(createBackend).toHaveBeenCalledTimes(1)
+
+        const replacement = signing.issueLeaf(13, signing.intermediateUrl)
+        const replacementJws = sign(replacement)
+        await expect(verifier.verifyAndDecodeTransaction(sign(replacement, signing.rootKeys.privateKey))).rejects.toMatchObject({
+            status: VerificationStatus.VERIFICATION_FAILURE,
+        })
+        expect(fetch).toHaveBeenCalledTimes(2)
+        responses.set(signing.intermediateUrl, respondForLeaf(replacement))
+        await expect(verifier.verifyAndDecodeTransaction(replacementJws)).resolves.toMatchObject(payload)
+        expect(createBackend).toHaveBeenCalledTimes(1)
+        expect(fetch).toHaveBeenCalledTimes(4)
+        await expect(verifier.verifyAndDecodeTransaction(original)).resolves.toMatchObject(payload)
+        await expect(verifier.verifyAndDecodeTransaction(replacementJws)).resolves.toMatchObject(payload)
+        expect(fetch).toHaveBeenCalledTimes(4)
+
+        const rotatedUrl = 'http://ocsp.example.com/new-issuer'
+        const rotated = signing.issueLeaf(14, rotatedUrl)
+        responses.set(rotatedUrl, respondForLeaf(rotated))
+        await expect(verifier.verifyAndDecodeTransaction(sign(rotated))).resolves.toMatchObject(payload)
+        expect(createBackend.mock.calls).toEqual([
+            [[signing.intermediateUrl, signing.rootUrl]],
+            [[rotatedUrl, signing.rootUrl]],
+        ])
+        expect(fetch.mock.calls.slice(4).map(([url]) => url)).toEqual([rotatedUrl, signing.rootUrl])
     })
 
     it('should reject a redirect from an OCSP responder without following it', async () => {
