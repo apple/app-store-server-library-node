@@ -12,7 +12,7 @@ import { DecodedRealtimeRequestBody, DecodedRealtimeRequestBodyValidator } from 
 import { Validator } from './models/Validator';
 import { DecodedSignedData } from './models/DecodedSignedData';
 import { AppTransaction, AppTransactionValidator } from './models/AppTransaction';
-import { APPLE_INTERMEDIATE_OID, APPLE_LEAF_OID, checkLegacyOcsp, hasAppleCertificateMarkers, MAX_SKEW, OCSP_TIMEOUT_MS, ocspEndpoints } from './jws_verifier_compat';
+import { APPLE_INTERMEDIATE_OID, APPLE_LEAF_OID, checkLegacyOcsp, hasAppleCertificateMarkers, MAX_SKEW, OCSP_TIMEOUT_MS, ocspEndpoints, requestOcsp } from './jws_verifier_compat';
 import { getVerifierModule, isVerifierError } from './jws_verifier_loader';
 
 const MAXIMUM_CACHE_SIZE = 32 // There are unlikely to be more than a couple keys at once
@@ -316,7 +316,8 @@ export class SignedDataVerifier {
                 && (exp === undefined || (typeof exp === 'number' && exp > now))
           }
         },
-        limits: { maxCacheEntries: 1, cacheTtlMs: CACHE_TIME_LIMIT }
+        limits: { maxCacheEntries: 1, cacheTtlMs: CACHE_TIME_LIMIT },
+        ocspTransport: allowedEndpoints === undefined ? undefined : requestOcsp
       })
     }
 

@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Apple Inc. Licensed under MIT License.
 
-import type { buildOcspRequest } from '@preeternal/jws-verifier'
+import type { buildOcspRequest, OcspTransportRequest } from '@preeternal/jws-verifier'
 import { createHash, verify, X509Certificate } from 'node:crypto'
 import { getVerifierModule } from './jws_verifier_loader'
 
@@ -8,6 +8,47 @@ export const APPLE_LEAF_OID = '1.2.840.113635.100.6.11.1'
 export const APPLE_INTERMEDIATE_OID = '1.2.840.113635.100.6.2.1'
 export const OCSP_TIMEOUT_MS = 30_000
 export const MAX_SKEW = 60_000
+const MAX_OCSP_RESPONSE_BYTES = 256 * 1024
+
+export async function requestOcsp({ url, body, signal }: OcspTransportRequest): Promise<Uint8Array> {
+    // Workers supports manual redirects. Reject non-2xx before consuming the response.
+    const response = await globalThis.fetch(url, {
+        method: 'POST',
+        body,
+        signal,
+        redirect: 'manual',
+        headers: { accept: 'application/ocsp-response', 'content-type': 'application/ocsp-request' }
+    })
+    try {
+        if (!response.ok) throw new Error(`OCSP responder returned HTTP ${response.status}`)
+        const contentType = response.headers.get('content-type')
+        if (contentType !== null && contentType.split(';')[0].trim().toLowerCase() !== 'application/ocsp-response') {
+            throw new Error('OCSP responder returned an unexpected content type')
+        }
+        const declaredLength = Number(response.headers.get('content-length'))
+        if (!Number.isSafeInteger(declaredLength) || declaredLength < 0 || declaredLength > MAX_OCSP_RESPONSE_BYTES) {
+            throw new Error('OCSP response exceeds the configured body limit')
+        }
+        if (response.body === null) return new Uint8Array()
+        const reader = response.body.getReader()
+        const chunks: Uint8Array[] = []
+        let total = 0
+        try {
+            for (;;) {
+                const { done, value } = await reader.read()
+                if (done) return Buffer.concat(chunks, total)
+                total += value.byteLength
+                if (total > MAX_OCSP_RESPONSE_BYTES) throw new Error('OCSP response exceeds the configured body limit')
+                chunks.push(value)
+            }
+        } finally {
+            reader.releaseLock()
+        }
+    } catch (error) {
+        void response.body?.cancel().catch(() => {})
+        throw error
+    }
+}
 
 export function ocspEndpoints(certificate: X509Certificate): string[] {
     return [...(certificate.infoAccess ?? '').matchAll(/^OCSP - URI:(.+)$/gm)]
@@ -97,16 +138,14 @@ export type LegacyOcspResult = 'good' | 'invalid-certificate' | 'retryable' | 'i
 export async function checkLegacyOcsp(cert: X509Certificate, issuer: X509Certificate): Promise<LegacyOcspResult> {
     const endpoint = ocspEndpoints(cert)[0]
     if (endpoint === undefined) return 'invalid-certificate'
-    const { buildOcspRequest, fetchOcspResponse, ocspCertIdFor, parseOcspResponse } = getVerifierModule()
+    const { buildOcspRequest, ocspCertIdFor, parseOcspResponse } = getVerifierModule()
     const checked = forOcspCodec(certificateParts(cert))
     const issuerParts = certificateParts(issuer)
     const issuedBy = forOcspCodec(issuerParts)
     const request = buildOcspRequest(checked, issuedBy)
     let bytes: Uint8Array
     try {
-        bytes = await fetchOcspResponse(endpoint, request, AbortSignal.timeout(OCSP_TIMEOUT_MS), {
-            maxResponseBytes: 256 * 1024
-        })
+        bytes = await requestOcsp({ url: endpoint, body: request, signal: AbortSignal.timeout(OCSP_TIMEOUT_MS) })
     } catch {
         return 'retryable'
     }

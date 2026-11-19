@@ -689,13 +689,28 @@ describe("OCSP Checks", () => {
         await expect(verifier.verifyAndDecodeTransaction(invalid)).rejects.toMatchObject({ status: VerificationStatus.VERIFICATION_FAILURE })
         expect(fetch).toHaveBeenCalledTimes(0)
         await expect(verifier.verifyAndDecodeTransaction(signed)).resolves.toMatchObject(payload)
-        expect(fetch.mock.calls.map(([url, init]) => [url, init?.method])).toEqual([
-            [signing.intermediateUrl, 'POST'],
-            [signing.rootUrl, 'POST'],
+        expect(fetch.mock.calls.map(([url, init]) => [url, init?.method, init?.redirect])).toEqual([
+            [signing.intermediateUrl, 'POST', 'manual'],
+            [signing.rootUrl, 'POST', 'manual'],
         ])
         await expect(verifier.verifyAndDecodeTransaction(signed)).resolves.toMatchObject(payload)
         await expect(verifier.verifyAndDecodeTransaction(invalid)).rejects.toMatchObject({ status: VerificationStatus.VERIFICATION_FAILURE })
         expect(fetch).toHaveBeenCalledTimes(2)
+    })
+
+    it('should reject a redirect from an OCSP responder without following it', async () => {
+        const signing = createSigningChain()
+        const verifier = new SignedDataVerifier([signing.root.raw], true, Environment.SANDBOX, 'com.example')
+        const signed = signPayloadWithChain({ bundleId: 'com.example', environment: Environment.SANDBOX }, signing.leafKeys.privateKey, signing.chain)
+        const fetch = jest.spyOn(globalThis, 'fetch').mockImplementation(async () =>
+            Response.redirect('https://other.example.com/ocsp', 302))
+
+        await expect(verifier.verifyAndDecodeTransaction(signed)).rejects.toMatchObject({
+            status: VerificationStatus.RETRYABLE_VERIFICATION_FAILURE,
+            cause: { code: 'transport-error', cause: { message: 'OCSP responder returned HTTP 302' } },
+        })
+        expect(fetch).toHaveBeenCalledTimes(1)
+        expect(fetch).toHaveBeenCalledWith(signing.intermediateUrl, expect.objectContaining({ redirect: 'manual' }))
     })
 
     it('should accept a good OCSP response from a delegated responder', async () => {
