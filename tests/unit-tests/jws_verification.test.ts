@@ -672,7 +672,7 @@ describe("OCSP Checks", () => {
         jest.restoreAllMocks()
     })
 
-    it('should authenticate the JWS before OCSP and reuse the verified chain', async () => {
+    it('should authenticate the JWS, start both OCSP requests together and reuse the verified chain', async () => {
         const signing = createSigningChain()
         const verifier = new SignedDataVerifier([signing.root.raw], true, Environment.SANDBOX, 'com.example')
         const payload = { bundleId: 'com.example', environment: Environment.SANDBOX }
@@ -680,16 +680,23 @@ describe("OCSP Checks", () => {
         const invalid = signPayloadWithChain(payload, signing.rootKeys.privateKey, signing.chain)
         const leafStatus = createOCSPResponse(signing.intermediateKeys.privateKey, { key: getKeyHash(signing.intermediate) }, [], getGoodSingleResponse(), signing.leaf, signing.intermediate)
         const intermediateStatus = createOCSPResponse(signing.rootKeys.privateKey, { key: getKeyHash(signing.root) }, [], getGoodSingleResponse(), signing.intermediate, signing.root)
+        let releaseResponses!: () => void
+        const pendingResponses = new Promise<void>(resolve => { releaseResponses = resolve })
         const fetch = jest.spyOn(globalThis, 'fetch').mockImplementation(async input => {
             const status = input === signing.intermediateUrl ? leafStatus : input === signing.rootUrl ? intermediateStatus : undefined
             if (status === undefined) throw new Error('Unexpected OCSP endpoint')
+            await pendingResponses
             return new Response(Uint8Array.from(status), { headers: { 'Content-Type': 'application/ocsp-response' } })
         })
 
         await expect(verifier.verifyAndDecodeTransaction(invalid)).rejects.toMatchObject({ status: VerificationStatus.VERIFICATION_FAILURE })
         expect(fetch).toHaveBeenCalledTimes(0)
-        await expect(verifier.verifyAndDecodeTransaction(signed)).resolves.toMatchObject(payload)
-        expect(fetch.mock.calls.map(([url, init]) => [url, init?.method, init?.redirect])).toEqual([
+        const verification = verifier.verifyAndDecodeTransaction(signed)
+        await Promise.resolve()
+        const requestsBeforeResponses = fetch.mock.calls.map(([url, init]) => [url, init?.method, init?.redirect])
+        releaseResponses()
+        await expect(verification).resolves.toMatchObject(payload)
+        expect(requestsBeforeResponses).toEqual([
             [signing.intermediateUrl, 'POST', 'manual'],
             [signing.rootUrl, 'POST', 'manual'],
         ])
@@ -709,8 +716,10 @@ describe("OCSP Checks", () => {
             status: VerificationStatus.RETRYABLE_VERIFICATION_FAILURE,
             cause: { code: 'transport-error', cause: { message: 'OCSP responder returned HTTP 302' } },
         })
-        expect(fetch).toHaveBeenCalledTimes(1)
-        expect(fetch).toHaveBeenCalledWith(signing.intermediateUrl, expect.objectContaining({ redirect: 'manual' }))
+        expect(fetch.mock.calls.map(([url, init]) => [url, init?.redirect])).toEqual([
+            [signing.intermediateUrl, 'manual'],
+            [signing.rootUrl, 'manual'],
+        ])
     })
 
     it('should accept a good OCSP response from a delegated responder', async () => {
