@@ -1025,6 +1025,13 @@
   resolved "https://registry.yarnpkg.com/@pkgr/core/-/core-0.2.9.tgz#d229a7b7f9dac167a156992ef23c7f023653f53b"
   integrity sha512-QNqXyfVS2wm9hweSYD2O7F0G06uurj9kZ96TRQE5Y9hU7+tgdZwIkbAKc5Ocy1HxEY2kuDQa6cQ1WRs/O5LFKA==
 
+"@preeternal/jws-verifier@0.0.1-rc.0":
+  version "0.0.1-rc.0"
+  resolved "https://registry.yarnpkg.com/@preeternal/jws-verifier/-/jws-verifier-0.0.1-rc.0.tgz#495b600710b37d785487baa7e3bf6fecd2070f35"
+  integrity sha512-hQT5TcdS4ulJ3rksW9bP7bvRsnGE4/TrQhJQiDyvQRYzxyWRniDaOLaqFk47Vx6bbl2dL720JyeKVYEbnKdALA==
+  dependencies:
+    zod "^4.4.3"
+
 "@shikijs/engine-oniguruma@^3.23.0":
   version "3.23.0"
   resolved "https://registry.yarnpkg.com/@shikijs/engine-oniguruma/-/engine-oniguruma-3.23.0.tgz#789421048d66ac1b33613169d6d18b9cc6e340ed"
@@ -1467,11 +1474,6 @@ balanced-match@^4.0.2:
   version "4.0.4"
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-4.0.4.tgz#bfb10662feed8196a2c62e7c68e17720c274179a"
   integrity sha512-BLrgEcRTwX2o6gGxGOCNyMvGSp35YofuYzw9h1IMTRmKqttAZZVU67bdb9Pr2vUHA8+j3i2tJfjO6C6+4myGTA==
-
-base64url@^3.0.1:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/base64url/-/base64url-3.0.1.tgz#6399d572e2bc3f90a9a8b22d5dbb0a32d33f788d"
-  integrity sha512-ir1UPr3dkwexU7FdV8qBBbNDRUhMmIekYMFZfi+C/sLNnRESKPl23nB9b2pltqfOQNnGzsDdId90AEtG5tCx4A==
 
 brace-expansion@^2.0.1:
   version "2.0.1"
@@ -2640,7 +2642,7 @@ jsonwebtoken@^9.0.2:
     ms "^2.1.1"
     semver "^7.5.4"
 
-jsrsasign@^11.1.5:
+jsrsasign@11.1.5:
   version "11.1.5"
   resolved "https://registry.yarnpkg.com/jsrsasign/-/jsrsasign-11.1.5.tgz#7bd0b3ae320ba6738169bde0691a18f8ce1af29a"
   integrity sha512-i6mAjey0/4UQmlOaNS2vROl8EkWV8Ei436reJAby2OPQ3lF6uXSs1VYpnM8hndmmCMFIzNc04Uw2GF+0JVLFbg==
@@ -3471,3 +3473,8 @@ yocto-queue@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/yocto-queue/-/yocto-queue-0.1.0.tgz#0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b"
   integrity sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==
+
+zod@^4.4.3:
+  version "4.6.7"
+  resolved "https://registry.yarnpkg.com/zod/-/zod-4.6.7.tgz#e806cf64a7f4e37635ce9f2f52c04c3766f75e5b"
+  integrity sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==

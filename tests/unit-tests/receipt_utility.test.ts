@@ -100,7 +100,7 @@ describe('Receipt Utility Tests', () => {
         const inAppPurchase = tlv('31', tlv('30', tlv('02', '06a7') + tlv('02', '01') + tlv('04', transactionId)))
         const payload = tlv('31', tlv('30', tlv('02', '11') + tlv('02', '01') + tlv('04', inAppPurchase)))
         const encapsulatedContent = tlv('30', tlv('06', '2a864886f70d010701') + tlv('a0', tlv('04', payload)))
-        const signedData = tlv('a0', tlv('30', tlv('02', '01') + tlv('31', '') + encapsulatedContent))
+        const signedData = tlv('a0', tlv('30', tlv('02', '01') + tlv('31', '') + encapsulatedContent + tlv('31', '')))
         const receipt = (extra: string) => Buffer.from(tlv('30', tlv('06', '2a864886f70d010702') + signedData + extra), 'hex').toString('base64')
         const receipt_utility = new ReceiptUtility()
 

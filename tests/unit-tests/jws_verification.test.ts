@@ -2,13 +2,11 @@
 
 import assert = require("assert");
 import jsonwebtoken = require('jsonwebtoken');
-import nodeFetch = require('node-fetch');
 import { KeyObject, X509Certificate, createHash, createPublicKey, generateKeyPairSync } from "crypto";
 import { KJUR, X509 } from "jsrsasign";
-import { Response } from "node-fetch";
 import { SignedDataVerifier, VerificationException, VerificationStatus } from "../../jws_verification";
 import { Environment } from "../../models/Environment";
-import { readFile, readBytes, getSignedPayloadVerifier, getSignedPayloadVerifierWithDefaultAppAppleId, getDefaultSignedPayloadVerifier } from "../util";
+import { readFile, readBytes, getSignedPayloadVerifierWithDefaultAppAppleId, getDefaultSignedPayloadVerifier } from "../util";
 
 const ROOT_CA_BASE64_ENCODED = "MIIBgjCCASmgAwIBAgIJALUc5ALiH5pbMAoGCCqGSM49BAMDMDYxCzAJBgNVBAYTAlVTMRMwEQYDVQQIDApDYWxpZm9ybmlhMRIwEAYDVQQHDAlDdXBlcnRpbm8wHhcNMjMwMTA1MjEzMDIyWhcNMzMwMTAyMjEzMDIyWjA2MQswCQYDVQQGEwJVUzETMBEGA1UECAwKQ2FsaWZvcm5pYTESMBAGA1UEBwwJQ3VwZXJ0aW5vMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEc+/Bl+gospo6tf9Z7io5tdKdrlN1YdVnqEhEDXDShzdAJPQijamXIMHf8xWWTa1zgoYTxOKpbuJtDplz1XriTaMgMB4wDAYDVR0TBAUwAwEB/zAOBgNVHQ8BAf8EBAMCAQYwCgYIKoZIzj0EAwMDRwAwRAIgemWQXnMAdTad2JDJWng9U4uBBL5mA7WI05H7oH7c6iQCIHiRqMjNfzUAyiu9h6rOU/K+iTR0I/3Y/NSWsXHX+acc";
 const INTERMEDIATE_CA_BASE64_ENCODED = "MIIBnzCCAUWgAwIBAgIBCzAKBggqhkjOPQQDAzA2MQswCQYDVQQGEwJVUzETMBEGA1UECAwKQ2FsaWZvcm5pYTESMBAGA1UEBwwJQ3VwZXJ0aW5vMB4XDTIzMDEwNTIxMzEwNVoXDTMzMDEwMTIxMzEwNVowRTELMAkGA1UEBhMCVVMxCzAJBgNVBAgMAkNBMRIwEAYDVQQHDAlDdXBlcnRpbm8xFTATBgNVBAoMDEludGVybWVkaWF0ZTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABBUN5V9rKjfRiMAIojEA0Av5Mp0oF+O0cL4gzrTF178inUHugj7Et46NrkQ7hKgMVnjogq45Q1rMs+cMHVNILWqjNTAzMA8GA1UdEwQIMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgEGMBAGCiqGSIb3Y2QGAgEEAgUAMAoGCCqGSM49BAMDA0gAMEUCIQCmsIKYs41ullssHX4rVveUT0Z7Is5/hLK1lFPTtun3hAIgc2+2RG5+gNcFVcs+XJeEl4GZ+ojl3ROOmll+ye7dynQ=";
@@ -107,6 +105,29 @@ function createCertificate(serial: number, subject: string, issuer: string, publ
         cakey: issuerPrivateKey
     })
     return new X509Certificate(certificate.getPEM())
+}
+
+function createSigningChain() {
+    const rootKeys = generateKeyPair()
+    const intermediateKeys = generateKeyPair()
+    const leafKeys = generateKeyPair()
+    const ca = { extname: 'basicConstraints', cA: true, critical: true }
+    const rootName = '/CN=SDK Test Root'
+    const intermediateName = '/CN=SDK Test Intermediate'
+    const rootUrl = 'http://ocsp.example.com/root'
+    const intermediateUrl = 'http://ocsp.example.com/issuer'
+    const root = createCertificate(10, rootName, rootName, rootKeys.publicKey, rootKeys.privateKey, [ca])
+    const intermediate = createCertificate(11, intermediateName, rootName, intermediateKeys.publicKey, rootKeys.privateKey, [
+        ca,
+        { extname: '1.2.840.113635.100.6.2.1', extn: '0500' },
+        { extname: 'authorityInfoAccess', array: [{ ocsp: rootUrl }] },
+    ])
+    const leaf = createCertificate(12, '/CN=SDK Test Leaf', intermediateName, leafKeys.publicKey, intermediateKeys.privateKey, [
+        { extname: '1.2.840.113635.100.6.11.1', extn: '0500' },
+        { extname: 'authorityInfoAccess', array: [{ ocsp: intermediateUrl }] },
+    ])
+    const chain = [leaf, intermediate, root].map(cert => cert.raw.toString('base64'))
+    return { root, intermediate, leaf, rootKeys, intermediateKeys, leafKeys, rootUrl, intermediateUrl, chain }
 }
 
 describe("Chain Verification Checks", () => {
@@ -278,6 +299,17 @@ describe("Chain Verification Checks", () => {
 })
 
 describe("Decoding checks", () => {
+    const signing = createSigningChain()
+    const signFixture = (name: string) => {
+        const fixture = readFile(`tests/resources/mock_signed_data/${name}`)
+        const payload = JSON.parse(Buffer.from(fixture.split('.')[1], 'base64url').toString())
+        return signPayloadWithChain({ ...payload, signedDate: Date.now() }, signing.leafKeys.privateKey, signing.chain)
+    }
+    const notificationJws = signFixture('testNotification')
+    const transactionJws = signFixture('transactionInfo')
+    const verifierForChain = (environment: Environment, bundleId = 'com.example', appAppleId = 1234) =>
+        new SignedDataVerifier([signing.root.raw], false, environment, bundleId, appAppleId)
+
     it('should fail to verify with a missing x5c header', async () => {
         const verifier = getSignedPayloadVerifierWithDefaultAppAppleId(Environment.PRODUCTION, "com.example")
         try {
@@ -331,9 +363,8 @@ describe("Decoding checks", () => {
 
     it('should fail to verify with an invalid bundle id for transaction', async () => {
         try {
-            const verifier = getSignedPayloadVerifierWithDefaultAppAppleId(Environment.SANDBOX, "com.example.x")
-            const transactionInfo = readFile('tests/resources/mock_signed_data/transactionInfo')
-            await verifier.verifyAndDecodeTransaction(transactionInfo)
+            const verifier = verifierForChain(Environment.SANDBOX, "com.example.x")
+            await verifier.verifyAndDecodeTransaction(transactionJws)
             assert(false)
         } catch (e) {
             expect(e).toBeInstanceOf(VerificationException)
@@ -342,10 +373,9 @@ describe("Decoding checks", () => {
     })
 
     it('should fail to verify a notification with an invalid app apple id', async () => {
-        const verifier = getSignedPayloadVerifier(Environment.PRODUCTION, "com.example", 1235)
+        const verifier = verifierForChain(Environment.PRODUCTION, "com.example", 1235)
         try {
-            const testNotification = readFile('tests/resources/mock_signed_data/testNotification')
-            await verifier.verifyAndDecodeNotification(testNotification)
+            await verifier.verifyAndDecodeNotification(notificationJws)
             assert(false)
         } catch (e) {
             expect(e).toBeInstanceOf(VerificationException)
@@ -354,10 +384,9 @@ describe("Decoding checks", () => {
     })
 
     it('should fail to verify a transaction with an invalid environment', async () => {
-        const verifier = getSignedPayloadVerifierWithDefaultAppAppleId(Environment.PRODUCTION, "com.example")
+        const verifier = verifierForChain(Environment.PRODUCTION)
         try {
-            const transactionInfo = readFile('tests/resources/mock_signed_data/transactionInfo')
-            await verifier.verifyAndDecodeTransaction(transactionInfo)
+            await verifier.verifyAndDecodeTransaction(transactionJws)
             assert(false)
         } catch (e) {
             expect(e).toBeInstanceOf(VerificationException)
@@ -379,10 +408,8 @@ describe("Decoding checks", () => {
 
     it('should fail to verify with an invalid environment', async () => {
         try {
-            const verifier = getSignedPayloadVerifierWithDefaultAppAppleId(Environment.PRODUCTION, "com.example")
-            const testNotification = readFile('tests/resources/mock_signed_data/testNotification')
-            const notification = await verifier.verifyAndDecodeNotification(testNotification)
-            await verifier.verifyAndDecodeNotification(testNotification)
+            const verifier = verifierForChain(Environment.PRODUCTION)
+            await verifier.verifyAndDecodeNotification(notificationJws)
             assert(false)
         } catch (e) {
             expect(e).toBeInstanceOf(VerificationException)
@@ -413,10 +440,17 @@ describe("Decoding checks", () => {
     })
 
     it('should verify and decode a valid notification', async () => {
-        const verifier = getSignedPayloadVerifierWithDefaultAppAppleId(Environment.SANDBOX, "com.example")
-        const testNotification = readFile('tests/resources/mock_signed_data/testNotification')
-        const notification = await verifier.verifyAndDecodeNotification(testNotification)
+        const verifier = verifierForChain(Environment.SANDBOX)
+        const notification = await verifier.verifyAndDecodeNotification(notificationJws)
         expect(notification.notificationType).toEqual("TEST")
+    })
+
+    it('should reject a presented root certificate that differs from the configured anchor', async () => {
+        const verifier = getSignedPayloadVerifierWithDefaultAppAppleId(Environment.SANDBOX, 'com.example')
+        const notification = readFile('tests/resources/mock_signed_data/testNotification')
+        await expect(verifier.verifyAndDecodeNotification(notification)).rejects.toMatchObject({
+            status: VerificationStatus.VERIFICATION_FAILURE,
+        })
     })
 
     it('should verify and decode a valid renewal info', async () => {
@@ -428,10 +462,8 @@ describe("Decoding checks", () => {
     })
 
     it('should verify and decode a valid transaction info', async () => {
-        const verifier = getSignedPayloadVerifierWithDefaultAppAppleId(Environment.SANDBOX, "com.example")
-
-        const transactionInfo = readFile('tests/resources/mock_signed_data/transactionInfo')
-        const transaction = await verifier.verifyAndDecodeTransaction(transactionInfo)
+        const verifier = verifierForChain(Environment.SANDBOX)
+        const transaction = await verifier.verifyAndDecodeTransaction(transactionJws)
         expect(transaction.bundleId).toEqual("com.example")
         expect(transaction.environment).toEqual(Environment.SANDBOX)
     })
@@ -607,8 +639,8 @@ describe("OCSP Checks", () => {
         }
     }
 
-    function createOCSPResponse(signingKey: string, responderId: object, certs: X509Certificate[], singleResponse: { [key: string]: any }): Buffer {
-        const certId = new (KJUR.asn1.ocsp.CertID as any)().getParamByCerts(intermediate.toString(), leaf.toString(), 'sha256')
+    function createOCSPResponse(signingKey: string, responderId: object, certs: X509Certificate[], singleResponse: { [key: string]: any }, checked = leaf, issuer = intermediate): Buffer {
+        const certId = new (KJUR.asn1.ocsp.CertID as any)().getParamByCerts(issuer.toString(), checked.toString(), 'sha256')
         const response = new (KJUR.asn1.ocsp as any).OCSPResponse({
             resstatus: 'successful',
             restype: 'ocspBasic',
@@ -623,7 +655,7 @@ describe("OCSP Checks", () => {
     }
 
     function mockOCSPResponse(body: Buffer, status: number = 200) {
-        return jest.spyOn(nodeFetch, 'default').mockImplementation(() => Promise.resolve(new Response(body, { status: status })))
+        return jest.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(new Response(Uint8Array.from(body), { status: status })))
     }
 
     async function expectOCSPFailure(status: VerificationStatus) {
@@ -638,6 +670,32 @@ describe("OCSP Checks", () => {
 
     afterEach(() => {
         jest.restoreAllMocks()
+    })
+
+    it('should authenticate the JWS before OCSP and reuse the verified chain', async () => {
+        const signing = createSigningChain()
+        const verifier = new SignedDataVerifier([signing.root.raw], true, Environment.SANDBOX, 'com.example')
+        const payload = { bundleId: 'com.example', environment: Environment.SANDBOX }
+        const signed = signPayloadWithChain(payload, signing.leafKeys.privateKey, signing.chain)
+        const invalid = signPayloadWithChain(payload, signing.rootKeys.privateKey, signing.chain)
+        const leafStatus = createOCSPResponse(signing.intermediateKeys.privateKey, { key: getKeyHash(signing.intermediate) }, [], getGoodSingleResponse(), signing.leaf, signing.intermediate)
+        const intermediateStatus = createOCSPResponse(signing.rootKeys.privateKey, { key: getKeyHash(signing.root) }, [], getGoodSingleResponse(), signing.intermediate, signing.root)
+        const fetch = jest.spyOn(globalThis, 'fetch').mockImplementation(async input => {
+            const status = input === signing.intermediateUrl ? leafStatus : input === signing.rootUrl ? intermediateStatus : undefined
+            if (status === undefined) throw new Error('Unexpected OCSP endpoint')
+            return new Response(Uint8Array.from(status), { headers: { 'Content-Type': 'application/ocsp-response' } })
+        })
+
+        await expect(verifier.verifyAndDecodeTransaction(invalid)).rejects.toMatchObject({ status: VerificationStatus.VERIFICATION_FAILURE })
+        expect(fetch).toHaveBeenCalledTimes(0)
+        await expect(verifier.verifyAndDecodeTransaction(signed)).resolves.toMatchObject(payload)
+        expect(fetch.mock.calls.map(([url, init]) => [url, init?.method])).toEqual([
+            [signing.intermediateUrl, 'POST'],
+            [signing.rootUrl, 'POST'],
+        ])
+        await expect(verifier.verifyAndDecodeTransaction(signed)).resolves.toMatchObject(payload)
+        await expect(verifier.verifyAndDecodeTransaction(invalid)).rejects.toMatchObject({ status: VerificationStatus.VERIFICATION_FAILURE })
+        expect(fetch).toHaveBeenCalledTimes(2)
     })
 
     it('should accept a good OCSP response from a delegated responder', async () => {
@@ -657,13 +715,13 @@ describe("OCSP Checks", () => {
         await getVerifier().testCheckOCSPStatus(leaf, intermediate)
     })
 
-    it('should accept OCSP response dates with fractional seconds', async () => {
+    it('should reject OCSP response dates with fractional seconds under RFC 6960', async () => {
         mockOCSPResponse(createOCSPResponse(responderKeys.privateKey, { key: getKeyHash(responder) }, [responder], {
             status: { status: 'good' },
             thisupdate: toGeneralizedTime(new Date(Date.now() - ONE_HOUR)).replace('Z', '.5Z'),
             nextupdate: toGeneralizedTime(new Date(Date.now() + ONE_HOUR)).replace('Z', '.25Z')
         }))
-        await getVerifier().testCheckOCSPStatus(leaf, intermediate)
+        await expectOCSPFailure(VerificationStatus.FAILURE)
     })
 
     it('should reject an OCSP response after its next update time', async () => {
@@ -721,7 +779,7 @@ describe("OCSP Checks", () => {
     })
 
     it('should return a retryable failure when the OCSP responder cannot be reached', async () => {
-        jest.spyOn(nodeFetch, 'default').mockImplementation(() => Promise.reject(new Error("Network error")))
+        jest.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.reject(new Error("Network error")))
         await expectOCSPFailure(VerificationStatus.RETRYABLE_VERIFICATION_FAILURE)
     })
 });
