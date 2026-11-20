@@ -1025,10 +1025,10 @@
   resolved "https://registry.yarnpkg.com/@pkgr/core/-/core-0.2.9.tgz#d229a7b7f9dac167a156992ef23c7f023653f53b"
   integrity sha512-QNqXyfVS2wm9hweSYD2O7F0G06uurj9kZ96TRQE5Y9hU7+tgdZwIkbAKc5Ocy1HxEY2kuDQa6cQ1WRs/O5LFKA==
 
-"@preeternal/jws-verifier@0.0.1-rc.2":
-  version "0.0.1-rc.2"
-  resolved "https://registry.yarnpkg.com/@preeternal/jws-verifier/-/jws-verifier-0.0.1-rc.2.tgz#e78b375c6be824d24c9dc8a0c6504aad0f939bf3"
-  integrity sha512-D5N8uK/5CN/5DC6GG3U2Xx3E3tYC1FayuS06SEh7xdGUDmU/GL/du1KFb1oQ/j9lvwuqt/e4Z46/Jg+TPSgdDw==
+"@preeternal/jws-verifier@^0.0.1":
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/@preeternal/jws-verifier/-/jws-verifier-0.0.1.tgz#f34fcd24ba4aefcd3ed9ffb4de8847e84708e873"
+  integrity sha512-heHM+sQRgoak9r3EjsKu7nDHYh3NcKynbutibotX7TKbAfP0m/D0jD8r5d3NR7GJig5PJybcaLF/M/YBlgd3ng==
   dependencies:
     zod "^4.6.7"
 
