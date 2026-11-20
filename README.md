@@ -11,7 +11,7 @@ The Node.js server library for the [App Store Server API](https://developer.appl
 
 ### Requirements
 
-- Node 22+
+- Node 22.12+
 
 ### NPM/Yarn
 ```bash
